@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LofiStack Component Gallery</title>
+<meta name="description" content="Reusable UI components for LofiStack, each built in plain HTML, CSS and JavaScript with its own page.">
+<meta property="og:title" content="LofiStack Component Gallery">
+<meta property="og:description" content="Reusable UI components for LofiStack, each built in plain HTML, CSS and JavaScript with its own page.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+</head>
+<body class="lsg-page">
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/" aria-current="page">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+    </nav>
+  </div>
+</header>
+
+<main class="lsg-home">
+  <section class="lsg-hero">
+    <div class="lsg-kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span></div>
+    <h1>Reusable UI, <em>one component at a time.</em></h1>
+    <p>Every component here is a self-contained piece of HTML, CSS and JavaScript with its own page. Open one to see it working, try its states, and copy the markup into your own project.</p>
+    <ul class="lsg-facts">
+      <li><b>2</b> components</li>
+      <li>No build step</li>
+      <li>Light &amp; dark</li>
+      <li>Mobile ready</li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="all-components" style="display:grid;gap:24px">
+    <div class="lsg-section-head">
+      <h2 id="all-components">All components</h2>
+      <span>02 total</span>
+    </div>
+
+  <div class="lsg-grid">
+    <article class="lsg-card">
+      <div class="lsg-preview">
+        <iframe src="/components/agent-log-card?embed" title="Agent Log Card preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+      </div>
+      <div class="lsg-card-body">
+        <div class="lsg-card-top"><b>01</b><span>/components/agent-log-card</span></div>
+        <h3><a class="lsg-card-link" href="/components/agent-log-card">Agent Log Card</a></h3>
+        <p>A record of one AI-agent task, shaped like a ticket stub. The prompt sits above the perforation and the result below it, with the agent, task type, date and status alongside.</p>
+        <ul class="lsg-tags"><li>Custom element</li><li>Copy &amp; expand</li><li>3 statuses</li></ul>
+        <span class="lsg-open">Open component <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
+
+    <article class="lsg-card">
+      <div class="lsg-preview">
+        <iframe src="/components/campaign-performance?embed" title="Campaign Performance Snapshot preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+      </div>
+      <div class="lsg-card-body">
+        <div class="lsg-card-top"><b>02</b><span>/components/campaign-performance</span></div>
+        <h3><a class="lsg-card-link" href="/components/campaign-performance">Campaign Performance Snapshot</a></h3>
+        <p>Ad performance at a glance. ROAS is set against spend, next to spend, leads, CPL/CPA and CTR, with a daily results chart you can hover.</p>
+        <ul class="lsg-tags"><li>Custom element</li><li>No dependencies</li><li>Hoverable chart</li></ul>
+        <span class="lsg-open">Open component <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
+  </div>
+  </section>
+
+  <footer class="lsg-home-foot">
+    <span>LofiStack Component Gallery</span>
+    <span>Plain HTML, CSS &amp; JavaScript</span>
+  </footer>
+</main>
+
+<script src="/assets/gallery.js" defer></script>
+</body>
+</html>

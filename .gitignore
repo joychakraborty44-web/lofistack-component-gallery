@@ -1,0 +1,15 @@
+# Private LofiStack Agent Log files — kept out of the public repository.
+# Remove these lines if you want your logs to be public.
+CLAUDE.md
+logs/
+submissions.md
+
+# Tooling
+.vercel/
+.claude/
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini

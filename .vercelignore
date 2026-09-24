@@ -1,0 +1,6 @@
+# Files that should never be deployed, even when deploying straight from this folder with the Vercel CLI.
+CLAUDE.md
+logs/
+submissions.md
+README.md
+.claude/

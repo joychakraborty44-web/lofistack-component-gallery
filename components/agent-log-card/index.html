@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable card that records one AI-agent task: prompt, agent, result, task type, date and status.">
+<meta property="og:title" content="Agent Log Card · LofiStack Components">
+<meta property="og:description" content="A reusable card that records one AI-agent task: prompt, agent, result, task type, date and status.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Agent Log Card · LofiStack Components</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #E7EBED;
+  --stage: #EEF1F2;
+  --ink: #12171C;
+  --muted: #58626C;
+  --faint: #8C96A0;
+  --line: #D3D9DE;
+  --panel: #F7F9F9;
+  --accent: #1E6B62;
+
+  /* ---- Agent Log Card tokens (override these to re-theme the component) ---- */
+  --alc-card: #FCFDFD;
+  --alc-ink: #12171C;
+  --alc-muted: #5A646E;
+  --alc-faint: #8C96A0;
+  --alc-line: #DCE2E6;
+  --alc-panel: #F1F4F5;
+  --alc-accent: #1E6B62;
+  --alc-accent-soft: #DDEEEB;
+  --alc-on-accent: #F4FBFA;
+  --alc-glow: rgba(30, 107, 98, 0.09);
+  --alc-shadow: rgba(18, 30, 38, 0.22);
+  --alc-ground: var(--stage);            /* colour behind the card — used by the perforation notches */
+  --alc-draft: #9A6511;      --alc-draft-bg: #F8EDD8;
+  --alc-selected: #2B57C4;   --alc-selected-bg: #E2E9FA;
+  --alc-submitted: #1D7A45;  --alc-submitted-bg: #DDF1E4;
+  --alc-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --alc-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --alc-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0E1114; --stage: #13171A; --ink: #E7ECEF; --muted: #9AA4AE; --faint: #6D7781;
+    --line: #262C32; --panel: #171C20; --accent: #5FC2B2;
+    --alc-card: #181D21; --alc-ink: #E9EDF0; --alc-muted: #9CA6B0; --alc-faint: #6E7882;
+    --alc-line: #2A3137; --alc-panel: #1F252A; --alc-accent: #5FC2B2; --alc-accent-soft: #1B3632;
+    --alc-on-accent: #0B1A18; --alc-glow: rgba(95, 194, 178, 0.08); --alc-shadow: rgba(0, 0, 0, 0.6);
+    --alc-draft: #E3B25E; --alc-draft-bg: #33280F;
+    --alc-selected: #86A6F5; --alc-selected-bg: #1A2544;
+    --alc-submitted: #6BD097; --alc-submitted-bg: #13301F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0E1114; --stage: #13171A; --ink: #E7ECEF; --muted: #9AA4AE; --faint: #6D7781;
+  --line: #262C32; --panel: #171C20; --accent: #5FC2B2;
+  --alc-card: #181D21; --alc-ink: #E9EDF0; --alc-muted: #9CA6B0; --alc-faint: #6E7882;
+  --alc-line: #2A3137; --alc-panel: #1F252A; --alc-accent: #5FC2B2; --alc-accent-soft: #1B3632;
+  --alc-on-accent: #0B1A18; --alc-glow: rgba(95, 194, 178, 0.08); --alc-shadow: rgba(0, 0, 0, 0.6);
+  --alc-draft: #E3B25E; --alc-draft-bg: #33280F;
+  --alc-selected: #86A6F5; --alc-selected-bg: #1A2544;
+  --alc-submitted: #6BD097; --alc-submitted-bg: #13301F;
+}
+
+/* =========================================================
+   Agent Log Card component  (copy this block + the script)
+   ========================================================= */
+agent-log-card {
+  display: block;
+  container-type: inline-size;
+  width: 100%;
+  max-width: 680px;
+  font-family: var(--alc-body);
+  color: var(--alc-ink);
+}
+.alc {
+  --pad: 30px;
+  position: relative;
+  background: var(--alc-card);
+  border: 1px solid var(--alc-line);
+  border-radius: 20px;
+  padding: calc(var(--pad) - 4px) var(--pad) var(--pad);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 22px 44px -30px var(--alc-shadow), 0 2px 6px -3px var(--alc-shadow);
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease;
+  display: grid;
+  gap: 22px;
+}
+.alc::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(460px circle at var(--mx, 70%) var(--my, -10%), var(--alc-glow), transparent 62%);
+  opacity: 0;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+.alc > * { position: relative; }
+.alc:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 34px 60px -34px var(--alc-shadow), 0 4px 10px -5px var(--alc-shadow); }
+.alc:hover::before { opacity: 1; }
+
+/* top rail */
+.alc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.alc-eyebrow {
+  font: 500 11px/1 var(--alc-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--alc-faint);
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.alc-eyebrow b { font-weight: 500; color: var(--alc-muted); }
+.alc-eyebrow i { font-style: normal; opacity: .6; }
+
+.alc-status {
+  --c: var(--alc-muted); --bg: var(--alc-panel);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px 6px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--c);
+  font: 600 12px/1 var(--alc-body);
+  letter-spacing: .01em;
+}
+.alc-status[data-state="draft"]     { --c: var(--alc-draft);     --bg: var(--alc-draft-bg); }
+.alc-status[data-state="selected"]  { --c: var(--alc-selected);  --bg: var(--alc-selected-bg); }
+.alc-status[data-state="submitted"] { --c: var(--alc-submitted); --bg: var(--alc-submitted-bg); }
+.alc-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); position: relative; }
+.alc-status[data-state="draft"] .alc-dot::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1.5px solid var(--c); opacity: 0;
+  animation: alc-ping 2.4s ease-out infinite;
+}
+.alc-status[data-state="submitted"] .alc-dot { width: 12px; height: 12px; display: grid; place-items: center; }
+.alc-status[data-state="submitted"] .alc-dot::before {
+  content: ""; width: 5px; height: 3px; margin-top: -1px;
+  border: solid var(--bg); border-width: 0 0 1.6px 1.6px; transform: rotate(-45deg);
+}
+@keyframes alc-ping { 0% { transform: scale(.5); opacity: .7; } 80%, 100% { transform: scale(1.4); opacity: 0; } }
+
+/* title */
+.alc-task {
+  margin: -4px 0 0;
+  font: 650 clamp(22px, 5.2cqi, 30px)/1.12 var(--alc-display);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  color: var(--alc-ink);
+}
+
+/* meta strip */
+.alc-meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 0.9fr;
+  border-block: 1px solid var(--alc-line);
+}
+.alc-meta > div { padding: 13px 16px; min-width: 0; }
+.alc-meta > div:first-child { padding-left: 0; }
+.alc-meta > div + div { border-left: 1px solid var(--alc-line); }
+.alc-meta dt {
+  font: 500 10.5px/1 var(--alc-mono);
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--alc-faint);
+  margin-bottom: 8px;
+}
+.alc-meta dd { margin: 0; font: 500 14.5px/1.35 var(--alc-body); overflow-wrap: anywhere; }
+.alc-agent { display: inline-flex; align-items: center; gap: 8px; }
+.alc-agent::before {
+  content: ""; flex: none; width: 8px; height: 8px; border-radius: 2px;
+  background: var(--alc-accent);
+  box-shadow: 0 0 0 3px var(--alc-accent-soft);
+  transition: transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.alc:hover .alc-agent::before { transform: rotate(45deg); }
+.alc-date { font-variant-numeric: tabular-nums; }
+
+/* input / output sections */
+.alc-io { display: grid; gap: 12px; }
+.alc-io-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+.alc-io-label { display: inline-flex; align-items: center; gap: 10px; font: 600 13px/1 var(--alc-body); color: var(--alc-ink); }
+.alc-tag {
+  font: 500 10px/1 var(--alc-mono); letter-spacing: .1em;
+  padding: 5px 7px 4px; border-radius: 6px;
+  background: var(--alc-accent-soft); color: var(--alc-accent);
+}
+.alc-out .alc-tag { background: var(--alc-accent); color: var(--alc-on-accent); }
+
+.alc-btn {
+  appearance: none; border: 1px solid transparent; background: transparent;
+  font: 500 12px/1 var(--alc-body); color: var(--alc-muted);
+  padding: 7px 10px; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.alc-btn:hover { background: var(--alc-panel); color: var(--alc-ink); border-color: var(--alc-line); }
+.alc-btn:focus-visible { outline: 2px solid var(--alc-accent); outline-offset: 2px; }
+.alc-btn svg { width: 13px; height: 13px; }
+.alc-btn[data-done] { color: var(--alc-accent); }
+
+.alc-prompt {
+  margin: 0;
+  position: relative;
+  background: var(--alc-panel);
+  border-radius: 12px;
+  padding: 14px 16px 14px 36px;
+  font: 400 13px/1.65 var(--alc-mono);
+  color: var(--alc-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: calc(1.65em * 9 + 28px);
+  overflow: hidden;
+  transition: max-height .5s cubic-bezier(.2,.7,.2,1);
+}
+.alc-prompt::before {
+  content: "›"; position: absolute; left: 16px; top: 13px;
+  color: var(--alc-accent); font-weight: 500;
+}
+.alc--clamped .alc-prompt:not(.is-open) {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent);
+          mask-image: linear-gradient(to bottom, #000 62%, transparent);
+}
+.alc-expand { justify-self: start; margin-top: -4px; padding-left: 0; }
+.alc-expand:hover { padding-left: 10px; }
+.alc-expand svg { transition: transform .35s ease; }
+.alc-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* perforation between input and output */
+.alc-tear {
+  display: flex; align-items: center;
+  margin-inline: calc(var(--pad) * -1 - 1px);
+  height: 22px;
+}
+.alc-notch {
+  flex: none; width: 12px; height: 22px;
+  background: var(--alc-ground);
+  border: 1px solid var(--alc-line);
+}
+.alc-notch--l { border-left: 0; border-radius: 0 22px 22px 0; }
+.alc-notch--r { border-right: 0; border-radius: 22px 0 0 22px; }
+.alc-perf {
+  flex: 1; height: 2px; margin-inline: 10px;
+  background-image: linear-gradient(to right, var(--alc-line) 55%, transparent 0);
+  background-size: 9px 2px;
+  transition: background-position 1.2s cubic-bezier(.2,.7,.2,1);
+}
+.alc:hover .alc-perf { background-position: 36px 0; }
+
+/* result */
+.alc-result { font: 400 15px/1.62 var(--alc-body); color: var(--alc-ink); max-width: 64ch; }
+.alc-result > * { margin: 0; }
+.alc-result > * + * { margin-top: 12px; }
+.alc-result ul { padding: 0; list-style: none; display: grid; gap: 6px; }
+.alc-result li { padding-left: 18px; position: relative; color: var(--alc-muted); }
+.alc-result li::before { content: ""; position: absolute; left: 2px; top: .8em; width: 8px; height: 1.5px; background: var(--alc-accent); }
+.alc-result code { font: 400 .88em var(--alc-mono); background: var(--alc-panel); padding: 1px 5px; border-radius: 5px; }
+.alc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.alc-chip {
+  font: 400 12px/1 var(--alc-mono); color: var(--alc-muted);
+  padding: 7px 10px; border: 1px solid var(--alc-line); border-radius: 999px;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.alc-chip:hover { border-color: var(--alc-accent); color: var(--alc-accent); transform: translateY(-1px); }
+
+/* narrow: stack meta, tighten padding */
+@container (max-width: 540px) {
+  .alc { --pad: 20px; border-radius: 18px; gap: 18px; }
+  .alc-meta { grid-template-columns: 1fr; }
+  .alc-meta > div, .alc-meta > div:first-child {
+    padding: 11px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  }
+  .alc-meta > div + div { border-left: 0; border-top: 1px solid var(--alc-line); }
+  .alc-meta dt { margin: 0; }
+  .alc-meta dd { text-align: right; }
+  .alc-prompt { font-size: 12.5px; padding-left: 30px; }
+  .alc-prompt::before { left: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alc, .alc::before, .alc-perf, .alc-prompt, .alc-agent::before, .alc-chip { transition: none; }
+  .alc:hover { transform: none; }
+  .alc-status .alc-dot::after { animation: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif; letter-spacing: -0.025em; }
+.intro p { margin: 0; max-width: 60ch; color: var(--muted); }
+
+.stage {
+  position: relative;
+  background: var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: clamp(28px, 6vw, 64px) clamp(16px, 5vw, 56px);
+  display: grid; justify-items: center; gap: 22px;
+}
+.crop { position: absolute; width: 14px; height: 14px; border-color: var(--faint); border-style: solid; opacity: .55; }
+.crop.tl { top: 14px; left: 14px; border-width: 1px 0 0 1px; }
+.crop.tr { top: 14px; right: 14px; border-width: 1px 1px 0 0; }
+.crop.bl { bottom: 14px; left: 14px; border-width: 0 0 1px 1px; }
+.crop.br { bottom: 14px; right: 14px; border-width: 0 1px 1px 0; }
+
+.stage-bar { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; gap: 12px 16px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 46ch; }
+.seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--ground); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 500 12.5px/1 "IBM Plex Sans", system-ui, sans-serif; color: var(--muted);
+  padding: 8px 12px; border-radius: 7px; transition: background .2s, color .2s;
+}
+.seg button[aria-pressed="true"] { background: var(--alc-card); color: var(--ink); box-shadow: 0 1px 3px -1px var(--alc-shadow); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg-label { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin-right: 8px; }
+.seg-wrap { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 "Bricolage Grotesque", system-ui, sans-serif; letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 9px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 "IBM Plex Mono", monospace; color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+
+.code-wrap { overflow-x: auto; border-radius: 12px; background: var(--alc-panel); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 "IBM Plex Mono", ui-monospace, monospace; color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card" aria-current="page"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 01</span></div>
+    <h1>Agent Log Card</h1>
+    <p>A record of one AI-agent task: what was asked, which agent did it, and what came back. The prompt sits above the perforation and the result below it, like a ticket stub.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
+
+    <agent-log-card
+      id="demo-card"
+      task="Build the Agent Log Card for the LofiStack Component Gallery"
+      agent="Claude Code · Opus 5.5"
+      type="UI Component"
+      date="2026-09-25"
+      status="draft"
+      week="1"
+      entry="1">
+      <div data-field="prompt">
+        Build the first component for my LofiStack Component Gallery: an AI Agent Task Log Card.
+        Create a polished, reusable UI component that displays:
+
+        * Task name
+        * AI Agent used
+        * Prompt / Workflow
+        * Result
+        * Task type
+        * Date
+        * Status
+
+        Design it to feel modern, premium, minimal, and suitable for LofiStack's internal/product library.
+        Requirements:
+
+        * Make it visually impressive but practical.
+        * Fully responsive for mobile and desktop.
+        * Use clean HTML/CSS/JS and keep the component reusable.
+        * Give it a unique design, not a generic dashboard card.
+        * Add subtle hover/micro-interactions.
+        * Make all content easy to customize.
+        * Build it as a standalone component that can later have its own direct URL in the gallery.
+
+        Do not build the whole gallery yet. Only create this first component.
+      </div>
+      <div data-field="result">
+        <p>A reusable <code>&lt;agent-log-card&gt;</code> element in plain HTML, CSS and JS, published as its own page for the gallery.</p>
+        <ul>
+          <li>Short fields are set as attributes; the prompt and result go in as child content.</li>
+          <li>Stacks to a single column at phone width; light and dark themes.</li>
+          <li>Draft, Selected and Submitted states; copy button and expandable prompt.</li>
+        </ul>
+        <div class="alc-chips"><span class="alc-chip">agent-log-card.html</span><span class="alc-chip">Custom element</span><span class="alc-chip">No dependencies</span></div>
+      </div>
+    </agent-log-card>
+
+    <div class="stage-bar">
+      <p class="note">Sample content: the real prompt and output from building this component with Claude Code on 25 Sep 2026.</p>
+      <div class="seg-wrap">
+        <span class="seg-label">Status</span>
+        <div class="seg" role="group" aria-label="Preview status">
+          <button type="button" id="st-draft" data-status="draft" aria-pressed="true">Draft</button>
+          <button type="button" id="st-selected" data-status="selected" aria-pressed="false">Selected</button>
+          <button type="button" id="st-submitted" data-status="submitted" aria-pressed="false">Submitted</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <table class="fields">
+        <tr><td>task</td><td>Task name, shown as the title.</td></tr>
+        <tr><td>agent</td><td>Agent or tool used, plus model if known.</td></tr>
+        <tr><td>type</td><td>Task category, e.g. Research, Coding, UI Component.</td></tr>
+        <tr><td>date</td><td><code>YYYY-MM-DD</code>; displayed as 25 Sep 2026.</td></tr>
+        <tr><td>status</td><td><code>draft</code>, <code>selected</code> or <code>submitted</code>.</td></tr>
+        <tr><td>week · entry</td><td>Optional. Shown in the top rail.</td></tr>
+        <tr><td>[data-field="prompt"]</td><td>Plain text. Line breaks are kept; indentation is trimmed.</td></tr>
+        <tr><td>[data-field="result"]</td><td>Any HTML: paragraphs, lists, <code>.alc-chip</code> tags.</td></tr>
+      </table>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="alc-btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;agent-log-card</span>
+  <span class="a">task=</span>"Task name"
+  <span class="a">agent=</span>"Agent · Model"
+  <span class="a">type=</span>"Task type"
+  <span class="a">date=</span>"2026-09-25"
+  <span class="a">status=</span>"draft"
+  <span class="a">week=</span>"1" <span class="a">entry=</span>"1"<span class="t">&gt;</span>
+  <span class="t">&lt;div</span> <span class="a">data-field=</span>"prompt"<span class="t">&gt;</span>
+    The exact prompt or workflow…
+  <span class="t">&lt;/div&gt;</span>
+  <span class="t">&lt;div</span> <span class="a">data-field=</span>"result"<span class="t">&gt;</span>
+    <span class="t">&lt;p&gt;</span>What the agent produced…<span class="t">&lt;/p&gt;</span>
+  <span class="t">&lt;/div&gt;</span>
+<span class="t">&lt;/agent-log-card&gt;</span>
+
+<span class="a">// or from data:</span>
+card.data = { task, agent, type, date, status, prompt, result };</pre></div>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/"><small>← Back to</small><strong>All components</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/campaign-performance"><small>Next · 02 →</small><strong>Campaign Performance Snapshot</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 01 of 02</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <agent-log-card> — reusable custom element
+   ========================================================= */
+(() => {
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const STATUS = { draft: "Draft", selected: "Selected", submitted: "Submitted" };
+  const ICON_COPY = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="2"/><path d="M10.5 5V3.5a1.5 1.5 0 0 0-1.5-1.5H3.5A1.5 1.5 0 0 0 2 3.5V9a1.5 1.5 0 0 0 1.5 1.5H5"/></svg>';
+  const ICON_CHEV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 6.5 8 10l4-3.5"/></svg>';
+
+  const TEMPLATE = `
+    <article class="alc">
+      <header class="alc-top">
+        <span class="alc-eyebrow"></span>
+        <span class="alc-status" role="status"><span class="alc-dot"></span><span class="alc-status-label"></span></span>
+      </header>
+      <h2 class="alc-task"></h2>
+      <dl class="alc-meta">
+        <div><dt>Agent</dt><dd><span class="alc-agent"></span></dd></div>
+        <div><dt>Task type</dt><dd class="alc-type"></dd></div>
+        <div><dt>Date</dt><dd><time class="alc-date"></time></dd></div>
+      </dl>
+      <section class="alc-io alc-in">
+        <div class="alc-io-head">
+          <span class="alc-io-label"><span class="alc-tag">IN</span>Prompt / Workflow</span>
+          <button type="button" class="alc-btn alc-copy">${ICON_COPY}<span>Copy</span></button>
+        </div>
+        <pre class="alc-prompt"></pre>
+        <button type="button" class="alc-btn alc-expand" aria-expanded="false" hidden>${ICON_CHEV}<span>Show full prompt</span></button>
+      </section>
+      <div class="alc-tear" aria-hidden="true"><span class="alc-notch alc-notch--l"></span><span class="alc-perf"></span><span class="alc-notch alc-notch--r"></span></div>
+      <section class="alc-io alc-out">
+        <div class="alc-io-head"><span class="alc-io-label"><span class="alc-tag">OUT</span>Result</span></div>
+        <div class="alc-result"></div>
+      </section>
+    </article>`;
+
+  function dedent(text) {
+    const lines = String(text).replace(/\t/g, "  ").split("\n");
+    while (lines.length && !lines[0].trim()) lines.shift();
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    const indents = lines.filter(l => l.trim()).map(l => l.match(/^ */)[0].length);
+    const min = indents.length ? Math.min(...indents) : 0;
+    return lines.map(l => l.slice(min)).join("\n");
+  }
+
+  function formatDate(value) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value || "");
+    return m ? `${+m[3]} ${MONTHS[+m[2] - 1]} ${m[1]}` : (value || "");
+  }
+
+  function pad2(n) { return String(n).padStart(2, "0"); }
+
+  class AgentLogCard extends HTMLElement {
+    static get observedAttributes() { return ["task", "agent", "type", "date", "status", "week", "entry"]; }
+
+    connectedCallback() { if (!this._built) this._build(); }
+    attributeChangedCallback() { if (this._built) this._sync(); }
+
+    _build() {
+      const promptSrc = this.querySelector(':scope > [data-field="prompt"]');
+      const resultSrc = this.querySelector(':scope > [data-field="result"]');
+      const promptText = promptSrc ? dedent(promptSrc.textContent) : "";
+      const resultNodes = resultSrc ? Array.from(resultSrc.childNodes) : [];
+
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".alc"), eyebrow: q(".alc-eyebrow"), status: q(".alc-status"), statusLabel: q(".alc-status-label"),
+        task: q(".alc-task"), agent: q(".alc-agent"), type: q(".alc-type"), date: q(".alc-date"),
+        prompt: q(".alc-prompt"), copy: q(".alc-copy"), expand: q(".alc-expand"), result: q(".alc-result")
+      };
+      this.$.prompt.textContent = promptText;
+      resultNodes.forEach(n => this.$.result.appendChild(n));
+
+      this.$.card.addEventListener("pointermove", e => {
+        const r = this.$.card.getBoundingClientRect();
+        this.$.card.style.setProperty("--mx", `${e.clientX - r.left}px`);
+        this.$.card.style.setProperty("--my", `${e.clientY - r.top}px`);
+      });
+      this.$.copy.addEventListener("click", () => this._copy());
+      this.$.expand.addEventListener("click", () => this._toggle());
+
+      this._built = true;
+      this._sync();
+      const check = () => this._checkClamp();
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(check);
+      if ("ResizeObserver" in window) new ResizeObserver(check).observe(this.$.prompt);
+      requestAnimationFrame(check);
+    }
+
+    _sync() {
+      const a = n => (this.getAttribute(n) || "").trim();
+      const $ = this.$;
+      $.task.textContent = a("task") || "Untitled task";
+      $.agent.textContent = a("agent") || "—";
+      $.type.textContent = a("type") || "—";
+      $.date.textContent = formatDate(a("date")) || "—";
+      $.date.setAttribute("datetime", a("date"));
+
+      const key = a("status").toLowerCase() || "draft";
+      $.status.dataset.state = key;
+      $.statusLabel.textContent = STATUS[key] || (key.charAt(0).toUpperCase() + key.slice(1));
+
+      const parts = [];
+      if (a("week")) parts.push(`<span>Week <b>${pad2(parseInt(a("week"), 10) || a("week"))}</b></span>`);
+      if (a("entry")) parts.push(`<span>Entry <b>${pad2(parseInt(a("entry"), 10) || a("entry"))}</b></span>`);
+      $.eyebrow.innerHTML = parts.length ? parts.join("<i>/</i>") : "<span>Agent Log</span>";
+    }
+
+    _checkClamp() {
+      const p = this.$.prompt;
+      if (p.classList.contains("is-open")) return;
+      const over = p.scrollHeight > p.clientHeight + 2;
+      this.$.card.classList.toggle("alc--clamped", over);
+      this.$.expand.hidden = !over;
+    }
+
+    _toggle() {
+      const p = this.$.prompt, btn = this.$.expand;
+      const open = !p.classList.contains("is-open");
+      if (open) {
+        p.style.maxHeight = p.scrollHeight + "px";
+        p.classList.add("is-open");
+      } else {
+        p.style.maxHeight = "";
+        p.classList.remove("is-open");
+      }
+      btn.setAttribute("aria-expanded", String(open));
+      btn.querySelector("span").textContent = open ? "Collapse prompt" : "Show full prompt";
+    }
+
+    _copy() {
+      const btn = this.$.copy, label = btn.querySelector("span");
+      const done = text => {
+        label.textContent = text; btn.dataset.done = "";
+        clearTimeout(this._t);
+        this._t = setTimeout(() => { label.textContent = "Copy"; delete btn.dataset.done; }, 1600);
+      };
+      const fallback = () => {
+        const range = document.createRange(); range.selectNodeContents(this.$.prompt);
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        done("Selected — press Ctrl+C");
+      };
+      try {
+        navigator.clipboard.writeText(this.$.prompt.textContent).then(() => done("Copied"), fallback);
+      } catch (e) { fallback(); }
+    }
+
+    /* Programmatic API: card.data = { task, agent, type, date, status, week, entry, prompt, result } */
+    set data(d) {
+      if (!this._built) this._build();
+      ["task", "agent", "type", "date", "status", "week", "entry"].forEach(k => {
+        if (d[k] != null) this.setAttribute(k, d[k]);
+      });
+      if (d.prompt != null) {
+        this.$.prompt.textContent = dedent(d.prompt);
+        this.$.prompt.classList.remove("is-open"); this.$.prompt.style.maxHeight = "";
+        this._checkClamp();
+      }
+      if (d.result != null) {
+        this.$.result.replaceChildren();
+        (Array.isArray(d.result) ? d.result : String(d.result).split(/\n\s*\n/)).forEach(t => {
+          const p = document.createElement("p"); p.textContent = String(t).trim(); this.$.result.appendChild(p);
+        });
+      }
+    }
+  }
+
+  if (!customElements.get("agent-log-card")) customElements.define("agent-log-card", AgentLogCard);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const card = document.getElementById("demo-card");
+  const buttons = document.querySelectorAll(".seg button");
+  buttons.forEach(b => b.addEventListener("click", () => {
+    card.setAttribute("status", b.dataset.status);
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const text = document.getElementById("usage-code").textContent;
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    try {
+      navigator.clipboard.writeText(text).then(() => done("Copied"), () => {
+        const r = document.createRange(); r.selectNodeContents(document.getElementById("usage-code"));
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+      });
+    } catch (e) { done("Select the code to copy"); }
+  });
+})();
+</script>
+</body>
+</html>
