@@ -1,0 +1,1063 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable AI usage dashboard: daily tokens, requests or cost stacked by model tier, a monthly token quota ring and a month-end cost estimate.">
+<meta property="og:title" content="AI Usage Analytics · LofiStack Components">
+<meta property="og:description" content="A reusable AI usage dashboard: daily tokens, requests or cost stacked by model tier, a monthly token quota ring and a month-end cost estimate.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>AI Usage Analytics · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #EDEBF1;
+  --stage: #F6F4F9;
+  --ink: #1D1B22;
+  --muted: #5A5664;
+  --faint: #77727F;
+  --line: #DFDBE6;
+  --panel: #FAF9FC;
+  --accent: #6D4BC3;
+
+  /* ---- AI Usage Analytics tokens (override these to re-theme the component) ---- */
+  --aua-card: #FFFFFF;
+  --aua-ink: #1D1B22;
+  --aua-muted: #57535F;
+  --aua-faint: #6E6977;
+  --aua-line: #E8E5EE;
+  --aua-grid: #EEEBF2;
+  --aua-axis: #CFCAD8;
+  --aua-tint: #F6F3FB;
+  --aua-lilac: #6D4BC3;
+  --aua-lilac-soft: #EEE7FB;
+  --aua-focus: #6D4BC3;
+  /* charcoal side panel */
+  --aua-panel: #25232B;
+  --aua-panel-2: #2E2B35;
+  --aua-panel-ink: #F4F1F8;
+  --aua-panel-muted: #BDB7C8;
+  --aua-panel-line: #3C3844;
+  --aua-ring: #B79CF0;
+  --aua-ring-track: #3A3642;
+  --aua-mint: #5FD3AA;
+  --aua-warn: #F3B36B;
+  /* series: validated all-pairs order (lilac, mint, apricot) for the card surface … */
+  --aua-c1: #8B63D9;
+  --aua-c2: #1A9E74;
+  --aua-c3: #D9822B;
+  /* … and for the charcoal panel */
+  --aua-pc1: #9F7AEA;
+  --aua-pc2: #27A880;
+  --aua-pc3: #D27C49;
+  --aua-tip: #25232B;
+  --aua-tip-ink: #F4F1F8;
+  --aua-shadow: rgba(29, 22, 44, 0.22);
+  --aua-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --aua-display: ui-rounded, "SF Pro Rounded", "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --aua-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0F0E12; --stage: #151419; --ink: #EEEBF3; --muted: #ABA5B6; --faint: #8A8495;
+    --line: #2A2731; --panel: #18171C; --accent: #B79CF0;
+    --aua-card: #1C1B21; --aua-ink: #EEEBF3; --aua-muted: #ADA7B8; --aua-faint: #918B9C;
+    --aua-line: #2E2B35; --aua-grid: #29262F; --aua-axis: #3E3A47; --aua-tint: #24222A;
+    --aua-lilac: #B79CF0; --aua-lilac-soft: rgba(183, 156, 240, 0.14); --aua-focus: #B79CF0;
+    --aua-panel: #131217; --aua-panel-2: #1B1A20; --aua-panel-ink: #EEEBF3; --aua-panel-muted: #ADA7B8;
+    --aua-panel-line: #2C2932; --aua-ring-track: #2C2932;
+    --aua-c1: #9F7AEA; --aua-c2: #27A880; --aua-c3: #D27C49;
+    --aua-tip: #EEEBF3; --aua-tip-ink: #1D1B22; --aua-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0F0E12; --stage: #151419; --ink: #EEEBF3; --muted: #ABA5B6; --faint: #8A8495;
+  --line: #2A2731; --panel: #18171C; --accent: #B79CF0;
+  --aua-card: #1C1B21; --aua-ink: #EEEBF3; --aua-muted: #ADA7B8; --aua-faint: #918B9C;
+  --aua-line: #2E2B35; --aua-grid: #29262F; --aua-axis: #3E3A47; --aua-tint: #24222A;
+  --aua-lilac: #B79CF0; --aua-lilac-soft: rgba(183, 156, 240, 0.14); --aua-focus: #B79CF0;
+  --aua-panel: #131217; --aua-panel-2: #1B1A20; --aua-panel-ink: #EEEBF3; --aua-panel-muted: #ADA7B8;
+  --aua-panel-line: #2C2932; --aua-ring-track: #2C2932;
+  --aua-c1: #9F7AEA; --aua-c2: #27A880; --aua-c3: #D27C49;
+  --aua-tip: #EEEBF3; --aua-tip-ink: #1D1B22; --aua-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   AI Usage Analytics component  (copy this block + the script)
+   ========================================================= */
+ai-usage-analytics {
+  display: block;
+  container: aua / inline-size;
+  width: 100%;
+  max-width: 980px;
+  font-family: var(--aua-sans);
+  color: var(--aua-ink);
+}
+.aua {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 290px;
+  background: var(--aua-card);
+  border: 1px solid var(--aua-line);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -46px var(--aua-shadow), 0 2px 6px -4px var(--aua-shadow);
+}
+.aua-main { padding: 24px 26px 20px; min-width: 0; display: grid; gap: 18px; align-content: start; }
+
+/* header + filters */
+.aua-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 18px; flex-wrap: wrap; }
+.aua-intro { display: grid; gap: 6px; min-width: 0; }
+.aua-eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 600 11px/1 var(--aua-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--aua-lilac); }
+.aua-eyebrow svg { width: 14px; height: 14px; }
+.aua-title { margin: 0; font: 650 clamp(19px, 3cqi, 24px)/1.15 var(--aua-display); letter-spacing: -0.015em; text-wrap: balance; }
+.aua-title:empty, .aua-eyebrow-text:empty, .aua-foot:empty { display: none; }
+.aua-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.aua-seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--aua-tint); border: 1px solid var(--aua-line); }
+.aua-seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  padding: 8px 13px; border-radius: 999px;
+  font: 600 12.5px/1 var(--aua-sans); color: var(--aua-muted);
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.aua-seg button:hover { color: var(--aua-ink); }
+.aua-seg button[aria-pressed="true"] { background: var(--aua-card); color: var(--aua-lilac); box-shadow: 0 0 0 1px color-mix(in oklab, var(--aua-lilac) 35%, transparent), 0 4px 10px -6px var(--aua-shadow); }
+.aua-seg button:focus-visible { outline: 2px solid var(--aua-focus); outline-offset: 2px; }
+
+/* kpis */
+.aua-kpis { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+.aua-kpi { margin: 0; min-width: 0; padding: 0 16px; display: grid; gap: 5px; align-content: start; }
+.aua-kpi:first-child { padding-left: 0; }
+.aua-kpi + .aua-kpi { border-left: 1px solid var(--aua-line); }
+.aua-kpi dt { font: 600 10.5px/1.2 var(--aua-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--aua-faint); }
+.aua-kpi dd { margin: 0; min-width: 0; }
+.aua-kv { font: 650 clamp(22px, 3.4cqi, 28px)/1.05 var(--aua-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.aua-ks { font-size: 12.5px; color: var(--aua-muted); font-variant-numeric: tabular-nums; }
+
+/* legend */
+.aua-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.aua-leg {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 11px 7px 9px; border-radius: 999px;
+  border: 1px solid var(--aua-line); background: var(--aua-card);
+  font: 600 12.5px/1 var(--aua-sans); color: var(--aua-ink); font-variant-numeric: tabular-nums;
+  transition: opacity .25s, border-color .2s, background .2s;
+}
+.aua-leg:hover { border-color: var(--aua-axis); }
+.aua-leg i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); flex: none; }
+.aua-leg span { font-weight: 500; color: var(--aua-muted); }
+.aua-leg[aria-pressed="true"] { background: var(--aua-lilac-soft); border-color: color-mix(in oklab, var(--aua-lilac) 45%, transparent); }
+.aua-legend.is-isolated .aua-leg[aria-pressed="false"] { opacity: .5; }
+.aua-leg:focus-visible { outline: 2px solid var(--aua-focus); outline-offset: 2px; }
+.aua-legend-row { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.aua-c-by { margin-top: 6px; }
+.aua-hint { font-size: 12px; color: var(--aua-faint); align-self: center; margin-left: 4px; }
+
+/* chart */
+.aua-plot { position: relative; outline: none; border-radius: 12px; touch-action: pan-y; }
+.aua-plot:focus-visible { box-shadow: 0 0 0 2px var(--aua-focus); }
+.aua-svg { display: block; width: 100%; overflow: visible; }
+.aua-grid line { stroke: var(--aua-grid); stroke-width: 1; shape-rendering: crispEdges; }
+.aua-grid line.is-base { stroke: var(--aua-axis); }
+.aua-ylab, .aua-xlab { font: 500 11px var(--aua-sans); fill: var(--aua-faint); font-variant-numeric: tabular-nums; }
+.aua-xlab.is-active { fill: var(--aua-ink); font-weight: 650; }
+.aua-col { transition: opacity .2s; }
+.aua-cols.has-active .aua-col:not(.is-active) { opacity: .4; }
+.aua-col .aua-hit { fill: transparent; }
+.aua-col.is-active .aua-hit { fill: color-mix(in oklab, var(--aua-lilac) 7%, transparent); }
+.aua-col.is-weekend .aua-hit { fill: color-mix(in oklab, var(--aua-tint) 70%, transparent); }
+.aua-col.is-weekend.is-active .aua-hit { fill: color-mix(in oklab, var(--aua-lilac) 9%, transparent); }
+.aua-bars { transform-box: fill-box; transform-origin: 50% 100%; }
+.aua.is-pending .aua-bars { transform: scaleY(0); }
+.aua.is-anim .aua-bars { animation: aua-grow .5s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i) * 14ms); }
+@keyframes aua-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+.aua-tip {
+  position: absolute; z-index: 2; top: 0; left: 0; pointer-events: none;
+  min-width: 170px; padding: 10px 12px; border-radius: 12px;
+  background: var(--aua-tip); color: var(--aua-tip-ink);
+  font-size: 12.5px; line-height: 1.5; font-variant-numeric: tabular-nums;
+  box-shadow: 0 18px 32px -16px var(--aua-shadow);
+  opacity: 0; translate: 0 4px; transition: opacity .15s, translate .15s;
+}
+.aua-tip.is-on { opacity: 1; translate: 0 0; }
+.aua-tip strong { display: block; font-size: 12.5px; margin-bottom: 4px; }
+.aua-tip-row { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.aua-tip-row i { width: 9px; height: 9px; border-radius: 2px; }
+.aua-tip-row b { font-weight: 600; }
+.aua-tip-tot { margin-top: 5px; padding-top: 5px; border-top: 1px solid color-mix(in oklab, var(--aua-tip-ink) 22%, transparent); display: flex; justify-content: space-between; gap: 12px; font-weight: 650; }
+
+.aua-foot { font-size: 12px; color: var(--aua-faint); }
+
+/* charcoal side panel */
+.aua-side {
+  background:
+    radial-gradient(120% 60% at 100% 0%, color-mix(in oklab, var(--aua-ring) 16%, transparent), transparent 60%),
+    var(--aua-panel);
+  color: var(--aua-panel-ink);
+  padding: 24px 22px 22px;
+  display: grid; gap: 18px; align-content: start;
+  --aua-c1: var(--aua-pc1); --aua-c2: var(--aua-pc2); --aua-c3: var(--aua-pc3);
+}
+.aua-block { display: grid; gap: 12px; }
+.aua-block + .aua-block { padding-top: 18px; border-top: 1px solid var(--aua-panel-line); }
+.aua-bh { margin: 0; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font: 600 10.5px/1.2 var(--aua-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--aua-panel-muted); }
+.aua-bh .aua-q-reset { font: 500 12px/1 var(--aua-sans); letter-spacing: 0; text-transform: none; }
+
+.aua-quota { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; align-items: center; }
+.aua-ring { position: relative; width: 112px; height: 112px; }
+.aua-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.aua-ring circle { fill: none; stroke-width: 12; }
+.aua-ring .aua-r-track { stroke: var(--aua-ring-track); }
+.aua-ring .aua-r-proj { stroke: var(--aua-ring); opacity: .32; transition: stroke-dasharray .8s cubic-bezier(.2,.7,.2,1); }
+.aua-ring .aua-r-used { stroke: var(--aua-ring); stroke-linecap: round; transition: stroke-dasharray .8s cubic-bezier(.2,.7,.2,1); }
+.aua-ring-c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 3px; }
+.aua-ring-c b { font: 650 26px/1 var(--aua-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.aua-ring-c span { font-size: 11px; color: var(--aua-panel-muted); }
+.aua-qfacts { margin: 0; display: grid; gap: 9px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.aua-qfacts div { display: grid; gap: 2px; }
+.aua-qfacts dt { color: var(--aua-panel-muted); }
+.aua-qfacts dd { margin: 0; font-weight: 600; }
+.aua-qfacts dd small { font-weight: 500; color: var(--aua-panel-muted); font-size: 12px; }
+
+.aua-cost-big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.aua-cost-big b { font: 650 30px/1 var(--aua-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.aua-cost-big span { font-size: 12.5px; color: var(--aua-panel-muted); }
+.aua-budget { display: grid; gap: 6px; font-size: 12.5px; color: var(--aua-panel-muted); font-variant-numeric: tabular-nums; }
+.aua-budget-bar { position: relative; height: 8px; border-radius: 4px; background: var(--aua-ring-track); overflow: hidden; }
+.aua-budget-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; transition: width .8s cubic-bezier(.2,.7,.2,1); }
+.aua-budget-bar .aua-bb-proj { background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--aua-mint) 55%, transparent) 0 3px, transparent 3px 6px); }
+.aua-budget-bar .aua-bb-now { background: var(--aua-mint); }
+.aua-budget[data-over="true"] .aua-bb-now { background: var(--aua-warn); }
+.aua-budget[data-over="true"] .aua-bb-proj { background: repeating-linear-gradient(135deg, color-mix(in oklab, var(--aua-warn) 60%, transparent) 0 3px, transparent 3px 6px); }
+.aua-budget-row { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.aua-budget-row b { color: var(--aua-panel-ink); font-weight: 600; }
+.aua-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--aua-mint); }
+.aua-budget[data-over="true"] .aua-status { color: var(--aua-warn); }
+.aua-status svg { width: 13px; height: 13px; }
+.aua-models { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.aua-model { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 4px 10px; align-items: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.aua-model i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.aua-model b { font-weight: 600; }
+.aua-model small { grid-column: 2 / -1; color: var(--aua-panel-muted); font-size: 11.5px; }
+.aua-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* tablet: side panel moves under the chart, ring and cost side by side */
+@container aua (max-width: 779px) {
+  .aua { grid-template-columns: 1fr; }
+  .aua-main { padding: 22px 20px 18px; }
+  .aua-side { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; padding: 22px 20px; }
+  .aua-block + .aua-block { padding-top: 0; border-top: 0; padding-left: 24px; border-left: 1px solid var(--aua-panel-line); }
+}
+/* phone */
+@container aua (max-width: 519px) {
+  .aua { border-radius: 18px; }
+  .aua-main { padding: 18px 14px 16px; gap: 16px; }
+  .aua-filters, .aua-seg { width: 100%; }
+  .aua-seg button { flex: 1; padding: 8px 6px; }
+  .aua-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+  .aua-kpi:nth-child(3) { grid-column: 1 / -1; padding-left: 0; border-left: 0; padding-top: 12px; border-top: 1px solid var(--aua-line); }
+  .aua-hint { flex-basis: 100%; margin: 2px 0 0; }
+  .aua-side { grid-template-columns: 1fr; padding: 20px 14px; gap: 18px; }
+  .aua-block + .aua-block { padding-left: 0; border-left: 0; padding-top: 18px; border-top: 1px solid var(--aua-panel-line); }
+  .aua-quota { grid-template-columns: 108px minmax(0, 1fr); }
+  .aua-ring { width: 108px; height: 108px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aua-seg button, .aua-leg, .aua-col, .aua-tip, .aua-ring .aua-r-proj, .aua-ring .aua-r-used, .aua-budget-bar i { transition: none; }
+  .aua.is-anim .aua-bars { animation: none; }
+  .aua.is-pending .aua-bars { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--aua-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--aua-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--aua-display); letter-spacing: -0.025em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  position: relative;
+  background:
+    radial-gradient(60% 50% at 85% 10%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%),
+    radial-gradient(50% 40% at 10% 90%, color-mix(in oklab, var(--aua-c2) 8%, transparent), transparent 70%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 44px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.seg-wrap { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg-label { font: 500 10.5px/1 var(--aua-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 9px; background: var(--ground); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 500 12.5px/1 var(--aua-sans); color: var(--muted);
+  padding: 8px 11px; border-radius: 6px; transition: background .2s, color .2s;
+}
+.seg button[aria-pressed="true"] { background: var(--aua-card); color: var(--ink); box-shadow: 0 1px 3px -1px var(--aua-shadow); }
+.seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--aua-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--aua-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--aua-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--aua-card); cursor: pointer;
+  font: 500 12px/1 var(--aua-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--aua-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--aua-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics" aria-current="page"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 28</span></div>
+    <h1>AI Usage Analytics</h1>
+    <p>Daily AI usage by model tier, shown as tokens, requests or cost. The side panel tracks the monthly token quota and estimates the month-end bill at the current rate.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <ai-usage-analytics id="demo" metric="tokens" range="30">
+      <script type="application/json">
+        {
+          "eyebrow": "AI usage",
+          "title": "Workspace usage · Cedar Fitness Co.",
+          "start": "2026-08-26",
+          "asOf": "2026-09-24",
+          "billingStart": "2026-09-01",
+          "quota": 400000000,
+          "budget": 300,
+          "currency": "USD",
+          "models": [
+            { "id": "large", "label": "Large model", "pricePerMillion": 6.00 },
+            { "id": "fast",  "label": "Fast model",  "pricePerMillion": 0.60 },
+            { "id": "embed", "label": "Embeddings",  "pricePerMillion": 0.10 }
+          ],
+          "series": {
+            "large": {
+              "tokens": [1003000, 1126000, 1308000, 697000, 749000, 1169000, 1196000, 1067000, 1388000, 1249000, 653000, 767000, 1432000, 1207000, 1117000, 1337000, 1442000, 610000, 771000, 1265000, 1376000, 1355000, 1156000, 1186000, 828000, 690000, 1522000, 1464000, 1433000, 1384000],
+              "requests": [932, 909, 825, 478, 503, 857, 854, 856, 821, 846, 505, 518, 903, 907, 915, 871, 1016, 495, 523, 1034, 1045, 1003, 1026, 1061, 580, 569, 1006, 984, 1079, 1021]
+            },
+            "fast": {
+              "tokens": [3138000, 3628000, 3262000, 2113000, 1968000, 3800000, 3926000, 3554000, 3369000, 3431000, 2020000, 2043000, 3816000, 3931000, 3254000, 3605000, 4096000, 1772000, 2156000, 3305000, 3213000, 3508000, 4021000, 3390000, 2419000, 2362000, 3700000, 3541000, 4404000, 4253000],
+              "requests": [4805, 5175, 5376, 3031, 2917, 5077, 5344, 5324, 5178, 5143, 2815, 3000, 5195, 5913, 5062, 5662, 6045, 2783, 2945, 5669, 6169, 5424, 6020, 6022, 3500, 3160, 6039, 5703, 5599, 6521]
+            },
+            "embed": {
+              "tokens": [6306000, 6264000, 6326000, 2930000, 3734000, 5444000, 6533000, 6003000, 6488000, 5966000, 3859000, 3464000, 6490000, 5618000, 7348000, 5732000, 6973000, 3701000, 4008000, 10626000, 5990000, 6063000, 6675000, 7506000, 4007000, 3435000, 7301000, 7854000, 7191000, 6889000],
+              "requests": [2365, 2428, 2166, 1319, 1432, 2323, 2619, 2298, 2672, 2439, 1358, 1430, 2444, 2695, 2405, 2778, 2460, 1348, 1356, 3684, 2879, 2680, 2412, 2427, 1455, 1458, 2627, 3001, 2545, 2586]
+            }
+          },
+          "source": "Usage metered hourly · prices are blended per million tokens"
+        }
+      </script>
+    </ai-usage-analytics>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Generic model tiers and made-up prices, not a real bill.</p>
+      <div class="controls">
+        <div class="seg-wrap">
+          <span class="seg-label">Monthly quota</span>
+          <div class="seg" role="group" aria-label="Monthly token quota">
+            <button type="button" data-value="300000000" aria-pressed="false">300M</button>
+            <button type="button" data-value="400000000" aria-pressed="true">400M</button>
+            <button type="button" data-value="600000000" aria-pressed="false">600M</button>
+          </div>
+        </div>
+        <button type="button" class="btn" id="replay">Replay animation</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>metric</td><td>Attribute. <code>tokens</code> (default), <code>requests</code> or <code>cost</code>.</td></tr>
+          <tr><td>range</td><td>Attribute. <code>14</code> or <code>30</code> days, ending on <code>asOf</code>.</td></tr>
+          <tr><td>model</td><td>Attribute. A model <code>id</code> to show alone; empty shows all.</td></tr>
+          <tr><td>models[]</td><td><code>{ id, label, pricePerMillion }</code> in stack order, bottom first. Up to three.</td></tr>
+          <tr><td>series</td><td><code>{ [id]: { tokens: [], requests: [] } }</code>: one number per day from <code>start</code>.</td></tr>
+          <tr><td>start · asOf</td><td>ISO dates of the first and last day in the series.</td></tr>
+          <tr><td>billingStart</td><td>ISO date the billing month began. Quota and cost count from here.</td></tr>
+          <tr><td>quota</td><td>Monthly token allowance.</td></tr>
+          <tr><td>budget</td><td>Optional monthly spend limit for the cost estimate.</td></tr>
+          <tr><td>currency · locale</td><td>ISO currency (default USD) and number locale (default <code>en-US</code>).</td></tr>
+          <tr><td>eyebrow · title · source</td><td>Optional header and footer text.</td></tr>
+          <tr><td>labels</td><td>Optional. Override any built-in text.</td></tr>
+        </table>
+      </div>
+      <p>Cost is tokens ÷ 1,000,000 × <code>pricePerMillion</code>. Month-end figures assume the daily rate so far holds for the rest of the billing month.</p>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;ai-usage-analytics</span> <span class="a">metric=</span>"tokens" <span class="a">range=</span>"30"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "start": "2026-08-26", "asOf": "2026-09-24",
+      "billingStart": "2026-09-01",
+      "quota": 400000000, "budget": 300,
+      "models": [
+        { "id": "large", "label": "Large model",
+          "pricePerMillion": 6 }
+      ],
+      "series": {
+        "large": { "tokens": [1003000, ...],
+                   "requests": [932, ...] }
+      }
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/ai-usage-analytics&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { models, series, quota };
+el.isolate("fast");   <span class="a">// null shows all</span>
+el.addEventListener("usagefilter", e =&gt; e.detail);</pre></div>
+      <p>Every filter change (metric, range or isolated model) fires <code>usagefilter</code> with <code>{ metric, range, model }</code>. Focus the chart and use the arrow keys to step through days; a hidden table holds the same numbers for screen readers.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/webhook-event-monitor"><small>← Previous · 27</small><strong>Webhook Event Monitor</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/customer-journey-map"><small>Next · 29 →</small><strong>Customer Journey Map</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 28 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <ai-usage-analytics> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    metricGroup: "Measure", rangeGroup: "Date range",
+    tokens: "Tokens", requests: "Requests", cost: "Cost",
+    range14: "14D", range30: "30D",
+    kTotal: "Total · {n} days", kAvg: "Daily average", kPeak: "Peak day",
+    weekdayAvg: "weekdays {v}", isolated: "{name} only",
+    hint: "Select a model to show it alone",
+    chart: "Daily {metric} by model, last {n} days. Use the left and right arrow keys to step through days.",
+    total: "Total", day: "Day",
+    quota: "Monthly token quota", through: "to {date}", resets: "Resets {date}", daysLeft: "{n} days left",
+    used: "Used", projected: "Forecast", ofQuota: "of quota", leftLabel: "Left this month", days: "{n} days",
+    ofTokens: "of quota",
+    costHead: "Cost estimate", mtd: "month to date", projectedCost: "Projected {v}",
+    budget: "Budget {v}", under: "Under budget", over: "Over budget",
+    byModel: "By model, this month", perM: "{v} per 1M tokens",
+    noData: "No usage in this range."
+  };
+  const METRICS = ["tokens", "requests", "cost"];
+  const NS = "http://www.w3.org/2000/svg";
+  const SPARK = '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1.5 9.4 6.6 14.5 8 9.4 9.4 8 14.5 6.6 9.4 1.5 8 6.6 6.6z"/></svg>';
+  const OK = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="7" r="5.6"/><path d="M4.6 7.2 6.3 8.8 9.4 5.4"/></svg>';
+  const WARN = '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 1.8 12.8 12H1.2z"/><path d="M7 5.6v2.8M7 10.2v.1"/></svg>';
+  const GAP = 2;
+
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? 0 : Math.max(0, +v));
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const svg = (tag, attrs) => { const n = document.createElementNS(NS, tag); if (attrs) for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const parseDay = s => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || "")); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; };
+  const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  function niceMax(v) {
+    if (!(v > 0)) return { max: 1, step: 0.25 };
+    const raw = v / 4, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(s => s * mag).find(s => s >= raw) || 10 * mag;
+    return { max: step * Math.ceil(v / step), step };
+  }
+
+  const TEMPLATE = `
+    <article class="aua">
+      <div class="aua-main">
+        <header class="aua-head">
+          <div class="aua-intro">
+            <span class="aua-eyebrow">${SPARK}<span class="aua-eyebrow-text"></span></span>
+            <h2 class="aua-title"></h2>
+          </div>
+          <div class="aua-filters">
+            <div class="aua-seg aua-seg-metric" role="group"></div>
+            <div class="aua-seg aua-seg-range" role="group"></div>
+          </div>
+        </header>
+        <dl class="aua-kpis"></dl>
+        <div class="aua-legend-row">
+          <ul class="aua-legend"></ul>
+          <span class="aua-hint"></span>
+        </div>
+        <div class="aua-plot" tabindex="0" role="group">
+          <svg class="aua-svg" aria-hidden="true"></svg>
+          <div class="aua-tip" aria-hidden="true"></div>
+        </div>
+        <table class="aua-sr aua-table"></table>
+        <p class="aua-foot"></p>
+      </div>
+      <aside class="aua-side">
+        <section class="aua-block">
+          <h3 class="aua-bh"><span class="aua-q-head"></span><span class="aua-q-reset"></span></h3>
+          <div class="aua-quota">
+            <div class="aua-ring">
+              <svg viewBox="0 0 124 124" aria-hidden="true">
+                <circle class="aua-r-track" cx="62" cy="62" r="52"></circle>
+                <circle class="aua-r-proj" cx="62" cy="62" r="52"></circle>
+                <circle class="aua-r-used" cx="62" cy="62" r="52"></circle>
+              </svg>
+              <div class="aua-ring-c"><b class="aua-q-pct"></b><span class="aua-q-sub"></span></div>
+            </div>
+            <dl class="aua-qfacts"></dl>
+          </div>
+        </section>
+        <section class="aua-block">
+          <h3 class="aua-bh"><span class="aua-c-head"></span></h3>
+          <div class="aua-cost-big"><b class="aua-c-mtd"></b><span class="aua-c-mtd-l"></span></div>
+          <div class="aua-budget">
+            <div class="aua-budget-bar" aria-hidden="true"><i class="aua-bb-proj"></i><i class="aua-bb-now"></i></div>
+            <div class="aua-budget-row"><span class="aua-c-proj"></span><span class="aua-status"></span></div>
+          </div>
+          <h4 class="aua-bh aua-c-by"></h4>
+          <ul class="aua-models"></ul>
+        </section>
+      </aside>
+      <p class="aua-sr aua-live" aria-live="polite"></p>
+    </article>`;
+
+  class AiUsageAnalytics extends HTMLElement {
+    static get observedAttributes() { return ["metric", "range", "model"]; }
+
+    connectedCallback() {
+      if (this._built) return;
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<ai-usage-analytics>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".aua"), eyebrow: q(".aua-eyebrow-text"), title: q(".aua-title"),
+        segM: q(".aua-seg-metric"), segR: q(".aua-seg-range"), kpis: q(".aua-kpis"),
+        legend: q(".aua-legend"), hint: q(".aua-hint"), plot: q(".aua-plot"), svg: q(".aua-svg"), tip: q(".aua-tip"),
+        table: q(".aua-table"), foot: q(".aua-foot"),
+        qHead: q(".aua-q-head"), qReset: q(".aua-q-reset"), rUsed: q(".aua-r-used"), rProj: q(".aua-r-proj"),
+        qPct: q(".aua-q-pct"), qSub: q(".aua-q-sub"), qFacts: q(".aua-qfacts"),
+        cHead: q(".aua-c-head"), cMtd: q(".aua-c-mtd"), cMtdL: q(".aua-c-mtd-l"), budget: q(".aua-budget"),
+        bbProj: q(".aua-bb-proj"), bbNow: q(".aua-bb-now"), cProj: q(".aua-c-proj"), status: q(".aua-status"),
+        cBy: q(".aua-c-by"), models: q(".aua-models"), live: q(".aua-live")
+      };
+      METRICS.forEach(m => this.$.segM.append(this._segBtn("metric", m)));
+      ["14", "30"].forEach(r => this.$.segR.append(this._segBtn("range", r)));
+      this._active = null;
+      this._wire();
+      this._built = true;
+      this._render(false);
+      if ("ResizeObserver" in window) {
+        this._ro = new ResizeObserver(entries => {
+          const nw = Math.round(entries[0].contentRect.width);
+          if (nw && Math.abs(nw - (this._lastW || 0)) > 1) this._chart(false);
+        });
+        this._ro.observe(this.$.plot);
+      }
+      this._reveal();
+    }
+
+    disconnectedCallback() {
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
+      if (this._io) { this._io.disconnect(); this._io = null; this.$.card.classList.remove("is-pending"); }
+      clearTimeout(this._animT);
+      this._built = false;
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      this._render(true);
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) this._render(true); }
+
+    get metric() { const m = (this.getAttribute("metric") || (this._data && this._data.metric) || "").toLowerCase(); return METRICS.includes(m) ? m : "tokens"; }
+    set metric(v) { this.setAttribute("metric", METRICS.includes(v) ? v : "tokens"); }
+    get range() { return String(this.getAttribute("range") || (this._data && this._data.range) || "30") === "14" ? 14 : 30; }
+    set range(v) { this.setAttribute("range", String(v) === "14" ? "14" : "30"); }
+    get model() { const m = this.getAttribute("model") || ""; return (this._models || []).some(x => x.id === m) ? m : null; }
+    set model(v) { if (v) this.setAttribute("model", v); else this.removeAttribute("model"); }
+
+    isolate(id) {
+      const next = id && id !== this.model ? id : null;
+      this.model = next;
+      this._emit();
+    }
+
+    replay() { if (this._built && !reduceMotion()) this._chart(true); }
+
+    _emit() { this.dispatchEvent(new CustomEvent("usagefilter", { bubbles: true, detail: { metric: this.metric, range: this.range, model: this.model } })); }
+
+    _segBtn(kind, value) {
+      const b = make("button");
+      b.type = "button"; b.dataset[kind] = value;
+      b.addEventListener("click", () => {
+        if (kind === "metric") { if (value === this.metric) return; this.metric = value; }
+        else { if (+value === this.range) return; this.range = value; }
+        this._emit();
+      });
+      return b;
+    }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _locale() { return (this._data && this._data.locale) || "en-US"; }
+    _money(v, dp = 2) {
+      try { return new Intl.NumberFormat(this._locale(), { style: "currency", currency: (this._data.currency || "USD").toUpperCase(), minimumFractionDigits: dp, maximumFractionDigits: dp }).format(v); }
+      catch (e) { return "$" + v.toFixed(dp); }
+    }
+    _compact(v, dp = 1) { return new Intl.NumberFormat(this._locale(), { notation: "compact", maximumFractionDigits: dp }).format(v); }
+    _fmt(metric, v, short) {
+      if (metric === "cost") return short && v >= 1000 ? "$" + this._compact(v) : this._money(v, v >= 100 && short ? 0 : 2);
+      if (metric === "tokens") return this._compact(v, v >= 1e8 ? 0 : 1);
+      return short ? this._compact(v) : Math.round(v).toLocaleString(this._locale());
+    }
+    _date(d, o) { try { return new Intl.DateTimeFormat(this._locale(), o || { month: "short", day: "numeric" }).format(d); } catch (e) { return d.toDateString(); } }
+
+    /* normalise: days[], per model per metric arrays */
+    _prepare() {
+      const d = this._data || {};
+      const models = (Array.isArray(d.models) ? d.models : []).filter(Boolean).slice(0, 3).map((m, i) => ({
+        id: String(m.id || `model-${i + 1}`), label: m.label || `Model ${i + 1}`, price: num(m.pricePerMillion), slot: i + 1
+      }));
+      const series = d.series || {};
+      const len = Math.max(0, ...models.map(m => Math.max(((series[m.id] || {}).tokens || []).length, ((series[m.id] || {}).requests || []).length)));
+      let start = parseDay(d.start);
+      const asOf = parseDay(d.asOf);
+      if (!start && asOf) start = addDays(asOf, -(len - 1));
+      if (!start) start = addDays(new Date(), -(len - 1));
+      const days = Array.from({ length: len }, (_, i) => addDays(start, i));
+      models.forEach(m => {
+        const s = series[m.id] || {};
+        m.tokens = days.map((_, i) => num((s.tokens || [])[i]));
+        m.requests = days.map((_, i) => num((s.requests || [])[i]));
+        m.cost = m.tokens.map(t => t / 1e6 * m.price);
+      });
+      this._models = models;
+      this._days = days;
+    }
+
+    _render(animate) {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      this._prepare();
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.foot.textContent = d.source || "";
+      $.segM.setAttribute("aria-label", L.metricGroup);
+      $.segR.setAttribute("aria-label", L.rangeGroup);
+      $.segM.querySelectorAll("button").forEach(b => { b.textContent = L[b.dataset.metric]; b.setAttribute("aria-pressed", String(b.dataset.metric === this.metric)); });
+      $.segR.querySelectorAll("button").forEach(b => { b.textContent = L["range" + b.dataset.range]; b.setAttribute("aria-pressed", String(+b.dataset.range === this.range)); });
+      $.hint.textContent = L.hint;
+      this._legendAndKpis();
+      this._chart(animate);
+      this._side();
+    }
+
+    _window() {
+      const n = Math.min(this.range, this._days.length);
+      const from = this._days.length - n;
+      return { n, from, days: this._days.slice(from) };
+    }
+    _visible() { const id = this.model; return this._models.filter(m => !id || m.id === id); }
+
+    _legendAndKpis() {
+      const L = this._labels(), metric = this.metric, w = this._window(), iso = this.model;
+      const sumRange = m => m[metric].slice(w.from).reduce((a, v) => a + v, 0);
+      this.$.legend.classList.toggle("is-isolated", !!iso);
+      this.$.legend.replaceChildren(...this._models.map(m => {
+        const li = make("li");
+        const b = make("button", "aua-leg");
+        b.type = "button";
+        b.style.setProperty("--c", `var(--aua-c${m.slot})`);
+        b.setAttribute("aria-pressed", String(iso === m.id));
+        const sw = make("i"); sw.setAttribute("aria-hidden", "true");
+        b.append(sw, m.label, make("span", null, this._fmt(metric, sumRange(m), true)));
+        b.addEventListener("click", () => this.isolate(m.id));
+        li.append(b);
+        return li;
+      }));
+
+      const vis = this._visible();
+      const totals = w.days.map((_, i) => vis.reduce((a, m) => a + m[metric][w.from + i], 0));
+      const total = totals.reduce((a, v) => a + v, 0);
+      const avg = w.n ? total / w.n : 0;
+      const wk = totals.filter((_, i) => { const g = w.days[i].getDay(); return g !== 0 && g !== 6; });
+      const wkAvg = wk.length ? wk.reduce((a, v) => a + v, 0) / wk.length : 0;
+      let peak = -1; totals.forEach((v, i) => { if (peak < 0 || v > totals[peak]) peak = i; });
+      const kpi = (k, v, s) => { const x = make("div", "aua-kpi"); x.append(make("dt", null, k), make("dd", "aua-kv", v), make("dd", "aua-ks", s)); return x; };
+      const isoM = iso && this._models.find(m => m.id === iso);
+      this.$.kpis.replaceChildren(
+        kpi(fill(L.kTotal, { n: w.n }), this._fmt(metric, total), isoM ? fill(L.isolated, { name: isoM.label }) : L[metric]),
+        kpi(L.kAvg, this._fmt(metric, avg), fill(L.weekdayAvg, { v: this._fmt(metric, wkAvg) })),
+        kpi(L.kPeak, peak >= 0 ? this._fmt(metric, totals[peak]) : "—", peak >= 0 ? this._date(w.days[peak], { weekday: "short", month: "short", day: "numeric" }) : "")
+      );
+      this._totals = totals;
+    }
+
+    _chart(animate) {
+      if (!this._models) return;
+      const L = this._labels(), metric = this.metric, w = this._window(), vis = this._visible();
+      const plot = this.$.plot, s = this.$.svg;
+      const W = Math.max(260, Math.round(plot.clientWidth || 640));
+      this._lastW = Math.round(plot.clientWidth || 0);
+      const H = W < 420 ? 210 : 250;
+      const pad = { l: 44, r: 6, t: 12, b: 26 };
+      const pw = W - pad.l - pad.r, ph = H - pad.t - pad.b;
+      s.setAttribute("viewBox", `0 0 ${W} ${H}`);
+      s.setAttribute("width", W); s.setAttribute("height", H);
+      const totals = w.days.map((_, i) => vis.reduce((a, m) => a + m[metric][w.from + i], 0));
+      const { max, step } = niceMax(Math.max(0, ...totals));
+      const y = v => pad.t + ph - v / max * ph;
+      const band = w.n ? pw / w.n : pw;
+      const bw = Math.max(3, Math.min(24, band * 0.64));
+      this._geom = { pad, band, W, H, from: w.from, n: w.n };
+
+      const grid = svg("g", { class: "aua-grid" });
+      for (let v = 0; v <= max + step / 2; v += step) {
+        const yy = Math.round(y(v)) + 0.5;
+        grid.append(svg("line", { x1: pad.l, x2: W - pad.r, y1: yy, y2: yy, class: v === 0 ? "is-base" : "" }));
+        const t = svg("text", { x: pad.l - 8, y: yy + 4, "text-anchor": "end", class: "aua-ylab" });
+        t.textContent = v === 0 ? "0" : this._fmt(metric, v, true);
+        grid.append(t);
+      }
+      const cols = svg("g", { class: "aua-cols" });
+      const labelEvery = Math.max(1, Math.ceil(w.n / Math.max(2, Math.floor(pw / 58))));
+      const xl = svg("g");
+      w.days.forEach((day, i) => {
+        const cx = pad.l + band * i + band / 2;
+        const g = svg("g", { class: "aua-col" });
+        g.dataset.i = i;
+        g.style.setProperty("--i", i);
+        const wd = day.getDay();
+        if (wd === 0 || wd === 6) g.classList.add("is-weekend");
+        g.append(svg("rect", { class: "aua-hit", x: (pad.l + band * i + 0.5).toFixed(2), y: pad.t, width: Math.max(1, band - 1).toFixed(2), height: ph, rx: 4 }));
+        const bars = svg("g", { class: "aua-bars" });
+        let acc = 0;
+        const parts = vis.map(m => ({ m, v: m[metric][w.from + i] })).filter(p => p.v > 0);
+        parts.forEach((p, k) => {
+          const y0 = y(acc), y1 = y(acc + p.v);
+          acc += p.v;
+          const top = k === parts.length - 1;
+          const yTop = top ? y1 : y1 + GAP;
+          const h = y0 - yTop;
+          if (h <= 0.4) return;
+          const x0 = cx - bw / 2;
+          const r = top ? Math.min(4, bw / 2, h) : 0;
+          const dpath = r
+            ? `M${x0} ${y0}V${yTop + r}Q${x0} ${yTop} ${x0 + r} ${yTop}H${x0 + bw - r}Q${x0 + bw} ${yTop} ${x0 + bw} ${yTop + r}V${y0}Z`
+            : `M${x0} ${y0}V${yTop}H${x0 + bw}V${y0}Z`;
+          bars.append(svg("path", { d: dpath, fill: `var(--aua-c${p.m.slot})` }));
+        });
+        g.append(bars);
+        cols.append(g);
+        if (i % labelEvery === (w.n - 1) % labelEvery) {
+          const t = svg("text", { x: cx, y: H - 8, "text-anchor": "middle", class: "aua-xlab" });
+          t.dataset.i = i;
+          t.textContent = this._date(day);
+          xl.append(t);
+        }
+      });
+      s.replaceChildren(grid, cols, xl);
+      plot.setAttribute("aria-label", fill(L.chart, { metric: L[metric].toLowerCase(), n: w.n }));
+      if (this._active != null && this._active >= w.n) this._active = null;
+      this._paintActive(false);
+      this._table(w, vis, metric);
+
+      if (animate && !reduceMotion()) {
+        const card = this.$.card;
+        card.classList.remove("is-anim"); void card.offsetWidth; card.classList.add("is-anim");
+        clearTimeout(this._animT);
+        this._animT = setTimeout(() => card.classList.remove("is-anim"), 500 + w.n * 14 + 60);
+      }
+    }
+
+    _table(w, vis, metric) {
+      const L = this._labels(), t = this.$.table;
+      const cap = make("caption", null, fill(L.chart, { metric: L[metric].toLowerCase(), n: w.n }).split(".")[0]);
+      const head = make("tr");
+      head.append(make("th", null, L.day), ...vis.map(m => make("th", null, m.label)), make("th", null, L.total));
+      const rows = w.days.map((d, i) => {
+        const tr = make("tr");
+        const th = make("th", null, this._date(d, { weekday: "short", month: "short", day: "numeric" }));
+        th.scope = "row";
+        tr.append(th, ...vis.map(m => make("td", null, this._fmt(metric, m[metric][w.from + i]))), make("td", null, this._fmt(metric, vis.reduce((a, m) => a + m[metric][w.from + i], 0))));
+        return tr;
+      });
+      const thead = make("thead"); thead.append(head);
+      const tbody = make("tbody"); tbody.append(...rows);
+      t.replaceChildren(cap, thead, tbody);
+    }
+
+    _paintActive(announce) {
+      const i = this._active, cols = this.$.svg.querySelector(".aua-cols");
+      if (!cols) return;
+      cols.classList.toggle("has-active", i != null);
+      cols.querySelectorAll(".aua-col").forEach(g => g.classList.toggle("is-active", +g.dataset.i === i));
+      this.$.svg.querySelectorAll(".aua-xlab").forEach(t => t.classList.toggle("is-active", +t.dataset.i === i));
+      if (i == null) { this.$.tip.classList.remove("is-on"); return; }
+      const L = this._labels(), metric = this.metric, g = this._geom, vis = this._visible();
+      const day = this._days[g.from + i];
+      const tip = this.$.tip;
+      const rows = vis.slice().reverse().map(m => {
+        const r = make("div", "aua-tip-row");
+        const sw = make("i"); sw.style.background = `var(--aua-c${m.slot})`;
+        r.append(sw, make("span", null, m.label), make("b", null, this._fmt(metric, m[metric][g.from + i])));
+        return r;
+      });
+      const total = vis.reduce((a, m) => a + m[metric][g.from + i], 0);
+      const tot = make("div", "aua-tip-tot");
+      tot.append(make("span", null, L.total), make("span", null, this._fmt(metric, total)));
+      tip.replaceChildren(make("strong", null, this._date(day, { weekday: "short", month: "short", day: "numeric" })), ...rows);
+      if (vis.length > 1) tip.append(tot);
+      // position above the column, kept inside the plot
+      const scale = (this.$.plot.clientWidth || g.W) / g.W;
+      const cx = (g.pad.l + g.band * i + g.band / 2) * scale;
+      const tw = tip.offsetWidth || 180, pw = this.$.plot.clientWidth || g.W;
+      let left = cx + 14;
+      if (left + tw > pw) left = cx - tw - 14;
+      tip.style.left = Math.max(0, left) + "px";
+      tip.style.top = (g.pad.t * scale + 4) + "px";
+      tip.classList.add("is-on");
+      if (announce) {
+        this.$.live.textContent = `${this._date(day, { weekday: "long", month: "long", day: "numeric" })}: ` +
+          vis.map(m => `${m.label} ${this._fmt(metric, m[metric][g.from + i])}`).join(", ") + (vis.length > 1 ? `. ${L.total} ${this._fmt(metric, total)}.` : ".");
+      }
+    }
+
+    _wire() {
+      const plot = this.$.plot;
+      const idxAt = e => {
+        const g = this._geom; if (!g || !g.n) return null;
+        const r = plot.getBoundingClientRect();
+        const x = (e.clientX - r.left) / (r.width / g.W);
+        const i = Math.floor((x - g.pad.l) / g.band);
+        return i >= 0 && i < g.n ? i : null;
+      };
+      plot.addEventListener("pointermove", e => { const i = idxAt(e); if (i !== this._active) { this._active = i; this._paintActive(false); } });
+      plot.addEventListener("pointerdown", e => { const i = idxAt(e); this._active = i; this._paintActive(false); });
+      plot.addEventListener("pointerleave", e => { if (e.pointerType === "touch") return; if (document.activeElement !== plot) { this._active = null; this._paintActive(false); } });
+      plot.addEventListener("focus", () => { if (this._active == null && this._geom) { this._active = this._geom.n - 1; this._paintActive(true); } });
+      plot.addEventListener("blur", () => { this._active = null; this._paintActive(false); });
+      plot.addEventListener("keydown", e => {
+        const g = this._geom; if (!g || !g.n) return;
+        let i = this._active == null ? g.n - 1 : this._active;
+        if (e.key === "ArrowRight") i = Math.min(g.n - 1, i + 1);
+        else if (e.key === "ArrowLeft") i = Math.max(0, i - 1);
+        else if (e.key === "Home") i = 0;
+        else if (e.key === "End") i = g.n - 1;
+        else if (e.key === "Escape") { this._active = null; this._paintActive(false); return; }
+        else return;
+        e.preventDefault();
+        this._active = i;
+        this._paintActive(true);
+      });
+    }
+
+    _side() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      const asOf = this._days.length ? this._days[this._days.length - 1] : new Date();
+      const bStart = parseDay(d.billingStart) || new Date(asOf.getFullYear(), asOf.getMonth(), 1);
+      const bEnd = new Date(bStart.getFullYear(), bStart.getMonth() + 1, bStart.getDate());
+      const monthDays = Math.round((bEnd - bStart) / 864e5);
+      const idx = this._days.map((day, i) => (day >= bStart && day < bEnd ? i : -1)).filter(i => i >= 0);
+      const elapsed = Math.max(1, Math.round((asOf - bStart) / 864e5) + 1);
+      const left = Math.max(0, monthDays - elapsed);
+      const sum = (m, k) => idx.reduce((a, i) => a + m[k][i], 0);
+      const usedTok = this._models.reduce((a, m) => a + sum(m, "tokens"), 0);
+      const projTok = usedTok / elapsed * monthDays;
+      const quota = num(d.quota);
+
+      // quota ring
+      $.qHead.textContent = L.quota;
+      $.qReset.textContent = fill(L.resets, { date: this._date(bEnd) });
+      const C = 2 * Math.PI * 52;
+      const usedR = quota > 0 ? Math.min(1, usedTok / quota) : 0;
+      const projR = quota > 0 ? Math.min(1, projTok / quota) : 0;
+      $.rUsed.style.strokeDasharray = `${(usedR * C).toFixed(1)} ${C.toFixed(1)}`;
+      $.rProj.style.strokeDasharray = `${(projR * C).toFixed(1)} ${C.toFixed(1)}`;
+      $.qPct.textContent = quota > 0 ? Math.round(usedTok / quota * 100) + "%" : "—";
+      $.qSub.textContent = L.ofTokens;
+      const fact = (k, v, sm) => { const x = make("div"); const dd = make("dd", null, v); if (sm) dd.append(" ", make("small", null, sm)); x.append(make("dt", null, k), dd); return x; };
+      $.qFacts.replaceChildren(
+        fact(L.used, `${this._compact(usedTok)} / ${this._compact(quota, 0)}`),
+        fact(L.projected, this._compact(projTok), quota > 0 ? `${Math.round(projTok / quota * 100)}% ${L.ofQuota}` : ""),
+        fact(L.leftLabel, fill(L.days, { n: left }), fill(L.through, { date: this._date(addDays(bEnd, -1), { month: "short", day: "numeric" }) }))
+      );
+
+      // cost
+      const costs = this._models.map(m => ({ m, v: sum(m, "cost") }));
+      const mtd = costs.reduce((a, c) => a + c.v, 0);
+      const projCost = mtd / elapsed * monthDays;
+      const budget = num(d.budget);
+      $.cHead.textContent = L.costHead;
+      $.cMtd.textContent = this._money(mtd);
+      $.cMtdL.textContent = L.mtd;
+      const over = budget > 0 && projCost > budget;
+      $.budget.dataset.over = String(over);
+      $.budget.hidden = false;
+      const scaleTo = Math.max(budget, projCost) || 1;
+      $.bbNow.style.width = (mtd / scaleTo * 100).toFixed(1) + "%";
+      $.bbProj.style.width = (projCost / scaleTo * 100).toFixed(1) + "%";
+      $.cProj.replaceChildren(make("b", null, fill(L.projectedCost, { v: this._money(projCost) })));
+      if (budget > 0) $.cProj.append(" · " + fill(L.budget, { v: this._money(budget, 0) }));
+      $.status.innerHTML = budget > 0 ? (over ? WARN : OK) : "";
+      if (budget > 0) $.status.append(over ? L.over : L.under);
+      $.cBy.textContent = L.byModel;
+      $.models.replaceChildren(...costs.map(c => {
+        const li = make("li", "aua-model");
+        li.style.setProperty("--c", `var(--aua-c${c.m.slot})`);
+        const sw = make("i"); sw.setAttribute("aria-hidden", "true");
+        const share = mtd > 0 ? Math.round(c.v / mtd * 100) : 0;
+        li.append(sw, make("span", null, c.m.label), make("b", null, this._money(c.v)), make("small", null, `${share}% · ${fill(L.perM, { v: this._money(c.m.price) })}`));
+        return li;
+      }));
+      const ring = this.querySelector(".aua-ring");
+      ring.setAttribute("role", "img");
+      ring.setAttribute("aria-label", `${L.quota}: ${$.qPct.textContent} used, ${this._compact(usedTok)} of ${this._compact(quota, 0)} tokens. ${L.projected} ${this._compact(projTok)}.`);
+    }
+
+    /* bars grow in the first time the chart scrolls into view */
+    _reveal() {
+      if (reduceMotion() || !("IntersectionObserver" in window)) return;
+      const card = this.$.card;
+      card.classList.add("is-pending");
+      this._io = new IntersectionObserver(entries => {
+        if (!entries.some(e => e.isIntersecting)) return;
+        this._io.disconnect(); this._io = null;
+        card.classList.remove("is-pending");
+        this._chart(true);
+      }, { threshold: 0.2 });
+      this._io.observe(this.$.plot);
+    }
+  }
+
+  if (!customElements.get("ai-usage-analytics")) customElements.define("ai-usage-analytics", AiUsageAnalytics);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const say = (strong, rest) => {
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = strong;
+    note.append(b, " " + rest + " Example data, not a real bill.");
+  };
+  const buttons = document.querySelectorAll(".seg button");
+  buttons.forEach(b => b.addEventListener("click", () => {
+    el.data = Object.assign({}, el.data, { quota: +b.dataset.value });
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  document.getElementById("replay").addEventListener("click", () => el.replay());
+  el.addEventListener("usagefilter", e => {
+    const d = e.detail;
+    say("usagefilter", `fired: ${d.metric}, ${d.range} days, ${d.model ? d.model + " only" : "all models"}.`);
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

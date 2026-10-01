@@ -64,8 +64,13 @@ img { max-width: 100%; }
 .lsg-brand small { font: 500 10.5px/1 var(--lsg-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--lsg-faint); }
 .lsg-logo { width: 22px; height: 22px; flex: none; color: var(--lsg-ink); transition: transform .5s cubic-bezier(.2,.7,.2,1); }
 .lsg-brand:hover .lsg-logo { transform: translateY(-1px) rotate(-6deg); }
-.lsg-links { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+.lsg-links { position: relative; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; max-width: 100%; overscroll-behavior-x: contain; }
 .lsg-links::-webkit-scrollbar { display: none; }
+/* fade whichever edge has more links behind it (classes set by gallery-nav.js) */
+.lsg-links.is-scrollable { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+.lsg-links.is-scrollable.is-start { -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.lsg-links.is-scrollable.is-end { -webkit-mask-image: linear-gradient(to right, transparent, #000 28px); mask-image: linear-gradient(to right, transparent, #000 28px); }
+.lsg-links.is-scrollable.is-start.is-end { -webkit-mask-image: none; mask-image: none; }
 .lsg-links a {
   display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
   padding: 8px 10px; border-radius: 7px;

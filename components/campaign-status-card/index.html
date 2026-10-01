@@ -1,0 +1,1066 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable campaign status card: a lifecycle stepper, flight-date progress, budget pacing, channels and an activity log, with Launch, Pause, Resume and End controls that follow real rules.">
+<meta property="og:title" content="Campaign Status Card · LofiStack Components">
+<meta property="og:description" content="A reusable campaign status card: a lifecycle stepper, flight-date progress, budget pacing, channels and an activity log, with Launch, Pause, Resume and End controls that follow real rules.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Campaign Status Card · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #EAF0F5;
+  --stage: #F3F7FA;
+  --ink: #0F1B2A;
+  --muted: #4A5868;
+  --faint: #5F6C7B;
+  --line: #D6E0E9;
+  --panel: #F8FAFC;
+  --accent: #0369A1;
+
+  /* ---- Campaign Status tokens (override these to re-theme the component) ---- */
+  --csc-card: #FFFFFF;
+  --csc-band: #F2F8FC;
+  --csc-ink: #0F1B2A;
+  --csc-muted: #4C5A6A;
+  --csc-faint: #5F6C7B;
+  --csc-line: #E1E8EF;
+  --csc-line-strong: #CAD5E0;
+  --csc-tint: #F5F8FB;
+  --csc-accent: #0284C7;
+  --csc-accent-ink: #0369A1;
+  --csc-accent-soft: #E0F2FE;
+  --csc-draft: #52606F;     --csc-draft-bg: #EEF2F6;
+  --csc-scheduled: #0369A1; --csc-scheduled-bg: #E0F2FE;
+  --csc-live: #15803D;      --csc-live-bg: #DCFCE7;
+  --csc-paused: #B45309;    --csc-paused-bg: #FEF3C7;
+  --csc-completed: #334155; --csc-completed-bg: #E2E8F0;
+  --csc-danger: #B91C1C;    --csc-danger-ink: #FFFFFF;
+  --csc-primary: #0369A1;   --csc-primary-ink: #FFFFFF; --csc-primary-hover: #075985;
+  --csc-shadow: rgba(15, 40, 70, 0.2);
+  --csc-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --csc-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --csc-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #070D14; --stage: #0B131C; --ink: #E6EEF6; --muted: #9FB0C2; --faint: #8395A8;
+    --line: #1C2836; --panel: #0E1823; --accent: #38BDF8;
+    --csc-card: #0F1923; --csc-band: #112130; --csc-ink: #E6EEF6; --csc-muted: #A3B3C4; --csc-faint: #8798AB;
+    --csc-line: #1F2D3C; --csc-line-strong: #2C3D50; --csc-tint: #132230;
+    --csc-accent: #38BDF8; --csc-accent-ink: #7DD3FC; --csc-accent-soft: rgba(56, 189, 248, 0.14);
+    --csc-draft: #B4C1CF; --csc-draft-bg: rgba(148, 163, 184, 0.14);
+    --csc-scheduled: #7DD3FC; --csc-scheduled-bg: rgba(56, 189, 248, 0.15);
+    --csc-live: #4ADE80; --csc-live-bg: rgba(74, 222, 128, 0.13);
+    --csc-paused: #FBBF24; --csc-paused-bg: rgba(251, 191, 36, 0.14);
+    --csc-completed: #CBD5E1; --csc-completed-bg: rgba(203, 213, 225, 0.12);
+    --csc-danger: #F87171; --csc-danger-ink: #2A0A0A; --csc-shadow: rgba(0, 0, 0, 0.6);
+    --csc-primary: #38BDF8; --csc-primary-ink: #04202F; --csc-primary-hover: #7DD3FC;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #070D14; --stage: #0B131C; --ink: #E6EEF6; --muted: #9FB0C2; --faint: #8395A8;
+  --line: #1C2836; --panel: #0E1823; --accent: #38BDF8;
+  --csc-card: #0F1923; --csc-band: #112130; --csc-ink: #E6EEF6; --csc-muted: #A3B3C4; --csc-faint: #8798AB;
+  --csc-line: #1F2D3C; --csc-line-strong: #2C3D50; --csc-tint: #132230;
+  --csc-accent: #38BDF8; --csc-accent-ink: #7DD3FC; --csc-accent-soft: rgba(56, 189, 248, 0.14);
+  --csc-draft: #B4C1CF; --csc-draft-bg: rgba(148, 163, 184, 0.14);
+  --csc-scheduled: #7DD3FC; --csc-scheduled-bg: rgba(56, 189, 248, 0.15);
+  --csc-live: #4ADE80; --csc-live-bg: rgba(74, 222, 128, 0.13);
+  --csc-paused: #FBBF24; --csc-paused-bg: rgba(251, 191, 36, 0.14);
+  --csc-completed: #CBD5E1; --csc-completed-bg: rgba(203, 213, 225, 0.12);
+  --csc-danger: #F87171; --csc-danger-ink: #2A0A0A; --csc-shadow: rgba(0, 0, 0, 0.6);
+    --csc-primary: #38BDF8; --csc-primary-ink: #04202F; --csc-primary-hover: #7DD3FC;
+}
+
+/* =========================================================
+   Campaign Status component  (copy this block + the script)
+   ========================================================= */
+campaign-status {
+  display: block;
+  container: csc / inline-size;
+  width: 100%;
+  max-width: 960px;
+  font-family: var(--csc-sans);
+  color: var(--csc-ink);
+}
+.csc {
+  --csc-c: var(--csc-draft); --csc-c-bg: var(--csc-draft-bg);
+  position: relative;
+  background: var(--csc-card);
+  border: 1px solid var(--csc-line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -46px var(--csc-shadow), 0 2px 6px -4px var(--csc-shadow);
+}
+.csc[data-status="scheduled"] { --csc-c: var(--csc-scheduled); --csc-c-bg: var(--csc-scheduled-bg); }
+.csc[data-status="live"]      { --csc-c: var(--csc-live);      --csc-c-bg: var(--csc-live-bg); }
+.csc[data-status="paused"]    { --csc-c: var(--csc-paused);    --csc-c-bg: var(--csc-paused-bg); }
+.csc[data-status="completed"] { --csc-c: var(--csc-completed); --csc-c-bg: var(--csc-completed-bg); }
+
+/* header band */
+.csc-band { background: linear-gradient(180deg, var(--csc-band), var(--csc-card)); border-bottom: 1px solid var(--csc-line); padding: 24px 26px 22px; display: grid; gap: 22px; }
+.csc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px 20px; flex-wrap: wrap; }
+.csc-intro { display: grid; gap: 6px; min-width: 0; flex: 1 1 320px; }
+.csc-eyebrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 500 10.5px/1 var(--csc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--csc-accent-ink); }
+.csc-eyebrow i { font-style: normal; color: var(--csc-faint); }
+.csc-title { margin: 0; font: 650 clamp(20px, 3.4cqi, 26px)/1.15 var(--csc-display); letter-spacing: -0.018em; text-wrap: balance; overflow-wrap: anywhere; }
+.csc-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; color: var(--csc-muted); }
+.csc-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.csc-meta svg { width: 13px; height: 13px; color: var(--csc-faint); }
+
+.csc-now { display: grid; justify-items: end; gap: 7px; flex: none; outline: none; border-radius: 12px; }
+.csc-now:focus-visible { outline: 2px solid var(--csc-accent); outline-offset: 4px; }
+.csc-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 18px 10px 14px; border-radius: 999px;
+  background: var(--csc-c-bg); color: var(--csc-c);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--csc-c) 28%, transparent);
+  font: 650 17px/1 var(--csc-display); letter-spacing: -0.005em;
+  transition: background .35s ease, color .35s ease, box-shadow .35s ease;
+}
+.csc-pill-dot { position: relative; width: 10px; height: 10px; border-radius: 50%; background: currentColor; flex: none; }
+.csc[data-status="live"] .csc-pill-dot::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid currentColor; opacity: 0;
+  animation: csc-ping 1.8s cubic-bezier(.2,.7,.2,1) infinite;
+}
+.csc[data-status="paused"] .csc-pill-dot { background: none; width: 10px; border-radius: 1px; box-shadow: inset 3px 0 currentColor, inset -3px 0 currentColor; }
+@keyframes csc-ping { 0% { transform: scale(.6); opacity: .8; } 100% { transform: scale(1.5); opacity: 0; } }
+.csc-since { font-size: 12.5px; color: var(--csc-muted); font-variant-numeric: tabular-nums; text-align: right; }
+
+/* stepper */
+.csc-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.csc-step { position: relative; display: grid; justify-items: center; gap: 6px; text-align: center; padding: 0 4px; }
+.csc-step::after {
+  content: ""; position: absolute; top: 15px; height: 2px; left: calc(50% + 21px); right: calc(-50% + 21px);
+  border-radius: 2px; background: var(--csc-line-strong);
+  background-image: linear-gradient(90deg, var(--csc-accent) 50%, transparent 0);
+  background-size: 200% 100%; background-position: 100% 0;
+  transition: background-position .5s cubic-bezier(.2,.7,.2,1);
+}
+.csc-step:last-child::after { display: none; }
+.csc-step.is-linked::after { background-position: 0 0; }
+.csc-step-dot {
+  width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--csc-card); color: var(--csc-faint);
+  box-shadow: inset 0 0 0 2px var(--csc-line-strong);
+  font: 600 12px/1 var(--csc-mono);
+  transition: background .35s ease, color .35s ease, box-shadow .35s ease, transform .35s cubic-bezier(.2,.7,.2,1);
+}
+.csc-step-dot svg { width: 14px; height: 14px; }
+.csc-step.is-done .csc-step-dot { background: var(--csc-accent); color: var(--csc-card); box-shadow: none; }
+.csc-step.is-current .csc-step-dot { background: var(--csc-c); color: var(--csc-card); box-shadow: 0 0 0 5px var(--csc-c-bg); transform: scale(1.08); }
+.csc-step.is-skipped .csc-step-dot { box-shadow: inset 0 0 0 2px var(--csc-line); background: var(--csc-tint); }
+.csc-step-label { font: 600 13px/1.2 var(--csc-sans); color: var(--csc-muted); }
+.csc-step.is-current .csc-step-label { color: var(--csc-ink); }
+.csc-step.is-done .csc-step-label { color: var(--csc-ink); }
+.csc-step-meta { font-size: 11.5px; line-height: 1.3; color: var(--csc-faint); font-variant-numeric: tabular-nums; min-height: 1.3em; }
+.csc-step.is-skipped .csc-step-label, .csc-step.is-skipped .csc-step-meta { color: var(--csc-faint); text-decoration: line-through; text-decoration-color: var(--csc-line-strong); }
+
+/* body */
+.csc-body { display: grid; grid-template-columns: minmax(0, 1fr) 300px; }
+.csc-main { padding: 22px 26px 24px; display: grid; gap: 22px; align-content: start; min-width: 0; }
+.csc-side { padding: 22px 22px 24px; border-left: 1px solid var(--csc-line); background: var(--csc-tint); display: grid; gap: 22px; align-content: start; min-width: 0; }
+.csc-tiles { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+.csc-tile { border: 1px solid var(--csc-line); border-radius: 14px; padding: 16px 16px 15px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.csc-label { margin: 0; font: 500 10.5px/1 var(--csc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--csc-faint); }
+.csc-tile-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.csc-big { font: 650 26px/1.05 var(--csc-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.csc-big small { font: 500 13px/1 var(--csc-sans); letter-spacing: 0; color: var(--csc-muted); }
+.csc-sub { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--csc-muted); font-variant-numeric: tabular-nums; }
+.csc-sub b { font-weight: 600; color: var(--csc-ink); }
+.csc-meter { position: relative; height: 10px; border-radius: 999px; background: var(--csc-line); overflow: visible; }
+.csc-meter-fill {
+  position: absolute; inset: 0 auto 0 0; width: calc(var(--csc-v, 0) * 1%); border-radius: inherit;
+  background: var(--csc-meter, var(--csc-accent));
+  transition: width .6s cubic-bezier(.2,.7,.2,1), background .35s ease;
+}
+.csc-meter-mark { position: absolute; top: -4px; bottom: -4px; left: calc(var(--csc-m, 0) * 1%); width: 2px; margin-left: -1px; border-radius: 2px; background: var(--csc-ink); transition: left .6s cubic-bezier(.2,.7,.2,1); }
+.csc-meter-mark[hidden] { display: none; }
+.csc-scale { display: flex; justify-content: space-between; gap: 8px; font-size: 11.5px; color: var(--csc-faint); font-variant-numeric: tabular-nums; }
+.csc-badge {
+  display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 999px;
+  font: 600 11px/1 var(--csc-sans); white-space: nowrap;
+  color: var(--csc-muted); background: var(--csc-tint); box-shadow: inset 0 0 0 1px var(--csc-line);
+}
+.csc-badge[data-tone="good"] { color: var(--csc-live); background: var(--csc-live-bg); box-shadow: none; }
+.csc-badge[data-tone="warn"] { color: var(--csc-paused); background: var(--csc-paused-bg); box-shadow: none; }
+.csc-badge[data-tone="info"] { color: var(--csc-scheduled); background: var(--csc-scheduled-bg); box-shadow: none; }
+
+/* channels */
+.csc-sec-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.csc-sec-note { font-size: 12px; color: var(--csc-faint); font-variant-numeric: tabular-nums; }
+.csc-channels { list-style: none; margin: 0; padding: 0; display: grid; }
+.csc-ch {
+  display: grid; grid-template-columns: 34px minmax(0, 1.3fr) minmax(0, 1.4fr) 92px; gap: 14px; align-items: center;
+  padding: 11px 0; border-top: 1px solid var(--csc-line);
+}
+.csc-ch:first-child { border-top: 0; }
+.csc-ch-ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--csc-accent-soft); color: var(--csc-accent-ink); }
+.csc-ch-ico svg { width: 17px; height: 17px; }
+.csc-ch-name { display: grid; gap: 3px; min-width: 0; }
+.csc-ch-name b { font: 600 14px/1.2 var(--csc-sans); overflow-wrap: anywhere; }
+.csc-ch-state { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--csc-muted); }
+.csc-ch-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--csc-c); transition: background .35s ease; }
+.csc-ch-spend { display: grid; gap: 6px; min-width: 0; }
+.csc-ch-spend-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--csc-muted); font-variant-numeric: tabular-nums; }
+.csc-ch-spend-top b { color: var(--csc-ink); font-weight: 600; }
+.csc-ch-bar { height: 6px; border-radius: 999px; background: var(--csc-line); overflow: hidden; }
+.csc-ch-bar span { display: block; height: 100%; width: calc(var(--csc-v, 0) * 1%); border-radius: inherit; background: var(--csc-accent); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+.csc-ch-leads { display: grid; justify-items: end; gap: 2px; text-align: right; font-variant-numeric: tabular-nums; }
+.csc-ch-leads b { font: 650 17px/1 var(--csc-display); }
+.csc-ch-leads span { font-size: 11.5px; color: var(--csc-faint); }
+
+/* controls */
+.csc-controls { display: grid; gap: 12px; }
+.csc-hint { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--csc-muted); }
+.csc-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.csc-btn {
+  appearance: none; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 40px; padding: 0 12px; border-radius: 10px;
+  font: 600 13px/1 var(--csc-sans); color: var(--csc-ink);
+  background: var(--csc-card); border: 1px solid var(--csc-line-strong);
+  transition: background .2s ease, border-color .2s ease, color .2s ease, opacity .2s ease, transform .15s ease;
+}
+.csc-btn svg { width: 14px; height: 14px; flex: none; }
+.csc-btn:hover:not(:disabled) { border-color: var(--csc-accent); color: var(--csc-accent-ink); }
+.csc-btn:active:not(:disabled) { transform: scale(.98); }
+.csc-btn:focus-visible { outline: 2px solid var(--csc-accent); outline-offset: 2px; }
+.csc-btn:disabled { cursor: not-allowed; opacity: .45; }
+.csc-btn.is-primary { background: var(--csc-primary); border-color: var(--csc-primary); color: var(--csc-primary-ink); box-shadow: 0 10px 20px -14px var(--csc-accent); }
+.csc-btn.is-primary:hover:not(:disabled) { background: var(--csc-primary-hover); border-color: var(--csc-primary-hover); color: var(--csc-primary-ink); }
+.csc-btn--end { grid-column: 1 / -1; color: var(--csc-danger); }
+.csc-btn--end:hover:not(:disabled) { border-color: var(--csc-danger); color: var(--csc-danger); background: color-mix(in oklab, var(--csc-danger) 7%, var(--csc-card)); }
+
+/* activity log */
+.csc-log { list-style: none; margin: 0; padding: 0; display: grid; max-height: 260px; overflow-y: auto; scrollbar-width: thin; }
+.csc-log-item { position: relative; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; padding: 0 0 14px; }
+.csc-log-item::before { content: ""; position: absolute; left: 8px; top: 16px; bottom: 0; width: 2px; background: var(--csc-line); }
+.csc-log-item:last-child::before { display: none; }
+.csc-log-dot { width: 10px; height: 10px; margin: 4px 0 0 4px; border-radius: 50%; background: var(--csc-card); box-shadow: inset 0 0 0 2px var(--csc-dot, var(--csc-faint)); }
+.csc-log-item.is-new .csc-log-dot { background: var(--csc-dot, var(--csc-faint)); }
+.csc-log-text { display: grid; gap: 2px; min-width: 0; }
+.csc-log-text b { font: 600 13px/1.35 var(--csc-sans); overflow-wrap: anywhere; }
+.csc-log-text span { font-size: 12px; color: var(--csc-faint); font-variant-numeric: tabular-nums; }
+
+/* confirm dialog */
+.csc-dialog {
+  width: min(420px, calc(100vw - 32px)); box-sizing: border-box; padding: 0; border: 0; border-radius: 18px;
+  background: var(--csc-card); color: var(--csc-ink); font-family: var(--csc-sans);
+  box-shadow: 0 0 0 1px var(--csc-line), 0 40px 80px -30px rgba(0, 0, 0, 0.45);
+}
+.csc-dialog::backdrop { background: rgba(8, 20, 34, 0.45); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+.csc-dialog[open] { animation: csc-pop .26s cubic-bezier(.2,.7,.2,1); }
+@keyframes csc-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.csc-dlg { margin: 0; padding: 24px; display: grid; gap: 12px; }
+.csc-dlg-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in oklab, var(--csc-danger) 12%, transparent); color: var(--csc-danger); }
+.csc-dlg-ico svg { width: 20px; height: 20px; }
+.csc-dlg h3 { margin: 4px 0 0; font: 650 19px/1.25 var(--csc-display); letter-spacing: -0.01em; }
+.csc-dlg p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--csc-muted); }
+.csc-dlg-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.csc-dlg-actions .csc-btn { min-width: 128px; }
+.csc-btn--danger { background: var(--csc-danger); border-color: var(--csc-danger); color: var(--csc-danger-ink); }
+.csc-btn--danger:hover:not(:disabled) { background: color-mix(in oklab, var(--csc-danger), #000 12%); border-color: transparent; color: var(--csc-danger-ink); }
+.csc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* tablet: side panel moves under the main column */
+@container csc (max-width: 759px) {
+  .csc-band { padding: 22px 20px 20px; }
+  .csc-body { grid-template-columns: 1fr; }
+  .csc-main { padding: 20px; }
+  .csc-side { border-left: 0; border-top: 1px solid var(--csc-line); padding: 20px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px 24px; }
+  .csc-actions { grid-template-columns: 1fr 1fr; }
+}
+/* phone: vertical stepper, stacked tiles and channels */
+@container csc (max-width: 519px) {
+  .csc { border-radius: 16px; }
+  .csc-band { padding: 18px 16px; gap: 18px; }
+  .csc-now { justify-items: start; width: 100%; }
+  .csc-since { text-align: left; }
+  .csc-pill { font-size: 16px; }
+  .csc-steps { grid-template-columns: 1fr; }
+  .csc-step { grid-template-columns: 32px minmax(0, 1fr); grid-template-rows: auto auto; justify-items: start; column-gap: 12px; row-gap: 2px; text-align: left; padding: 0 0 12px; }
+  .csc-step-dot { grid-row: 1 / span 2; }
+  .csc-step-label { align-self: end; padding-top: 2px; }
+  .csc-step::after { top: 36px; bottom: 0; left: 15px; right: auto; width: 2px; height: auto; background-image: linear-gradient(180deg, var(--csc-accent) 50%, transparent 0); background-size: 100% 200%; background-position: 0 100%; }
+  .csc-step.is-linked::after { background-position: 0 0; }
+  .csc-step.is-current .csc-step-dot { transform: none; }
+  .csc-main { padding: 16px; gap: 18px; }
+  .csc-tiles { grid-template-columns: 1fr; }
+  .csc-ch { grid-template-columns: 34px minmax(0, 1fr) auto; grid-template-areas: "ico name leads" "spend spend spend"; row-gap: 10px; }
+  .csc-ch-ico { grid-area: ico; } .csc-ch-name { grid-area: name; } .csc-ch-leads { grid-area: leads; } .csc-ch-spend { grid-area: spend; }
+  .csc-side { grid-template-columns: 1fr; padding: 16px; }
+  .csc-dlg { padding: 20px; }
+  .csc-dlg-actions .csc-btn { flex: 1; min-width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .csc-pill, .csc-step::after, .csc-step-dot, .csc-meter-fill, .csc-meter-mark, .csc-ch-bar span, .csc-ch-state::before, .csc-btn { transition: none; }
+  .csc[data-status="live"] .csc-pill-dot::after, .csc-dialog[open] { animation: none; }
+  .csc-step.is-current .csc-step-dot, .csc-btn:active:not(:disabled) { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--csc-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--csc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--csc-display); letter-spacing: -0.025em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 7%, transparent), transparent 45%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: clamp(24px, 5vw, 52px) clamp(14px, 4vw, 44px);
+  display: grid; justify-items: center; gap: 22px;
+}
+.stage-bar { width: 100%; max-width: 960px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 56ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.seg-wrap { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg-label { font: 500 10.5px/1 var(--csc-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 9px; background: var(--ground); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 500 12.5px/1 var(--csc-sans); color: var(--muted);
+  padding: 8px 11px; border-radius: 6px; transition: background .2s, color .2s;
+}
+.seg button[aria-pressed="true"] { background: var(--csc-card); color: var(--ink); box-shadow: 0 1px 3px -1px var(--csc-shadow); }
+.seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 600 17px/1.2 var(--csc-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--csc-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--csc-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--csc-card); cursor: pointer;
+  font: 500 12px/1 var(--csc-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--csc-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--csc-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card" aria-current="page"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 13</span></div>
+    <h1>Campaign Status Card</h1>
+    <p>Where a campaign is in its life, from draft to finished. It shows how far through its dates it is, whether spend is on pace, and every status change. The controls only allow moves that make sense right now.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <campaign-status id="demo">
+      <script type="application/json">
+        {
+          "id": "CMP-2041",
+          "name": "Fall Smile Makeover",
+          "client": "Brightside Dental",
+          "objective": "Lead generation",
+          "owner": "Maya Ortiz",
+          "status": "live",
+          "today": "2026-10-02",
+          "flight": { "start": "2026-09-22", "end": "2026-10-21" },
+          "budget": 12000,
+          "spent": 4520,
+          "currency": "USD",
+          "channels": [
+            { "name": "Search Ads", "type": "search", "spent": 2080, "leads": 61 },
+            { "name": "Social Ads", "type": "social", "spent": 1690, "leads": 79 },
+            { "name": "Video Ads",  "type": "video",  "spent": 750,  "leads": 12 }
+          ],
+          "log": [
+            { "action": "created",   "by": "Maya Ortiz", "at": "2026-09-14T10:12" },
+            { "action": "scheduled", "by": "Maya Ortiz", "at": "2026-09-18T16:40" },
+            { "action": "launched",  "by": "Scheduler",  "at": "2026-09-22T09:00" }
+          ]
+        }
+      </script>
+    </campaign-status>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Not real client results.</p>
+      <div class="controls">
+        <div class="seg-wrap">
+          <span class="seg-label">Start from</span>
+          <div class="seg" role="group" aria-label="Starting state">
+            <button type="button" data-value="live" aria-pressed="true">Live</button>
+            <button type="button" data-value="draft" aria-pressed="false">Draft</button>
+          </div>
+        </div>
+        <button type="button" class="btn" id="reset-demo">Reset demo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>status</td><td>Attribute or JSON. <code>draft</code>, <code>scheduled</code>, <code>live</code>, <code>paused</code> or <code>completed</code>. Kept in sync as the state changes.</td></tr>
+          <tr><td>name · client · id</td><td>Campaign name, client and reference.</td></tr>
+          <tr><td>objective · owner</td><td>Optional details under the title.</td></tr>
+          <tr><td>today</td><td>Date used for flight and pacing maths, <code>YYYY-MM-DD</code> (default: the real date).</td></tr>
+          <tr><td>flight</td><td><code>{ start, end }</code> dates, both days included.</td></tr>
+          <tr><td>budget · spent</td><td>Total budget and spend so far. Pacing compares spend with the budget share expected by today.</td></tr>
+          <tr><td>currency · locale</td><td>Money format (default USD, en-US).</td></tr>
+          <tr><td>channels[]</td><td><code>{ name, type, spent, leads }</code>. <code>type</code> picks the glyph: search, social, video, display, email.</td></tr>
+          <tr><td>log[]</td><td>Past changes, oldest first: <code>{ action, by, at }</code>. Actions: created, scheduled, launched, paused, resumed, ended.</td></tr>
+          <tr><td>user</td><td>Name recorded for changes made in the card (default "you").</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;campaign-status</span> <span class="a">status=</span>"live"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "name": "Fall Smile Makeover",
+      "client": "Brightside Dental",
+      "flight": { "start": "2026-09-22", "end": "2026-10-21" },
+      "budget": 12000, "spent": 4520,
+      "channels": [
+        { "name": "Search Ads", "type": "search", "spent": 2080, "leads": 61 }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/campaign-status&gt;</span>
+
+<span class="a">// or from code:</span>
+el.can("pause");        <span class="a">// true when live</span>
+el.transition("pause");
+el.addEventListener("statuschange", e =&gt; e.detail);</pre></div>
+      <p>Allowed moves: Draft → Scheduled or Live; Scheduled → Live; Live ⇄ Paused; any started state → Completed (asks to confirm first). Each move adds a log entry and fires <code>statuschange</code> with <code>{ from, to, action, by, at }</code>. Launching before the planned start moves the flight start to today.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/activity-timeline"><small>← Previous · 12</small><strong>Activity Timeline</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/lead-source-breakdown"><small>Next · 14 →</small><strong>Lead Source Breakdown</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 13 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <campaign-status> — reusable custom element
+   ========================================================= */
+(() => {
+  const STEPS = ["draft", "scheduled", "live", "paused", "completed"];
+  const STATE_LABEL = { draft: "Draft", scheduled: "Scheduled", live: "Live", paused: "Paused", completed: "Completed" };
+  const ACTIONS = {
+    schedule: { label: "Schedule", from: ["draft"], to: "scheduled", verb: "scheduled" },
+    launch:   { label: "Launch now", from: ["draft", "scheduled"], to: "live", verb: "launched" },
+    pause:    { label: "Pause", from: ["live"], to: "paused", verb: "paused" },
+    resume:   { label: "Resume", from: ["paused"], to: "live", verb: "resumed" },
+    end:      { label: "End campaign", from: ["scheduled", "live", "paused"], to: "completed", verb: "ended", confirm: true }
+  };
+  const VERB_STATE = { created: "draft", scheduled: "scheduled", launched: "live", paused: "paused", resumed: "live", ended: "completed" };
+  const VERB_LABEL = { created: "Created", scheduled: "Scheduled", launched: "Launched", paused: "Paused", resumed: "Resumed", ended: "Ended" };
+  const PRIMARY = { draft: "schedule", scheduled: "launch", live: "pause", paused: "resume" };
+  const HINTS = {
+    draft: "Drafts can be scheduled for the planned start date or launched straight away.",
+    scheduled: "Goes live automatically on the start date. You can launch it early or cancel it.",
+    live: "Delivering now. Pause to stop spend for a while, or end the campaign.",
+    paused: "Spend is on hold. Resume to pick up where it left off, or end the campaign.",
+    completed: "This campaign has ended. No more changes can be made."
+  };
+  const CH_STATE = { draft: "Not started", scheduled: "Waiting to start", live: "Delivering", paused: "Paused", completed: "Ended" };
+
+  const SVG = p => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+  const ICONS = {
+    schedule: SVG('<rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/>'),
+    launch: SVG('<path d="M5 3.2v9.6L12.5 8z"/>'),
+    pause: SVG('<path d="M5.5 3.5v9M10.5 3.5v9"/>'),
+    resume: SVG('<path d="M5 3.2v9.6L12.5 8z"/>'),
+    end: SVG('<rect x="3.5" y="3.5" width="9" height="9" rx="1.5"/>'),
+    check: SVG('<path d="m3.5 8.4 3 3 6-6.4"/>'),
+    user: SVG('<circle cx="8" cy="5.5" r="2.5"/><path d="M3 13.5c.7-2.3 2.6-3.5 5-3.5s4.3 1.2 5 3.5"/>'),
+    target: SVG('<circle cx="8" cy="8" r="5.5"/><circle cx="8" cy="8" r="2"/>'),
+    warn: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 2.5 16.5h15z"/><path d="M10 8.5v3.5M10 14.5v.01"/></svg>',
+    search: SVG('<circle cx="7" cy="7" r="4.2"/><path d="m10.2 10.2 3.3 3.3"/>'),
+    social: SVG('<path d="M2.5 4.5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v4.5a2 2 0 0 1-2 2H7l-3 2.5v-2.5h0a1.5 1.5 0 0 1-1.5-1.5z"/>'),
+    video: SVG('<rect x="2" y="3.5" width="12" height="9" rx="2"/><path d="M6.8 6v4l3.2-2z"/>'),
+    display: SVG('<rect x="2" y="2.5" width="12" height="11" rx="2"/><path d="M2 6h12M5 9h3"/>'),
+    email: SVG('<rect x="2" y="3.5" width="12" height="9" rx="2"/><path d="m2.5 4.5 5.5 4 5.5-4"/>')
+  };
+  const STEP_ICON = { draft: SVG('<path d="M3 13h3l7-7-3-3-7 7z"/>'), scheduled: ICONS.schedule, live: ICONS.launch, paused: ICONS.pause, completed: ICONS.check };
+
+  const TEMPLATE = `
+    <article class="csc">
+      <div class="csc-band">
+        <header class="csc-head">
+          <div class="csc-intro">
+            <div class="csc-eyebrow"></div>
+            <h2 class="csc-title"></h2>
+            <p class="csc-meta"></p>
+          </div>
+          <div class="csc-now" tabindex="-1">
+            <span class="csc-pill"><span class="csc-pill-dot" aria-hidden="true"></span><span class="csc-pill-text"></span></span>
+            <span class="csc-since"></span>
+          </div>
+        </header>
+        <ol class="csc-steps" aria-label="Campaign lifecycle"></ol>
+      </div>
+      <div class="csc-body">
+        <div class="csc-main">
+          <div class="csc-tiles">
+            <section class="csc-tile csc-flight" aria-label="Flight dates">
+              <div class="csc-tile-top"><h3 class="csc-label">Flight</h3><span class="csc-badge csc-flight-badge"></span></div>
+              <div class="csc-big csc-flight-big"></div>
+              <div class="csc-meter csc-flight-meter"><span class="csc-meter-fill"></span></div>
+              <div class="csc-scale"><span class="csc-flight-start"></span><span class="csc-flight-end"></span></div>
+              <p class="csc-sub csc-flight-sub"></p>
+            </section>
+            <section class="csc-tile csc-budget" aria-label="Budget pacing">
+              <div class="csc-tile-top"><h3 class="csc-label">Budget pacing</h3><span class="csc-badge csc-pace-badge"></span></div>
+              <div class="csc-big csc-budget-big"></div>
+              <div class="csc-meter csc-budget-meter"><span class="csc-meter-fill"></span><span class="csc-meter-mark"></span></div>
+              <div class="csc-scale"><span class="csc-budget-l"></span><span class="csc-budget-r"></span></div>
+              <p class="csc-sub csc-budget-sub"></p>
+            </section>
+          </div>
+          <section aria-label="Channels">
+            <div class="csc-sec-head"><h3 class="csc-label">Channels</h3><span class="csc-sec-note csc-ch-total"></span></div>
+            <ul class="csc-channels"></ul>
+          </section>
+        </div>
+        <aside class="csc-side">
+          <section class="csc-controls" aria-label="Campaign controls">
+            <h3 class="csc-label">Controls</h3>
+            <p class="csc-hint"></p>
+            <div class="csc-actions"></div>
+          </section>
+          <section aria-label="Activity">
+            <div class="csc-sec-head"><h3 class="csc-label">Activity</h3><span class="csc-sec-note csc-log-count"></span></div>
+            <ol class="csc-log"></ol>
+          </section>
+        </aside>
+      </div>
+      <dialog class="csc-dialog">
+        <form method="dialog" class="csc-dlg">
+          <span class="csc-dlg-ico">${ICONS.warn}</span>
+          <h3 class="csc-dlg-title">End this campaign?</h3>
+          <p class="csc-dlg-text"></p>
+          <div class="csc-dlg-actions">
+            <button type="submit" value="cancel" class="csc-btn csc-dlg-cancel">Keep running</button>
+            <button type="submit" value="confirm" class="csc-btn csc-btn--danger">End campaign</button>
+          </div>
+        </form>
+      </dialog>
+      <p class="csc-sr" aria-live="polite"></p>
+    </article>`;
+
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const MONTHS = "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ");
+  const parseDate = s => {
+    if (s instanceof Date) return new Date(s.getTime());
+    const m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(s || "");
+    return m ? new Date(+m[1], +m[2] - 1, +m[3], +(m[4] || 0), +(m[5] || 0)) : null;
+  };
+  const dayOnly = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const daysBetween = (a, b) => Math.round((dayOnly(b) - dayOnly(a)) / 864e5);
+  const shortDate = d => `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  const clock = d => `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  let uid = 0;
+
+  class CampaignStatus extends HTMLElement {
+    static get observedAttributes() { return ["status"]; }
+
+    connectedCallback() {
+      if (this._built) { this._startClock(); return; }
+      this._uid = "csc" + (++uid);
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        let d = {};
+        try { d = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<campaign-status>: the JSON data could not be read.", e); }
+        this._load(d);
+      }
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".csc"), eyebrow: q(".csc-eyebrow"), title: q(".csc-title"), meta: q(".csc-meta"),
+        now: q(".csc-now"), pill: q(".csc-pill"), pillText: q(".csc-pill-text"), since: q(".csc-since"), steps: q(".csc-steps"),
+        flightBadge: q(".csc-flight-badge"), flightBig: q(".csc-flight-big"), flightMeter: q(".csc-flight-meter"),
+        flightStart: q(".csc-flight-start"), flightEnd: q(".csc-flight-end"), flightSub: q(".csc-flight-sub"),
+        paceBadge: q(".csc-pace-badge"), budgetBig: q(".csc-budget-big"), budgetMeter: q(".csc-budget-meter"),
+        budgetL: q(".csc-budget-l"), budgetR: q(".csc-budget-r"), budgetSub: q(".csc-budget-sub"),
+        channels: q(".csc-channels"), chTotal: q(".csc-ch-total"), hint: q(".csc-hint"), actions: q(".csc-actions"),
+        log: q(".csc-log"), logCount: q(".csc-log-count"), dialog: q(".csc-dialog"), dlgText: q(".csc-dlg-text"), sr: q(".csc-sr")
+      };
+      const titleId = this._uid + "-dlg-t", textId = this._uid + "-dlg-d";
+      q(".csc-dlg-title").id = titleId; this.$.dlgText.id = textId;
+      this.$.dialog.setAttribute("aria-labelledby", titleId);
+      this.$.dialog.setAttribute("aria-describedby", textId);
+      this._wire();
+      this._built = true;
+      this._render();
+      this._startClock();
+    }
+
+    disconnectedCallback() { clearInterval(this._clock); this._clock = null; }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal || this._syncing) return;
+      if (STEPS.includes(newVal)) { this._status = newVal; this._render(); }
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._load(d || {}); if (this._built) this._render(); }
+    get status() { return this._status; }
+    get log() { return this._log.map(e => Object.assign({}, e)); }
+
+    can(action) { const a = ACTIONS[action]; return !!a && a.from.includes(this._status); }
+
+    /* Run a lifecycle action. Returns true when the state changed. Skips the confirm step. */
+    transition(action) {
+      if (!this.can(action)) return false;
+      const a = ACTIONS[action], from = this._status, at = new Date(), by = this._user();
+      if (action === "launch") {
+        const f = this._flight();
+        if (f && this._today() < f.start) { this._flightStart = dayOnly(this._today()); }
+      }
+      if (action === "end") this._endedDay = this._dayOf();
+      this._status = a.to;
+      this._log.push({ action: a.verb, by, at, isNew: true });
+      this._syncing = true; this.setAttribute("status", this._status); this._syncing = false;
+      this._render(true);
+      this._announce(`${VERB_LABEL[a.verb]}. Campaign is now ${STATE_LABEL[a.to].toLowerCase()}.`);
+      this.dispatchEvent(new CustomEvent("statuschange", { bubbles: true, detail: { from, to: a.to, action, by, at: at.toISOString() } }));
+      return true;
+    }
+
+    /* internals */
+    _load(d) {
+      this._data = d;
+      this._log = (Array.isArray(d.log) ? d.log : []).map(e => ({ action: String((e && e.action) || "").toLowerCase(), by: (e && e.by) || "", at: parseDate(e && e.at) })).filter(e => VERB_STATE[e.action]);
+      const attr = this.getAttribute("status");
+      const last = this._log.length ? VERB_STATE[this._log[this._log.length - 1].action] : "draft";
+      this._status = STEPS.includes(d.status) ? d.status : (STEPS.includes(attr) ? attr : last);
+      this._flightStart = null;
+      this._endedDay = null;
+      if (this.getAttribute("status") !== this._status) { this._syncing = true; this.setAttribute("status", this._status); this._syncing = false; }
+    }
+    _user() { return (this._data && this._data.user) || "you"; }
+    _today() { return parseDate(this._data && this._data.today) || dayOnly(new Date()); }
+    _flight() {
+      const f = (this._data && this._data.flight) || {};
+      const start = this._flightStart || parseDate(f.start), end = parseDate(f.end);
+      if (!start || !end || end < start) return null;
+      return { start, end, total: daysBetween(start, end) + 1 };
+    }
+    _dayOf() {
+      const f = this._flight(); if (!f) return 0;
+      return Math.max(0, Math.min(f.total, daysBetween(f.start, this._today()) + 1));
+    }
+    _money(v) {
+      const d = this._data || {};
+      try { return new Intl.NumberFormat(d.locale || "en-US", { style: "currency", currency: d.currency || "USD", maximumFractionDigits: 0 }).format(v); }
+      catch (e) { return `${d.currency || "USD"} ${Math.round(v)}`; }
+    }
+    _int(v) { return Math.round(v).toLocaleString((this._data && this._data.locale) || "en-US"); }
+    _when(at) {
+      if (!at) return "";
+      const diff = (Date.now() - at.getTime()) / 6e4;
+      if (diff >= -1 && diff < 1) return "just now";
+      if (diff >= 1 && diff < 60) return `${Math.floor(diff)} min ago`;
+      return `${shortDate(at)}, ${clock(at)}`;
+    }
+    _announce(t) { this.$.sr.textContent = ""; requestAnimationFrame(() => { this.$.sr.textContent = t; }); }
+
+    _startClock() {
+      clearInterval(this._clock);
+      this._clock = setInterval(() => {
+        this.$.log.querySelectorAll(".csc-log-when").forEach(el => { el.textContent = this._when(el._at); });
+        const cur = this._sinceEntry();
+        if (cur) this.$.since.textContent = this._sinceText(cur);
+      }, 30000);
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.actions.addEventListener("click", e => {
+        const b = e.target.closest("button[data-action]"); if (!b || b.disabled) return;
+        const act = b.dataset.action;
+        if (ACTIONS[act].confirm) this._confirm(b); else {
+          this.transition(act);
+          const next = $.actions.querySelector("button:not(:disabled).is-primary") || $.actions.querySelector("button:not(:disabled)");
+          if (document.activeElement === document.body || (document.activeElement && document.activeElement.disabled) || b.disabled) (next || $.now).focus();
+        }
+      });
+      $.dialog.addEventListener("close", () => {
+        const ok = $.dialog.returnValue === "confirm";
+        if (ok) { this.transition("end"); $.now.focus(); }
+        else if (this._returnFocus) this._returnFocus.focus();
+        this._returnFocus = null;
+      });
+      // keep Tab inside the dialog
+      $.dialog.addEventListener("keydown", e => {
+        if (e.key !== "Tab") return;
+        const f = [...$.dialog.querySelectorAll("button")];
+        const i = f.indexOf(document.activeElement);
+        if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+        else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+      });
+    }
+
+    _confirm(btn) {
+      const $ = this.$, d = this._data || {};
+      const left = Math.max(0, (num(d.budget) || 0) - (num(d.spent) || 0));
+      const n = (Array.isArray(d.channels) ? d.channels : []).length;
+      $.dlgText.textContent = this._status === "scheduled"
+        ? `“${d.name || "This campaign"}” will be cancelled before it starts. The full ${this._money(left)} budget is released. This can't be undone.`
+        : `All ${n} channel${n === 1 ? "" : "s"} stop delivering right away and ${this._money(left)} of unspent budget is released. This can't be undone.`;
+      this._returnFocus = btn;
+      $.dialog.returnValue = "";
+      if (typeof $.dialog.showModal === "function") {
+        $.dialog.showModal();
+        $.dialog.querySelector(".csc-dlg-cancel").focus();
+      } else if (window.confirm($.dlgText.textContent)) { this.transition("end"); }
+    }
+
+    _sinceEntry() {
+      for (let i = this._log.length - 1; i >= 0; i--) if (VERB_STATE[this._log[i].action] === this._status) return this._log[i];
+      return null;
+    }
+    _sinceText(entry) { return entry.at ? `Since ${this._when(entry.at)}` : ""; }
+
+    _render(animate) {
+      const d = this._data || {}, $ = this.$, s = this._status;
+      $.card.dataset.status = s;
+
+      // header
+      $.eyebrow.replaceChildren(make("span", null, "Campaign"));
+      if (d.id) $.eyebrow.append(make("i", null, "·"), make("span", null, d.id));
+      $.title.textContent = d.name || "Untitled campaign";
+      $.meta.replaceChildren();
+      [[ICONS.target, d.client], [ICONS.launch, d.objective], [ICONS.user, d.owner]].forEach(([ico, t]) => {
+        if (!t) return;
+        const sp = make("span"); sp.innerHTML = ico; sp.append(String(t)); $.meta.append(sp);
+      });
+      $.pillText.textContent = STATE_LABEL[s];
+      const since = this._sinceEntry();
+      $.since.textContent = since ? this._sinceText(since) : "";
+      $.now.setAttribute("aria-label", `Status: ${STATE_LABEL[s]}. ${$.since.textContent}`);
+      if (animate && !reduceMotion() && "animate" in Element.prototype) {
+        $.pill.animate([{ transform: "scale(.94)", opacity: .4 }, { transform: "none", opacity: 1 }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" });
+      }
+
+      this._renderSteps();
+      this._renderFlight();
+      this._renderBudget();
+      this._renderChannels();
+      this._renderControls();
+      this._renderLog();
+    }
+
+    _renderSteps() {
+      const s = this._status, cur = STEPS.indexOf(s);
+      const visited = new Set(this._log.map(e => VERB_STATE[e.action]));
+      visited.add(s);
+      const counts = {}; this._log.forEach(e => { counts[e.action] = (counts[e.action] || 0) + 1; });
+      const lastAt = st => { for (let i = this._log.length - 1; i >= 0; i--) if (VERB_STATE[this._log[i].action] === st && this._log[i].at) return this._log[i].at; return null; };
+      const f = this._flight();
+      const states = STEPS.map((st, i) => {
+        if (st === s) return "current";
+        if (visited.has(st)) return "done";
+        if (i < cur && st !== "paused") return "skipped";
+        if (st === "paused" && s === "completed") return "skipped";
+        return "upcoming";
+      });
+      const reached = st => st === "current" || st === "done";
+      this.$.steps.replaceChildren(...STEPS.map((st, i) => {
+        const li = make("li", "csc-step is-" + states[i]);
+        if (i < STEPS.length - 1 && reached(states[i]) && reached(states[i + 1])) li.classList.add("is-linked");
+        if (states[i] === "current") li.setAttribute("aria-current", "step");
+        const dot = make("span", "csc-step-dot"); dot.setAttribute("aria-hidden", "true");
+        dot.innerHTML = states[i] === "done" ? ICONS.check : STEP_ICON[st];
+        let meta = "";
+        const at = lastAt(st);
+        if (st === "paused" && counts.paused && at) meta = counts.paused > 1 ? `${counts.paused}×, last ${shortDate(at)}` : shortDate(at);
+        else if (states[i] === "skipped") meta = "Skipped";
+        else if (at && (states[i] === "done" || states[i] === "current")) meta = shortDate(at);
+        else if (st === "scheduled" && f) meta = `For ${shortDate(f.start)}`;
+        else if (st === "live" && f) meta = `From ${shortDate(f.start)}`;
+        else if (st === "paused") meta = "If needed";
+        else if (st === "completed" && f) meta = `Ends ${shortDate(f.end)}`;
+        li.append(dot, make("span", "csc-step-label", STATE_LABEL[st]), make("span", "csc-step-meta", meta));
+        li.append(make("span", "csc-sr", `, ${{ current: "current step", done: "done", skipped: "skipped", upcoming: "not yet" }[states[i]]}`));
+        return li;
+      }));
+    }
+
+    _renderFlight() {
+      const $ = this.$, f = this._flight(), s = this._status;
+      const badge = (t, tone) => { $.flightBadge.textContent = t; if (tone) $.flightBadge.dataset.tone = tone; else delete $.flightBadge.dataset.tone; };
+      if (!f) { $.flightBig.textContent = "No dates"; $.flightSub.textContent = ""; badge("", null); $.flightMeter.style.setProperty("--csc-v", 0); return; }
+      $.flightStart.textContent = shortDate(f.start);
+      $.flightEnd.textContent = shortDate(f.end);
+      const today = this._today();
+      const day = this._dayOf();
+      const started = s === "live" || s === "paused" || (s === "completed" && this._log.some(e => e.action === "launched"));
+      let shownDay = started ? (s === "completed" && this._endedDay != null ? this._endedDay : day) : 0;
+      if (s === "completed" && this._endedDay == null && started) shownDay = daysBetween(f.start, today) + 1 >= f.total ? f.total : day;
+      $.flightMeter.style.setProperty("--csc-v", (shownDay / f.total * 100).toFixed(2));
+      $.flightMeter.setAttribute("role", "img");
+
+      $.flightBig.replaceChildren();
+      if (!started) {
+        const until = daysBetween(today, f.start);
+        $.flightBig.append(until > 0 ? `In ${until} day${until === 1 ? "" : "s"}` : "Today");
+        $.flightSub.textContent = s === "completed" ? "Cancelled before it started." : `${f.total}-day flight, ${shortDate(f.start)} to ${shortDate(f.end)}.`;
+        badge(s === "completed" ? "Cancelled" : s === "scheduled" ? "Scheduled" : "Not started", s === "scheduled" ? "info" : null);
+      } else {
+        $.flightBig.append(`Day ${shownDay} `, make("small", null, `of ${f.total}`));
+        const left = Math.max(0, f.total - shownDay);
+        if (s === "completed") { $.flightSub.textContent = shownDay >= f.total ? `Ran all ${f.total} days.` : `Ended early, ${left} day${left === 1 ? "" : "s"} before the planned end.`; badge("Ended", null); }
+        else if (s === "paused") { $.flightSub.textContent = `${left} day${left === 1 ? "" : "s"} left. The end date doesn't move while paused.`; badge("On hold", "warn"); }
+        else { $.flightSub.textContent = `${left} day${left === 1 ? "" : "s"} left, ends ${shortDate(f.end)}.`; badge(`${Math.round(shownDay / f.total * 100)}% through`, "good"); }
+      }
+      $.flightMeter.setAttribute("aria-label", `${shownDay} of ${f.total} flight days elapsed`);
+    }
+
+    _renderBudget() {
+      const $ = this.$, d = this._data || {}, s = this._status, f = this._flight();
+      const budget = num(d.budget) || 0, spent = Math.max(0, num(d.spent) || 0);
+      const badge = (t, tone) => { $.paceBadge.textContent = t; if (tone) $.paceBadge.dataset.tone = tone; else delete $.paceBadge.dataset.tone; };
+      $.budgetBig.replaceChildren(this._money(spent) + " ", make("small", null, `of ${this._money(budget)}`));
+      const v = budget > 0 ? Math.min(100, spent / budget * 100) : 0;
+      $.budgetMeter.style.setProperty("--csc-v", v.toFixed(2));
+      $.budgetMeter.setAttribute("role", "img");
+      $.budgetL.textContent = `${budget > 0 ? Math.round(spent / budget * 100) : 0}% spent`;
+      const mark = $.budgetMeter.querySelector(".csc-meter-mark");
+      const day = this._dayOf();
+      const running = (s === "live" || s === "paused") && f && day > 0 && budget > 0;
+      $.budgetSub.replaceChildren();
+      $.budgetMeter.style.removeProperty("--csc-meter");
+      if (running) {
+        const expected = budget * day / f.total, pace = expected > 0 ? spent / expected : 0;
+        mark.hidden = false; mark.style.setProperty("--csc-m", Math.min(100, expected / budget * 100).toFixed(2));
+        $.budgetR.textContent = `Expected ${this._money(expected)}`;
+        const perDay = spent / day, projected = perDay * f.total, diff = (projected - budget) / budget * 100;
+        if (spent === 0 && s === "live") badge("Just started", "info");
+        else if (s === "paused") { badge("On hold", "warn"); $.budgetMeter.style.setProperty("--csc-meter", "var(--csc-paused)"); }
+        else if (pace > 1.1) { badge("Overspending", "warn"); $.budgetMeter.style.setProperty("--csc-meter", "var(--csc-paused)"); }
+        else if (pace < 0.9) badge("Underspending", "info");
+        else badge("On pace", "good");
+        if (spent === 0) $.budgetSub.append(`No spend recorded yet. About ${this._money(budget / f.total)} a day keeps it on pace.`);
+        else $.budgetSub.append(make("b", null, `${Math.round(pace * 100)}%`), ` of expected spend. ≈ ${this._money(perDay)}/day, projected ${this._money(projected)} (${diff >= 0 ? "+" : "−"}${Math.abs(diff).toFixed(1)}%).`);
+        $.budgetMeter.setAttribute("aria-label", `${this._money(spent)} spent of ${this._money(budget)}. Expected by today: ${this._money(expected)}.`);
+      } else {
+        mark.hidden = true;
+        $.budgetR.textContent = `${this._money(Math.max(0, budget - spent))} left`;
+        if (s === "completed") { badge("Closed", null); $.budgetSub.append(`${this._money(Math.max(0, budget - spent))} unspent and released.`); }
+        else { badge("Not spending", null); $.budgetSub.append("Spend starts when the campaign goes live."); }
+        $.budgetMeter.setAttribute("aria-label", `${this._money(spent)} spent of ${this._money(budget)}.`);
+      }
+    }
+
+    _renderChannels() {
+      const $ = this.$, d = this._data || {}, s = this._status;
+      const chs = Array.isArray(d.channels) ? d.channels.filter(Boolean) : [];
+      const total = chs.reduce((a, c) => a + (num(c.spent) || 0), 0);
+      const leads = chs.reduce((a, c) => a + (num(c.leads) || 0), 0);
+      $.chTotal.textContent = chs.length ? `${this._int(leads)} leads · ${leads > 0 ? this._money(total / leads) : "—"} per lead` : "";
+      $.channels.replaceChildren(...chs.map(c => {
+        const sp = num(c.spent) || 0, ld = num(c.leads) || 0;
+        const li = make("li", "csc-ch");
+        const ico = make("span", "csc-ch-ico"); ico.innerHTML = ICONS[c.type] || ICONS.display; ico.setAttribute("aria-hidden", "true");
+        const name = make("div", "csc-ch-name");
+        name.append(make("b", null, c.name || "Channel"), make("span", "csc-ch-state", CH_STATE[s]));
+        const spend = make("div", "csc-ch-spend");
+        const top = make("div", "csc-ch-spend-top");
+        const share = total > 0 ? sp / total * 100 : 0;
+        top.append(make("b", null, this._money(sp)), make("span", null, `${Math.round(share)}% of spend`));
+        const bar = make("div", "csc-ch-bar"); bar.style.setProperty("--csc-v", share.toFixed(1)); bar.append(make("span")); bar.setAttribute("aria-hidden", "true");
+        spend.append(top, bar);
+        const lead = make("div", "csc-ch-leads");
+        lead.append(make("b", null, this._int(ld)), make("span", null, ld > 0 ? `leads · ${this._money(sp / ld)}` : "leads"));
+        li.append(ico, name, spend, lead);
+        return li;
+      }));
+    }
+
+    _renderControls() {
+      const $ = this.$, s = this._status;
+      $.hint.textContent = HINTS[s];
+      const focused = document.activeElement && $.actions.contains(document.activeElement) ? document.activeElement.dataset.action : null;
+      $.actions.replaceChildren(...Object.keys(ACTIONS).map(k => {
+        const a = ACTIONS[k];
+        const b = make("button", "csc-btn" + (k === "end" ? " csc-btn--end" : ""));
+        b.type = "button"; b.dataset.action = k;
+        b.innerHTML = ICONS[k];
+        b.append(make("span", null, a.label));
+        const ok = this.can(k);
+        b.disabled = !ok;
+        if (ok && PRIMARY[s] === k) b.classList.add("is-primary");
+        if (!ok) b.title = `Not available while ${STATE_LABEL[s].toLowerCase()}`;
+        return b;
+      }));
+      if (focused) { const again = $.actions.querySelector(`[data-action="${focused}"]`); if (again && !again.disabled) again.focus(); }
+    }
+
+    _renderLog() {
+      const $ = this.$, user = this._user();
+      const items = this._log.slice().reverse();
+      $.logCount.textContent = `${items.length} change${items.length === 1 ? "" : "s"}`;
+      $.log.replaceChildren(...items.map(e => {
+        const li = make("li", "csc-log-item" + (e.isNew ? " is-new" : ""));
+        const st = VERB_STATE[e.action];
+        li.style.setProperty("--csc-dot", `var(--csc-${st})`);
+        const dot = make("span", "csc-log-dot"); dot.setAttribute("aria-hidden", "true");
+        const txt = make("div", "csc-log-text");
+        const by = e.by === user ? user : e.by;
+        txt.append(make("b", null, by ? `${VERB_LABEL[e.action]} by ${by}` : VERB_LABEL[e.action]));
+        const when = make("span", "csc-log-when", this._when(e.at)); when._at = e.at;
+        txt.append(when);
+        li.append(dot, txt);
+        return li;
+      }));
+      const first = $.log.firstElementChild;
+      if (first && first.classList.contains("is-new") && !reduceMotion() && "animate" in Element.prototype && this._lastLogLen !== undefined && this._lastLogLen < items.length) {
+        first.animate([{ opacity: 0, transform: "translateY(-6px)" }, { opacity: 1, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.7,.2,1)" });
+      }
+      this._lastLogLen = items.length;
+      $.log.scrollTop = 0;
+    }
+  }
+
+  if (!customElements.get("campaign-status")) customElements.define("campaign-status", CampaignStatus);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const base = JSON.parse(JSON.stringify(el.data));
+  const draft = Object.assign(JSON.parse(JSON.stringify(base)), {
+    status: "draft", spent: 0,
+    flight: { start: "2026-10-06", end: "2026-11-04" },
+    channels: base.channels.map(c => Object.assign({}, c, { spent: 0, leads: 0 })),
+    log: [{ action: "created", by: "Maya Ortiz", at: "2026-09-29T14:05" }]
+  });
+  let start = "live";
+  const load = () => {
+    const src = start === "draft" ? draft : base;
+    el.data = JSON.parse(JSON.stringify(src));
+    note.innerHTML = "<b>Example data.</b> Not real client results.";
+  };
+  const buttons = document.querySelectorAll(".seg button");
+  buttons.forEach(b => b.addEventListener("click", () => {
+    start = b.dataset.value;
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    load();
+  }));
+  document.getElementById("reset-demo").addEventListener("click", load);
+
+  el.addEventListener("statuschange", e => {
+    const d = e.detail;
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = `${d.from} → ${d.to}.`;
+    note.append(b, " The card sent a statuschange event. Example data, not real client results.");
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1015 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable customer journey map: five stages with goals, touchpoints, pain points and an emotion curve, a persona switcher and a detail card for each stage.">
+<meta property="og:title" content="Customer Journey Map · LofiStack Components">
+<meta property="og:description" content="A reusable customer journey map: five stages with goals, touchpoints, pain points and an emotion curve, a persona switcher and a detail card for each stage.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Customer Journey Map · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #EFE9E1;
+  --stage: #F7F2EB;
+  --ink: #1F1A17;
+  --muted: #5A514A;
+  --faint: #6E655D;
+  --line: #E2D9CD;
+  --panel: #FBF8F3;
+  --accent: #B4532A;
+
+  /* ---- Customer Journey tokens (override these to re-theme the component) ---- */
+  --cjm-card: #FFFCF7;
+  --cjm-ink: #1F1A17;
+  --cjm-muted: #574E47;
+  --cjm-faint: #6B625A;
+  --cjm-line: #EBE3D8;
+  --cjm-tint: #F6F0E7;
+  --cjm-peach: #FDE3D3;  --cjm-peach-strong: #B4532A;
+  --cjm-butter: #FBF0C2; --cjm-butter-strong: #8C6A04;
+  --cjm-mint: #D6F0E0;   --cjm-mint-strong: #23825A;
+  --cjm-sky: #D8E9F8;    --cjm-sky-strong: #2F6FB0;
+  --cjm-lilac: #E7DFF6;  --cjm-lilac-strong: #6E4FBF;
+  --cjm-pos: #23825A;
+  --cjm-neu: #B08A0A;
+  --cjm-neg: #CC4A33;
+  --cjm-curve: #1F1A17;
+  --cjm-shadow: rgba(52, 36, 22, 0.22);
+  --cjm-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --cjm-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --cjm-serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --cjm-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #110E0C; --stage: #171310; --ink: #F3ECE4; --muted: #BCB0A4; --faint: #9A8E83;
+    --line: #2C2520; --panel: #1A1613; --accent: #F59A73;
+    --cjm-card: #1A1613; --cjm-ink: #F3ECE4; --cjm-muted: #C2B6AA; --cjm-faint: #A39689;
+    --cjm-line: #2F2823; --cjm-tint: #231E1A;
+    --cjm-peach: #3A261D;  --cjm-peach-strong: #F59A73;
+    --cjm-butter: #352D15; --cjm-butter-strong: #E8C04A;
+    --cjm-mint: #1B3126;   --cjm-mint-strong: #5CCB94;
+    --cjm-sky: #1C2B3B;    --cjm-sky-strong: #6FAEEA;
+    --cjm-lilac: #2A223D;  --cjm-lilac-strong: #A98AF0;
+    --cjm-pos: #5CCB94; --cjm-neu: #E8C04A; --cjm-neg: #FF8A73; --cjm-curve: #F3ECE4;
+    --cjm-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #110E0C; --stage: #171310; --ink: #F3ECE4; --muted: #BCB0A4; --faint: #9A8E83;
+  --line: #2C2520; --panel: #1A1613; --accent: #F59A73;
+  --cjm-card: #1A1613; --cjm-ink: #F3ECE4; --cjm-muted: #C2B6AA; --cjm-faint: #A39689;
+  --cjm-line: #2F2823; --cjm-tint: #231E1A;
+  --cjm-peach: #3A261D;  --cjm-peach-strong: #F59A73;
+  --cjm-butter: #352D15; --cjm-butter-strong: #E8C04A;
+  --cjm-mint: #1B3126;   --cjm-mint-strong: #5CCB94;
+  --cjm-sky: #1C2B3B;    --cjm-sky-strong: #6FAEEA;
+  --cjm-lilac: #2A223D;  --cjm-lilac-strong: #A98AF0;
+  --cjm-pos: #5CCB94; --cjm-neu: #E8C04A; --cjm-neg: #FF8A73; --cjm-curve: #F3ECE4;
+  --cjm-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   Customer Journey component  (copy this block + the script)
+   ========================================================= */
+customer-journey-map {
+  display: block;
+  container: cjm / inline-size;
+  width: 100%;
+  max-width: 1000px;
+  font-family: var(--cjm-sans);
+  color: var(--cjm-ink);
+}
+.cjm {
+  position: relative;
+  background: var(--cjm-card);
+  border: 1px solid var(--cjm-line);
+  border-radius: 22px;
+  padding: 26px 24px 22px;
+  box-shadow: 0 30px 60px -46px var(--cjm-shadow), 0 2px 6px -4px var(--cjm-shadow);
+}
+customer-journey-map [data-tone="peach"]  { --cjm-c: var(--cjm-peach);  --cjm-cs: var(--cjm-peach-strong); }
+customer-journey-map [data-tone="butter"] { --cjm-c: var(--cjm-butter); --cjm-cs: var(--cjm-butter-strong); }
+customer-journey-map [data-tone="mint"]   { --cjm-c: var(--cjm-mint);   --cjm-cs: var(--cjm-mint-strong); }
+customer-journey-map [data-tone="sky"]    { --cjm-c: var(--cjm-sky);    --cjm-cs: var(--cjm-sky-strong); }
+customer-journey-map [data-tone="lilac"]  { --cjm-c: var(--cjm-lilac);  --cjm-cs: var(--cjm-lilac-strong); }
+customer-journey-map [data-feel="pos"] { --cjm-f: var(--cjm-pos); }
+customer-journey-map [data-feel="neu"] { --cjm-f: var(--cjm-neu); }
+customer-journey-map [data-feel="neg"] { --cjm-f: var(--cjm-neg); }
+
+/* header */
+.cjm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px 24px; flex-wrap: wrap; }
+.cjm-intro { display: grid; gap: 6px; min-width: 0; max-width: 46ch; }
+.cjm-eyebrow { font: 500 10.5px/1 var(--cjm-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--cjm-peach-strong); }
+.cjm-title { margin: 0; font: 700 clamp(20px, 3.1cqi, 26px)/1.15 var(--cjm-display); letter-spacing: -0.02em; text-wrap: balance; }
+.cjm-sub { margin: 0; font-size: 13.5px; color: var(--cjm-muted); }
+.cjm-eyebrow:empty, .cjm-title:empty, .cjm-sub:empty, .cjm-persona-sum:empty { display: none; }
+
+.cjm-personas { display: flex; flex-wrap: wrap; gap: 6px; }
+.cjm-persona {
+  appearance: none; cursor: pointer; text-align: left;
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 5px 12px 5px 5px; border-radius: 999px;
+  border: 1px solid var(--cjm-line); background: var(--cjm-card); color: var(--cjm-muted);
+  font: 500 12px/1.15 var(--cjm-sans);
+  transition: border-color .2s, box-shadow .2s, color .2s, background .2s;
+}
+.cjm-persona b { display: block; font: 650 12.5px/1.15 var(--cjm-sans); color: var(--cjm-ink); }
+.cjm-persona small { font-size: 11px; color: var(--cjm-faint); }
+.cjm-persona:hover { border-color: var(--cjm-faint); }
+.cjm-persona[aria-pressed="true"] { border-color: var(--cjm-ink); box-shadow: 0 0 0 3px color-mix(in oklab, var(--cjm-ink) 12%, transparent); background: var(--cjm-tint); }
+.cjm-persona:focus-visible { outline: 2px solid var(--cjm-ink); outline-offset: 2px; }
+.cjm-av { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--cjm-av); color: #FFFFFF; font: 700 11px/1 var(--cjm-sans); letter-spacing: .02em; }
+.cjm-persona-sum { margin: 14px 0 0; font-size: 13.5px; color: var(--cjm-muted); }
+.cjm-persona-sum b { color: var(--cjm-ink); font-weight: 650; }
+
+/* the map: row labels + one column per stage (subgrid keeps rows aligned) */
+.cjm-map {
+  --cjm-n: 5;
+  position: relative;
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 96px repeat(var(--cjm-n), minmax(0, 1fr));
+  grid-template-rows: auto auto auto auto 156px;
+  column-gap: 8px;
+}
+.cjm-rl {
+  grid-column: 1; padding: 14px 8px 12px 0;
+  font: 500 10px/1.3 var(--cjm-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--cjm-faint);
+  border-top: 1px dashed var(--cjm-line);
+}
+.cjm-rl:first-of-type { border-top: 0; align-self: center; padding-block: 0; }
+.cjm-rl small { display: block; margin-top: 6px; font: 400 11px/1.35 var(--cjm-sans); letter-spacing: 0; text-transform: none; color: var(--cjm-faint); }
+.cjm-stage {
+  position: relative; min-width: 0;
+  grid-row: 1 / span 5; grid-column: var(--cjm-col, auto);
+  display: grid; grid-template-rows: subgrid;
+  border-radius: 16px;
+  background: var(--cjm-c);
+  cursor: pointer;
+  transition: opacity .3s ease, filter .3s ease, box-shadow .3s ease, transform .3s cubic-bezier(.2,.7,.2,1);
+}
+.cjm-stage:hover { box-shadow: 0 0 0 1.5px color-mix(in oklab, var(--cjm-cs) 45%, transparent); }
+.cjm-map.cjm-has-on .cjm-stage:not(.cjm-stage--on) { opacity: .42; filter: saturate(.55); }
+.cjm-stage.cjm-stage--on { box-shadow: 0 0 0 2px var(--cjm-cs), 0 22px 36px -24px var(--cjm-shadow); transform: translateY(-2px); }
+
+.cjm-cell { min-width: 0; padding: 12px 12px; border-top: 1px dashed color-mix(in oklab, var(--cjm-cs) 28%, transparent); }
+.cjm-cell--head { border-top: 0; padding: 6px; }
+.cjm-cell-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cjm-stage-btn {
+  appearance: none; border: 0; cursor: pointer; text-align: left; color: var(--cjm-ink);
+  width: 100%; display: flex; align-items: center; gap: 8px;
+  padding: 10px 8px; border-radius: 11px;
+  background: color-mix(in oklab, var(--cjm-card) 55%, transparent);
+  font: 700 14px/1.15 var(--cjm-display); letter-spacing: -0.01em;
+  transition: background .2s;
+}
+.cjm-stage-btn:hover { background: var(--cjm-card); }
+.cjm-stage-btn:focus-visible { outline: 2px solid var(--cjm-cs); outline-offset: 2px; }
+.cjm-num { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: var(--cjm-cs); color: var(--cjm-card); font: 700 10.5px/1 var(--cjm-mono); }
+.cjm-stage-name { min-width: 0; overflow-wrap: anywhere; }
+.cjm-chev { display: none; margin-left: auto; width: 16px; height: 16px; color: var(--cjm-muted); transition: transform .25s ease; }
+.cjm-stage--on .cjm-chev { transform: rotate(180deg); }
+
+.cjm-goal { margin: 0; font-size: 13px; line-height: 1.45; }
+.cjm-chips { margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 5px; }
+.cjm-chip {
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 4px 8px 4px 6px; border-radius: 999px;
+  background: color-mix(in oklab, var(--cjm-card) 70%, transparent); color: var(--cjm-ink);
+  font: 500 11.5px/1.2 var(--cjm-sans);
+}
+.cjm-chip svg { flex: none; width: 12px; height: 12px; color: var(--cjm-cs); }
+.cjm-pains { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.cjm-pains li { display: grid; grid-template-columns: 12px minmax(0, 1fr); gap: 6px; font-size: 12.5px; line-height: 1.4; color: var(--cjm-muted); }
+.cjm-pains li::before { content: ""; width: 7px; height: 7px; margin-top: 5px; border-radius: 2px; transform: rotate(45deg); background: var(--cjm-neg); }
+.cjm-cell--feel { display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 10px; }
+.cjm-mood { font: 650 12.5px/1.2 var(--cjm-sans); text-align: center; }
+.cjm-mood span { display: block; margin-top: 2px; font: 500 10.5px/1 var(--cjm-mono); color: var(--cjm-muted); font-variant-numeric: tabular-nums; }
+.cjm-meter { display: none; }
+.cjm-extra { display: none; }
+
+/* emotion curve overlay */
+.cjm-curve { grid-column: 2 / -1; grid-row: 5; position: relative; z-index: 2; pointer-events: none; min-width: 0; }
+.cjm-curve svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.cjm-base { stroke: var(--cjm-curve); stroke-opacity: .22; stroke-width: 1; stroke-dasharray: 2 4; }
+.cjm-area { fill: var(--cjm-curve); fill-opacity: .045; }
+.cjm-path { fill: none; stroke: var(--cjm-curve); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.cjm-face { transition: opacity .3s ease; }
+.cjm-face-bg { fill: var(--cjm-card); stroke: var(--cjm-f); stroke-width: 2.5; }
+.cjm-face-halo { fill: var(--cjm-f); fill-opacity: 0; transition: fill-opacity .3s ease; }
+.cjm-face-eye { fill: var(--cjm-ink); }
+.cjm-face-mouth { fill: none; stroke: var(--cjm-ink); stroke-width: 1.8; stroke-linecap: round; }
+.cjm-has-on .cjm-face:not(.cjm-face--on) { opacity: .4; }
+.cjm-face--on .cjm-face-halo { fill-opacity: .22; }
+
+/* detail card (wide layout) */
+.cjm-detail {
+  margin-top: 16px; padding: 18px 20px; border-radius: 16px;
+  background: var(--cjm-tint); border: 1px solid var(--cjm-line);
+  display: grid; gap: 14px;
+}
+.cjm-detail[data-tone] { background: color-mix(in oklab, var(--cjm-c) 55%, var(--cjm-card)); border-color: color-mix(in oklab, var(--cjm-cs) 35%, transparent); }
+.cjm-d-top { display: flex; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+.cjm-d-title { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+.cjm-kick { font: 500 10.5px/1.2 var(--cjm-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--cjm-faint); }
+.cjm-d-title h3 { margin: 0; font: 700 20px/1.15 var(--cjm-display); letter-spacing: -0.015em; }
+.cjm-feel-chip { display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px; background: var(--cjm-card); font: 650 12.5px/1 var(--cjm-sans); font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 1.5px var(--cjm-f); }
+.cjm-feel-chip svg { width: 24px; height: 24px; }
+.cjm-d-nav { display: inline-flex; gap: 6px; }
+.cjm-iconbtn {
+  appearance: none; cursor: pointer; display: grid; place-items: center;
+  width: 34px; height: 34px; border-radius: 10px;
+  border: 1px solid var(--cjm-line); background: var(--cjm-card); color: var(--cjm-ink);
+  transition: border-color .2s, background .2s;
+}
+.cjm-iconbtn svg { width: 15px; height: 15px; }
+.cjm-iconbtn:hover:not(:disabled) { border-color: var(--cjm-ink); }
+.cjm-iconbtn:disabled { opacity: .4; cursor: default; }
+.cjm-iconbtn:focus-visible, .cjm-textbtn:focus-visible { outline: 2px solid var(--cjm-ink); outline-offset: 2px; }
+.cjm-d-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.7fr) minmax(0, 1.1fr); gap: 12px; }
+.cjm-block { min-width: 0; padding: 14px; border-radius: 12px; background: var(--cjm-card); display: grid; gap: 6px; align-content: start; }
+.cjm-label { font: 500 10px/1.2 var(--cjm-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--cjm-faint); }
+.cjm-block p { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.cjm-metric-val { font: 700 30px/1 var(--cjm-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--cjm-cs, var(--cjm-ink)); }
+.cjm-metric-lab { font-size: 12.5px; line-height: 1.35; color: var(--cjm-muted); }
+.cjm-quote { margin: 0; }
+.cjm-quote blockquote { margin: 0; font: italic 400 15px/1.45 var(--cjm-serif); }
+.cjm-quote figcaption { margin-top: 8px; font-size: 12px; color: var(--cjm-muted); }
+.cjm-empty { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cjm-empty .cjm-av { width: 40px; height: 40px; font-size: 13px; }
+.cjm-empty-text { flex: 1 1 260px; min-width: 0; display: grid; gap: 3px; }
+.cjm-empty-text b { font: 650 14.5px/1.3 var(--cjm-display); }
+.cjm-empty-text span { font-size: 13px; line-height: 1.45; color: var(--cjm-muted); }
+.cjm-textbtn {
+  appearance: none; cursor: pointer;
+  min-height: 36px; padding: 0 14px; border-radius: 10px;
+  border: 1px solid var(--cjm-ink); background: var(--cjm-ink); color: var(--cjm-card);
+  font: 650 12.5px/1 var(--cjm-sans);
+  transition: opacity .2s;
+}
+.cjm-textbtn:hover { opacity: .88; }
+.cjm-textbtn--ghost { background: var(--cjm-card); color: var(--cjm-ink); border-color: var(--cjm-line); }
+.cjm-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+.cjm-fade { animation: cjm-fade .35s ease both; }
+@keyframes cjm-fade { from { opacity: 0; transform: translateY(4px); } }
+
+/* tablet + phone: stages become a vertical sequence with per-stage sentiment meters */
+@container cjm (max-width: 759px) {
+  .cjm { padding: 22px 18px 18px; }
+  .cjm-map { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: 12px; }
+  .cjm-rl, .cjm-curve, .cjm-detail { display: none; }
+  .cjm-stage {
+    grid-row: auto; grid-column: 1; grid-template-rows: none;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "head head" "goal feel" "touch pain" "extra extra";
+    cursor: default;
+  }
+  .cjm-stage:not(.cjm-stage--last)::after { content: ""; position: absolute; left: 28px; bottom: -13px; width: 2px; height: 12px; background: var(--cjm-line); }
+  .cjm-map.cjm-has-on .cjm-stage:not(.cjm-stage--on) { opacity: .7; filter: none; }
+  .cjm-stage.cjm-stage--on { transform: none; }
+  .cjm-cell--head { grid-area: head; }
+  .cjm-cell--goal { grid-area: goal; }
+  .cjm-cell--feel { grid-area: feel; }
+  .cjm-cell--touch { grid-area: touch; }
+  .cjm-cell--pain { grid-area: pain; }
+  .cjm-cell--feel, .cjm-cell--pain { border-left: 1px dashed color-mix(in oklab, var(--cjm-cs) 28%, transparent); }
+  .cjm-cell { display: grid; gap: 7px; align-content: start; }
+  .cjm-cell-label { position: static; width: auto; height: auto; overflow: visible; clip: auto; white-space: normal; font: 500 10px/1.2 var(--cjm-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--cjm-faint); }
+  .cjm-cell--head .cjm-cell-label { display: none; }
+  .cjm-chev { display: block; }
+  .cjm-cell--feel { justify-content: start; flex-direction: initial; padding-bottom: 12px; }
+  .cjm-mood { display: none; }
+  .cjm-meter { display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: 4px 10px; }
+  .cjm-meter svg { grid-row: span 2; width: 30px; height: 30px; }
+  .cjm-meter b { font: 650 13px/1.2 var(--cjm-sans); }
+  .cjm-bar5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 3px; }
+  .cjm-bar5 i { height: 6px; border-radius: 2px; background: color-mix(in oklab, var(--cjm-ink) 12%, transparent); }
+  .cjm-bar5 i.cjm-lit { background: var(--cjm-f); }
+  .cjm-stage--on .cjm-extra { grid-area: extra; display: grid; gap: 10px; padding: 0 10px 12px; animation: cjm-fade .3s ease both; }
+  .cjm-extra .cjm-block { background: color-mix(in oklab, var(--cjm-card) 82%, transparent); }
+  .cjm-extra-row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.6fr); gap: 10px; }
+}
+@container cjm (max-width: 479px) {
+  .cjm { padding: 18px 12px 14px; border-radius: 18px; }
+  .cjm-personas { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .cjm-persona { border-radius: 14px; }
+  .cjm-stage { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "feel" "goal" "touch" "pain" "extra"; }
+  .cjm-cell--feel, .cjm-cell--pain { border-left: 0; }
+  .cjm-extra-row { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cjm-persona, .cjm-stage, .cjm-stage-btn, .cjm-chev, .cjm-face, .cjm-face-halo, .cjm-iconbtn, .cjm-textbtn { transition: none; }
+  .cjm-stage.cjm-stage--on { transform: none; }
+  .cjm-fade, .cjm-stage--on .cjm-extra { animation: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--cjm-sans);
+}
+.shell { max-width: 1080px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--cjm-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 700 clamp(30px, 5vw, 44px)/1.05 var(--cjm-display); letter-spacing: -0.03em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    linear-gradient(100deg, color-mix(in oklab, var(--cjm-peach) 45%, transparent), transparent 30%, transparent 70%, color-mix(in oklab, var(--cjm-lilac) 45%, transparent)),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(20px, 4vw, 44px) clamp(12px, 3vw, 36px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 1000px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 64ch; }
+.note b { color: var(--ink); font-weight: 600; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 700 17px/1.2 var(--cjm-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--cjm-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--cjm-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--cjm-card); cursor: pointer;
+  font: 500 12px/1 var(--cjm-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--cjm-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--cjm-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map" aria-current="page"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 29</span></div>
+    <h1>Customer Journey Map</h1>
+    <p>Five stages from first search to referral, with the customer's goal, touchpoints and pain points at each step, and a curve showing how they feel. Switch personas to see how the same journey plays out for different people, and pick a stage for the details.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <customer-journey-map id="demo" persona="sam">
+      <script type="application/json">
+        {
+          "eyebrow": "Customer journey",
+          "title": "New patient journey · Brightside Dental",
+          "subtitle": "From first search to telling a friend",
+          "stages": [
+            { "id": "awareness",     "label": "Awareness",     "tone": "peach" },
+            { "id": "consideration", "label": "Consideration", "tone": "butter" },
+            { "id": "decision",      "label": "Decision",      "tone": "mint" },
+            { "id": "onboarding",    "label": "First visit",   "tone": "sky" },
+            { "id": "advocacy",      "label": "Advocacy",      "tone": "lilac" }
+          ],
+          "personas": [
+            {
+              "id": "sam", "name": "Sam Ortiz", "role": "Price-conscious first-timer",
+              "summary": "Hasn't seen a dentist in four years and wants clear prices before booking.",
+              "stages": {
+                "awareness": { "goal": "Find a dentist nearby that takes new patients", "touchpoints": [{ "label": "Search ad", "kind": "search" }, { "label": "Review sites", "kind": "review" }, { "label": "Friend's text", "kind": "sms" }], "pains": ["Prices are hard to find", "Every site looks the same"], "emotion": 0, "mood": "Curious", "opportunity": "Put \"New patient exam from $89\" in ads and on the map listing, so the price question is answered before the first click.", "metric": { "value": "3.1%", "label": "Search ad click-through rate" }, "quote": "I just want to know what a check-up costs before I call." },
+                "consideration": { "goal": "Compare prices and what's included", "touchpoints": [{ "label": "Pricing page", "kind": "web" }, { "label": "Reviews", "kind": "review" }, { "label": "Live chat", "kind": "chat" }], "pains": ["Insurance info is buried", "No price for X-rays"], "emotion": -1, "mood": "Unsure", "opportunity": "Add a plain price table that lists what each visit includes, with a \"no surprise bills\" promise.", "metric": { "value": "41%", "label": "Exit rate on the pricing page" }, "quote": "Is the X-ray extra? I honestly can't tell." },
+                "decision": { "goal": "Book a first appointment that fits the budget", "touchpoints": [{ "label": "Booking form", "kind": "web" }, { "label": "Phone call", "kind": "phone" }], "pains": ["Deposit needed to book", "Total price not shown"], "emotion": -2, "mood": "Hesitant", "opportunity": "Drop the deposit for first visits and show the full price on the booking screen.", "metric": { "value": "24%", "label": "Booking form conversion" }, "quote": "Why do they need a deposit before I've even been in?" },
+                "onboarding": { "goal": "Get through the first visit with no surprises", "touchpoints": [{ "label": "Reminder text", "kind": "sms" }, { "label": "Front desk", "kind": "visit" }, { "label": "Intake form", "kind": "web" }], "pains": ["Long intake form on arrival"], "emotion": 1, "mood": "Relieved", "opportunity": "Send the intake form with the reminder text so it's done before the patient arrives.", "metric": { "value": "92%", "label": "Show rate after a reminder text" }, "quote": "The bill was exactly what they said it would be. What a relief." },
+                "advocacy": { "goal": "Feel confident coming back", "touchpoints": [{ "label": "Follow-up email", "kind": "email" }, { "label": "Review request", "kind": "review" }], "pains": ["Review link asked for a login"], "emotion": 2, "mood": "Loyal", "opportunity": "Send a one-tap review link and book the six-month check-up in the same email.", "metric": { "value": "38%", "label": "Leave a review when asked" }, "quote": "I've already told my brother to go there." }
+              }
+            },
+            {
+              "id": "rina", "name": "Rina Patel", "role": "Busy parent of three",
+              "summary": "Books for the whole family and needs evening slots and quick answers.",
+              "stages": {
+                "awareness": { "goal": "Find a family dentist with evening hours", "touchpoints": [{ "label": "Parents' group", "kind": "social" }, { "label": "Search ad", "kind": "search" }], "pains": ["Opening hours missing from ads", "Unclear if they see children"], "emotion": 1, "mood": "Hopeful", "opportunity": "Lead social posts with \"Open until 8 pm · kids welcome\".", "metric": { "value": "26%", "label": "New patients from referrals" }, "quote": "A friend said they do evenings. That's all I needed to hear." },
+                "consideration": { "goal": "Check they can see the whole family", "touchpoints": [{ "label": "Website", "kind": "web" }, { "label": "Live chat", "kind": "chat" }], "pains": ["Chat replies took hours", "No family booking option"], "emotion": 0, "mood": "Busy", "opportunity": "Answer chats within five minutes at school-run times, or offer a callback slot.", "metric": { "value": "4h 10m", "label": "Median live chat reply time" }, "quote": "I asked in the chat at lunch and got an answer at 9 pm." },
+                "decision": { "goal": "Book all three kids in one go", "touchpoints": [{ "label": "Online booking", "kind": "web" }, { "label": "Confirmation email", "kind": "email" }], "pains": ["Re-typed details for each child"], "emotion": 1, "mood": "Pleased", "opportunity": "Let parents add family members once and book them together.", "metric": { "value": "3.2", "label": "Patients per family booking" }, "quote": "Back-to-back slots for all three. Done in five minutes." },
+                "onboarding": { "goal": "Get in and out on a school night", "touchpoints": [{ "label": "Waiting room", "kind": "visit" }, { "label": "Reminder text", "kind": "sms" }], "pains": ["40-minute wait with the kids", "No update while waiting"], "emotion": -2, "mood": "Frustrated", "opportunity": "Text a heads-up with the new time when the dentist is running late.", "metric": { "value": "18 min", "label": "Average wait past booked time" }, "quote": "Forty minutes in a waiting room with three kids. Never again on a Tuesday." },
+                "advocacy": { "goal": "Decide whether to stay", "touchpoints": [{ "label": "Survey email", "kind": "email" }, { "label": "Reschedule link", "kind": "web" }], "pains": ["The survey didn't ask about the wait"], "emotion": 0, "mood": "On the fence", "opportunity": "Follow a long wait with an apology and a priority slot next time.", "metric": { "value": "7.1", "label": "Satisfaction score out of 10" }, "quote": "The care was great. The wait was not." }
+              }
+            },
+            {
+              "id": "theo", "name": "Theo Lind", "role": "Nervous patient",
+              "summary": "Had a painful visit as a teenager and looks for reassurance at every step.",
+              "stages": {
+                "awareness": { "goal": "Find a dentist who is gentle with nervous patients", "touchpoints": [{ "label": "Search", "kind": "search" }, { "label": "Review sites", "kind": "review" }, { "label": "Forums", "kind": "social" }], "pains": ["Reviews mention pain", "Photos look clinical"], "emotion": -1, "mood": "Nervous", "opportunity": "Feature reviews from nervous patients and friendly photos of the team.", "metric": { "value": "6.2 min", "label": "Average time on the reviews page" }, "quote": "I read reviews for an hour looking for the word \"gentle\"." },
+                "consideration": { "goal": "Learn exactly what a first visit involves", "touchpoints": [{ "label": "About page", "kind": "web" }, { "label": "Video tour", "kind": "web" }, { "label": "Phone call", "kind": "phone" }], "pains": ["No step-by-step of the first visit"], "emotion": -1, "mood": "Cautious", "opportunity": "Add a short \"Your first visit, step by step\" page with the video tour.", "metric": { "value": "58%", "label": "Watch the whole video tour" }, "quote": "I needed to know exactly what would happen in that chair." },
+                "decision": { "goal": "Book without explaining fears on the phone", "touchpoints": [{ "label": "Booking form", "kind": "web" }, { "label": "Phone call", "kind": "phone" }], "pains": ["Had to call to ask about sedation", "No way to flag anxiety when booking"], "emotion": -2, "mood": "Anxious", "opportunity": "Add an optional \"I feel nervous about dental visits\" checkbox to the booking form.", "metric": { "value": "40%", "label": "Callers who book on the first call" }, "quote": "I hung up twice before I let the call connect." },
+                "onboarding": { "goal": "Feel in control during the visit", "touchpoints": [{ "label": "Welcome call", "kind": "phone" }, { "label": "Comfort menu", "kind": "visit" }], "pains": ["Had to repeat the anxiety at check-in"], "emotion": 1, "mood": "Reassured", "opportunity": "Pass the anxiety flag to the dentist and agree a stop signal before starting.", "metric": { "value": "9.0", "label": "Comfort rating out of 10" }, "quote": "They agreed a stop signal before they started. It changed everything." },
+                "advocacy": { "goal": "Keep coming back without dread", "touchpoints": [{ "label": "Thank-you text", "kind": "sms" }, { "label": "Referral card", "kind": "visit" }], "pains": ["Next appointment felt far away"], "emotion": 2, "mood": "Grateful", "opportunity": "Book the next check-up before they leave, with the same dentist.", "metric": { "value": "81%", "label": "Book the next visit before leaving" }, "quote": "First time in ten years I'm not dreading the next one." }
+              }
+            }
+          ]
+        }
+      </script>
+    </customer-journey-map>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Fictional personas, not real client research.</p>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>persona</td><td>Attribute. The <code>id</code> of the persona to show (default: the first). The persona buttons update it.</td></tr>
+          <tr><td>stage</td><td>Attribute. The <code>id</code> of the focused stage, or empty for none. Clicking a stage updates it.</td></tr>
+          <tr><td>eyebrow · title · subtitle</td><td>Optional header text.</td></tr>
+          <tr><td>stages[]</td><td><code>{ id, label, tone }</code> in order. <code>tone</code> is <code>peach</code>, <code>butter</code>, <code>mint</code>, <code>sky</code> or <code>lilac</code>.</td></tr>
+          <tr><td>personas[]</td><td><code>{ id, name, role, summary, stages }</code>. Initials are worked out from the name.</td></tr>
+          <tr><td>…stages.&lt;id&gt;.goal</td><td>What the customer is trying to do at that stage.</td></tr>
+          <tr><td>…touchpoints[]</td><td><code>{ label, kind }</code>. <code>kind</code> picks the icon: <code>search</code>, <code>social</code>, <code>review</code>, <code>web</code>, <code>chat</code>, <code>phone</code>, <code>email</code>, <code>sms</code>, <code>visit</code>.</td></tr>
+          <tr><td>…pains[]</td><td>Short pain-point strings.</td></tr>
+          <tr><td>…emotion · mood</td><td>A score from <code>-2</code> (very unhappy) to <code>2</code> (very happy), and a one-word feeling.</td></tr>
+          <tr><td>…opportunity · metric · quote</td><td>Shown in the detail card. <code>metric</code> is <code>{ value, label }</code>.</td></tr>
+          <tr><td>labels</td><td>Optional. Override built-in text, e.g. <code>{ "rowGoal": "Job to be done" }</code>.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;customer-journey-map</span> <span class="a">persona=</span>"sam"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "title": "New patient journey",
+      "stages": [{ "id": "awareness", "label": "Awareness", "tone": "peach" }],
+      "personas": [{
+        "id": "sam", "name": "Sam Ortiz", "role": "First-timer",
+        "stages": {
+          "awareness": {
+            "goal": "Find a dentist nearby",
+            "touchpoints": [{ "label": "Search ad", "kind": "search" }],
+            "pains": ["Prices are hard to find"],
+            "emotion": 0, "mood": "Curious",
+            "opportunity": "Show prices in ads.",
+            "metric": { "value": "3.1%", "label": "Click-through rate" },
+            "quote": "What does a check-up cost?"
+          }
+        }
+      }]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/customer-journey-map&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { stages, personas };
+el.addEventListener("stageselect", e =&gt; e.detail);</pre></div>
+      <p>Clicking a stage, or using ← → on the stage buttons, focuses it and fires <code>stageselect</code> with the stage, persona and emotion. Esc clears the focus. Switching persona fires <code>personachange</code>. Below 760px the stages stack into a vertical sequence with a sentiment meter on each.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/ai-usage-analytics"><small>← Previous · 28</small><strong>AI Usage Analytics</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/weekly-marketing-report"><small>Next · 30 →</small><strong>Weekly Marketing Report</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 29 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <customer-journey-map> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    personas: "Persona", rowStage: "Stage", rowGoal: "Customer goal", rowTouch: "Touchpoints", rowPain: "Pain points",
+    rowFeel: "Emotion", rowFeelSub: "Higher is happier",
+    opportunity: "Opportunity", metric: "Number to watch", quote: "In their words",
+    stageOf: "Stage {n} of {total}", prev: "Previous stage", next: "Next stage", close: "Clear stage focus",
+    glance: "{name}'s journey at a glance",
+    glanceText: "High point: {high} ({highMood}). Low point: {low} ({lowMood}). Pick a stage to see the opportunity, a key number and what {first} said.",
+    showLow: "Show the low point", feeling: "Feeling", announce: "{stage}, stage {n} of {total}. {name} feels {mood}.",
+    noPersona: "Add a persona to see the journey."
+  };
+  const TONES = ["peach", "butter", "mint", "sky", "lilac"];
+  const AVATARS = ["#B4532A", "#2F6F9F", "#6B4FB0", "#2E7D5B", "#A3336A"];
+  const G = {
+    search: '<path d="M7 12.5a5.5 5.5 0 1 0 0-11 5.5 5.5 0 0 0 0 11ZM11 11l3.5 3.5"/>',
+    social: '<path d="M5.5 7.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM1.5 14c0-2.5 1.8-4 4-4s4 1.5 4 4M11 7a2 2 0 1 0 0-4M12 10c1.5.3 2.5 1.6 2.5 3.5"/>',
+    review: '<path d="m8 1.8 1.9 3.9 4.2.6-3 3 .7 4.2L8 11.5l-3.8 2 .7-4.2-3-3 4.2-.6z"/>',
+    web: '<rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="M1.5 5.5h13M4 4h.01M6 4h.01"/>',
+    chat: '<path d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v6a1.5 1.5 0 0 1-1.5 1.5H7l-3.5 3v-3h0A1.5 1.5 0 0 1 2 9.5z"/>',
+    phone: '<path d="M3.2 1.8h2.4l1.2 3-1.6 1a8 8 0 0 0 5 5l1-1.6 3 1.2v2.4a1.4 1.4 0 0 1-1.5 1.4A12.5 12.5 0 0 1 1.8 3.3a1.4 1.4 0 0 1 1.4-1.5Z"/>',
+    email: '<rect x="1.5" y="3" width="13" height="10" rx="2"/><path d="m2 4 6 5 6-5"/>',
+    sms: '<rect x="3.5" y="1.5" width="9" height="13" rx="2"/><path d="M6 4.5h4M6 7h4M6 9.5h2.5"/>',
+    visit: '<path d="M2 14.5V6.5L8 2l6 4.5v8M6 14.5v-4h4v4"/>'
+  };
+  const glyph = k => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${G[k] || G.web}</svg>`;
+  const ICON_PREV = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>';
+  const ICON_NEXT = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg>';
+  const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
+  const ICON_CHEV = '<svg class="cjm-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>';
+  const MOUTH = { "2": "M-7,2 Q0,11 7,2", "1": "M-6,3 Q0,8.5 6,3", "0": "M-5.5,5 L5.5,5", "-1": "M-6,7.5 Q0,2.5 6,7.5", "-2": "M-7,8.5 Q0,-0.5 7,8.5" };
+  const NS = "http://www.w3.org/2000/svg";
+
+  const TEMPLATE = `
+    <article class="cjm">
+      <header class="cjm-head">
+        <div class="cjm-intro">
+          <span class="cjm-eyebrow"></span>
+          <h2 class="cjm-title"></h2>
+          <p class="cjm-sub"></p>
+        </div>
+        <div class="cjm-personas" role="group"></div>
+      </header>
+      <p class="cjm-persona-sum"></p>
+      <div class="cjm-map"></div>
+      <section class="cjm-detail"></section>
+      <p class="cjm-sr cjm-live" aria-live="polite"></p>
+    </article>`;
+
+  let uid = 0;
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const svgEl = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const initials = name => String(name || "?").trim().split(/\s+/).slice(0, 2).map(w => w[0] || "").join("").toUpperCase() || "?";
+  const clampScore = v => Math.max(-2, Math.min(2, v == null ? 0 : v));
+  const feelOf = s => (s >= 0.5 ? "pos" : s <= -0.5 ? "neg" : "neu");
+  const signed = s => (s > 0 ? "+" + s : s < 0 ? "−" + Math.abs(s) : "0");
+  const ease = t => 1 - Math.pow(1 - t, 3);
+
+  /* a small face as a standalone svg (meters, chips) */
+  const faceSvg = score => {
+    const s = Math.round(clampScore(score));
+    const svg = svgEl("svg", { viewBox: "-18 -18 36 36", "aria-hidden": "true", focusable: "false" });
+    svg.dataset.feel = feelOf(s);
+    svg.append(
+      svgEl("circle", { class: "cjm-face-bg", r: 15 }),
+      svgEl("circle", { class: "cjm-face-eye", cx: -5, cy: -3.5, r: 1.7 }),
+      svgEl("circle", { class: "cjm-face-eye", cx: 5, cy: -3.5, r: 1.7 }),
+      svgEl("path", { class: "cjm-face-mouth", d: MOUTH[String(s)] })
+    );
+    return svg;
+  };
+
+  class CustomerJourneyMap extends HTMLElement {
+    static get observedAttributes() { return ["persona", "stage"]; }
+
+    connectedCallback() {
+      if (this._built) { this._observe(); return; }
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<customer-journey-map>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this._uid = ++uid;
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        eyebrow: q(".cjm-eyebrow"), title: q(".cjm-title"), sub: q(".cjm-sub"), personas: q(".cjm-personas"),
+        sum: q(".cjm-persona-sum"), map: q(".cjm-map"), detail: q(".cjm-detail"), live: q(".cjm-live")
+      };
+      this._wire();
+      this._built = true;
+      this._render(false);
+      this._observe();
+    }
+
+    disconnectedCallback() {
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
+      cancelAnimationFrame(this._raf);
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "persona") this._render(true);
+      else this._applyFocus(true);
+    }
+
+    /* Programmatic API: el.data = { eyebrow, title, subtitle, stages, personas } */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) this._render(false); }
+    get persona() { const ps = this._personas(); const v = this.getAttribute("persona"); return (ps.find(p => p.id === v) || ps[0] || {}).id || ""; }
+    set persona(v) { this.setAttribute("persona", v); }
+    get stage() { const v = this.getAttribute("stage"); return this._stages().some(s => s.id === v) ? v : ""; }
+    set stage(v) { if (v) this.setAttribute("stage", v); else this.removeAttribute("stage"); }
+
+    /* Focus a stage by id (or null to clear). Fires stageselect. */
+    selectStage(id) { this._select(id, false); }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _stages() {
+      return (Array.isArray(this._data.stages) ? this._data.stages : []).map((s, i) => ({
+        id: String((s && s.id) || `stage-${i + 1}`), label: (s && s.label) || `Stage ${i + 1}`,
+        tone: TONES.includes(s && s.tone) ? s.tone : TONES[i % TONES.length]
+      }));
+    }
+    _personas() {
+      return (Array.isArray(this._data.personas) ? this._data.personas : []).filter(p => p && p.id != null).map((p, i) => Object.assign({}, p, { id: String(p.id), color: p.color || AVATARS[i % AVATARS.length] }));
+    }
+    _current() { return this._personas().find(p => p.id === this.persona) || null; }
+    _entry(p, s) {
+      const e = (p && p.stages && p.stages[s.id]) || {};
+      const score = clampScore(num(e.emotion));
+      return {
+        goal: e.goal || "", pains: Array.isArray(e.pains) ? e.pains : [],
+        touch: (Array.isArray(e.touchpoints) ? e.touchpoints : []).map(t => (typeof t === "string" ? { label: t, kind: "web" } : t || {})),
+        score, mood: e.mood || (score > 0 ? "Positive" : score < 0 ? "Negative" : "Neutral"),
+        opportunity: e.opportunity || "", metric: e.metric || null, quote: e.quote || ""
+      };
+    }
+
+    /* ---------- render ---------- */
+    _render(animate) {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      const personas = this._personas(), p = this._current(), stages = this._stages();
+
+      $.personas.setAttribute("aria-label", L.personas);
+      $.personas.replaceChildren(...personas.map(x => {
+        const b = make("button", "cjm-persona");
+        b.type = "button"; b.dataset.persona = x.id;
+        b.setAttribute("aria-pressed", String(p && x.id === p.id));
+        const av = make("span", "cjm-av", initials(x.name)); av.style.setProperty("--cjm-av", x.color); av.setAttribute("aria-hidden", "true");
+        const txt = make("span"); txt.append(make("b", null, x.name || x.id), make("small", null, x.role || ""));
+        b.append(av, txt);
+        return b;
+      }));
+      $.personas.hidden = personas.length < 2;
+
+      $.sum.replaceChildren();
+      if (p) { $.sum.append(make("b", null, (p.name || "") + (p.role ? ` · ${p.role}` : "")), p.summary ? `  ${p.summary}` : ""); }
+      else $.sum.textContent = L.noPersona;
+
+      // map
+      const rows = [[L.rowStage], [L.rowGoal], [L.rowTouch], [L.rowPain], [L.rowFeel, L.rowFeelSub]];
+      const labels = rows.map((r, i) => {
+        const el = make("div", "cjm-rl", r[0]);
+        el.style.gridRow = String(i + 1);
+        if (r[1]) el.append(make("small", null, r[1]));
+        el.setAttribute("aria-hidden", "true");
+        return el;
+      });
+      const entries = stages.map(s => this._entry(p, s));
+      const cols = stages.map((s, i) => this._column(s, i, entries[i], stages.length, L, animate));
+      const curve = make("div", "cjm-curve"); curve.setAttribute("aria-hidden", "true");
+      curve.append(svgEl("svg", { focusable: "false" }));
+      $.map.style.setProperty("--cjm-n", Math.max(stages.length, 1));
+      $.map.replaceChildren(...labels, ...cols, curve);
+      this.$.curve = curve;
+
+      const target = entries.map(e => e.score);
+      const from = this._scores;
+      this._scores = target;
+      this._entries = entries;
+      if (animate && from && from.length === target.length && !reduceMotion()) this._tweenCurve(from, target);
+      else this._drawCurve(target);
+      this._applyFocus(false);
+    }
+
+    _column(s, i, e, total, L, animate) {
+      const col = make("div", "cjm-stage" + (i === total - 1 ? " cjm-stage--last" : ""));
+      col.dataset.stage = s.id; col.dataset.tone = s.tone; col.dataset.feel = feelOf(e.score);
+      col.style.setProperty("--cjm-col", String(i + 2));
+      const cell = (mod, label) => { const c = make("div", "cjm-cell cjm-cell--" + mod); c.append(make("span", "cjm-cell-label", label)); return c; };
+
+      const head = cell("head", L.rowStage);
+      const btn = make("button", "cjm-stage-btn");
+      btn.type = "button"; btn.dataset.stage = s.id;
+      btn.append(make("span", "cjm-num", String(i + 1)), make("span", "cjm-stage-name", s.label));
+      btn.insertAdjacentHTML("beforeend", ICON_CHEV);
+      btn.append(make("span", "cjm-sr", `, ${fill(L.stageOf, { n: i + 1, total })}, ${L.feeling.toLowerCase()} ${e.mood.toLowerCase()}`));
+      head.append(btn);
+
+      const goal = cell("goal", L.rowGoal); goal.append(make("p", "cjm-goal", e.goal || "—"));
+      const touch = cell("touch", L.rowTouch);
+      const ul = make("ul", "cjm-chips");
+      e.touch.forEach(t => { const li = make("li", "cjm-chip"); li.innerHTML = glyph(t.kind); li.append(t.label || ""); ul.append(li); });
+      touch.append(ul);
+      const pain = cell("pain", L.rowPain);
+      const pl = make("ul", "cjm-pains");
+      e.pains.forEach(x => pl.append(make("li", null, x)));
+      pain.append(pl);
+
+      const feel = cell("feel", L.rowFeel);
+      const mood = make("div", "cjm-mood", e.mood);
+      mood.append(make("span", null, signed(Math.round(e.score))));
+      const meter = make("div", "cjm-meter");
+      const bar = make("span", "cjm-bar5");
+      const sc = Math.round(e.score);
+      for (let k = -2; k <= 2; k++) {
+        const lit = sc === 0 ? k === 0 : sc > 0 ? k > 0 && k <= sc : k < 0 && k >= sc;
+        bar.append(make("i", lit ? "cjm-lit" : null));
+      }
+      meter.append(faceSvg(e.score), make("b", null, `${e.mood} · ${signed(sc)}`), bar);
+      feel.append(mood, meter);
+
+      const extra = make("div", "cjm-extra");
+      const row = make("div", "cjm-extra-row");
+      row.append(this._block(L.opportunity, e.opportunity), this._metric(L, e.metric));
+      extra.append(row);
+      if (e.quote) extra.append(this._quote(L, e.quote));
+
+      col.append(head, goal, touch, pain, feel, extra);
+      if (animate && !reduceMotion()) [goal, touch, pain, feel].forEach((c, k) => {
+        c.animate([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], { duration: 320, delay: i * 40 + k * 25, easing: "ease-out", fill: "backwards" });
+      });
+      return col;
+    }
+
+    _block(label, text) {
+      const b = make("div", "cjm-block");
+      b.append(make("span", "cjm-label", label), make("p", null, text || "—"));
+      return b;
+    }
+    _metric(L, m) {
+      const b = make("div", "cjm-block");
+      b.append(make("span", "cjm-label", L.metric), make("span", "cjm-metric-val", (m && m.value) || "—"));
+      if (m && m.label) b.append(make("span", "cjm-metric-lab", m.label));
+      return b;
+    }
+    _quote(L, q) {
+      const p = this._current();
+      const f = make("figure", "cjm-block cjm-quote");
+      f.append(make("span", "cjm-label", L.quote));
+      const bq = make("blockquote", null, `“${q}”`);
+      f.append(bq, make("figcaption", null, `— ${(p && p.name) || ""}`));
+      return f;
+    }
+
+    /* ---------- emotion curve ---------- */
+    _drawCurve(scores) {
+      const box = this.$.curve;
+      if (!box) return;
+      const svg = box.firstChild, w = box.clientWidth, h = box.clientHeight;
+      if (!w || !h) { svg.replaceChildren(); return; }
+      const br = box.getBoundingClientRect();
+      const xs = [...this.$.map.querySelectorAll(".cjm-stage")].map(c => { const r = c.getBoundingClientRect(); return r.left + r.width / 2 - br.left; });
+      const top = 26, bottom = 52, y = s => top + (2 - s) / 4 * (h - top - bottom);
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      const pts = xs.map((x, i) => [x, y(scores[i] ?? 0)]);
+      // smooth path (cardinal spline)
+      let d = "";
+      pts.forEach((pt, i) => {
+        if (!i) { d = `M${pt[0].toFixed(1)},${pt[1].toFixed(1)}`; return; }
+        const p0 = pts[i - 2] || pts[i - 1], p1 = pts[i - 1], p2 = pt, p3 = pts[i + 1] || pt, t = 0.18;
+        const c1 = [p1[0] + (p2[0] - p0[0]) * t, p1[1] + (p2[1] - p0[1]) * t];
+        const c2 = [p2[0] - (p3[0] - p1[0]) * t, p2[1] - (p3[1] - p1[1]) * t];
+        d += `C${c1[0].toFixed(1)},${c1[1].toFixed(1)} ${c2[0].toFixed(1)},${c2[1].toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+      });
+      const nodes = [svgEl("line", { class: "cjm-base", x1: 0, x2: w, y1: y(0), y2: y(0) })];
+      if (pts.length > 1) {
+        nodes.push(svgEl("path", { class: "cjm-area", d: `${d}L${pts[pts.length - 1][0].toFixed(1)},${h - bottom + 14}L${pts[0][0].toFixed(1)},${h - bottom + 14}Z` }));
+        nodes.push(svgEl("path", { class: "cjm-path", d }));
+      }
+      const on = this.stage, ids = this._stages().map(s => s.id);
+      pts.forEach((pt, i) => {
+        const s = Math.round(clampScore(this._scores[i]));
+        const g = svgEl("g", { class: "cjm-face" + (ids[i] === on ? " cjm-face--on" : ""), transform: `translate(${pt[0].toFixed(1)},${pt[1].toFixed(1)})` });
+        g.dataset.feel = feelOf(s);
+        g.append(
+          svgEl("circle", { class: "cjm-face-halo", r: 24 }),
+          svgEl("circle", { class: "cjm-face-bg", r: 15 }),
+          svgEl("circle", { class: "cjm-face-eye", cx: -5, cy: -3.5, r: 1.7 }),
+          svgEl("circle", { class: "cjm-face-eye", cx: 5, cy: -3.5, r: 1.7 }),
+          svgEl("path", { class: "cjm-face-mouth", d: MOUTH[String(s)] })
+        );
+        nodes.push(g);
+      });
+      svg.replaceChildren(...nodes);
+    }
+
+    _tweenCurve(from, to) {
+      cancelAnimationFrame(this._raf);
+      const t0 = performance.now(), dur = 480;
+      const tick = now => {
+        const k = ease(Math.min(1, (now - t0) / dur));
+        this._drawCurve(to.map((v, i) => from[i] + (v - from[i]) * k));
+        if (k < 1) this._raf = requestAnimationFrame(tick);
+      };
+      this._raf = requestAnimationFrame(tick);
+    }
+
+    _observe() {
+      if (this._ro || !("ResizeObserver" in window)) return;
+      this._ro = new ResizeObserver(() => { if (this._scores) { cancelAnimationFrame(this._raf); this._drawCurve(this._scores); } });
+      this._ro.observe(this.$.map);
+    }
+
+    /* ---------- focus / selection ---------- */
+    _applyFocus(announce) {
+      const $ = this.$, on = this.stage, stages = this._stages(), L = this._labels();
+      const cols = [...$.map.querySelectorAll(".cjm-stage")];
+      cols.forEach(c => c.classList.toggle("cjm-stage--on", c.dataset.stage === on));
+      $.map.classList.toggle("cjm-has-on", !!on);
+      const btns = [...$.map.querySelectorAll(".cjm-stage-btn")];
+      const focusIdx = Math.max(0, stages.findIndex(s => s.id === on));
+      btns.forEach((b, i) => {
+        b.setAttribute("aria-pressed", String(b.dataset.stage === on));
+        b.tabIndex = i === focusIdx ? 0 : -1;
+      });
+      $.map.querySelectorAll(".cjm-face").forEach((g, i) => g.classList.toggle("cjm-face--on", stages[i] && stages[i].id === on));
+      this._renderDetail(L);
+      if (announce && on) {
+        const i = stages.findIndex(s => s.id === on), e = this._entries[i], p = this._current();
+        $.live.textContent = fill(L.announce, { stage: stages[i].label, n: i + 1, total: stages.length, name: (p && p.name) || "", mood: e.mood.toLowerCase() });
+      }
+    }
+
+    _renderDetail(L) {
+      const $ = this.$, stages = this._stages(), on = this.stage, p = this._current();
+      const box = $.detail;
+      box.replaceChildren();
+      delete box.dataset.tone; delete box.dataset.feel;
+      if (!p || !stages.length) return;
+      const i = stages.findIndex(s => s.id === on);
+      if (i < 0) {
+        const es = this._entries;
+        let hi = 0, lo = 0;
+        es.forEach((e, k) => { if (e.score > es[hi].score) hi = k; if (e.score < es[lo].score) lo = k; });
+        const wrap = make("div", "cjm-empty cjm-fade");
+        const av = make("span", "cjm-av", initials(p.name)); av.style.setProperty("--cjm-av", p.color); av.setAttribute("aria-hidden", "true");
+        const txt = make("div", "cjm-empty-text");
+        const first = String(p.name || "").split(" ")[0];
+        txt.append(make("b", null, fill(L.glance, { name: first })),
+          make("span", null, fill(L.glanceText, { high: stages[hi].label, highMood: es[hi].mood.toLowerCase(), low: stages[lo].label, lowMood: es[lo].mood.toLowerCase(), first })));
+        const btn = make("button", "cjm-textbtn", L.showLow);
+        btn.type = "button";
+        btn.addEventListener("click", () => this._select(stages[lo].id, true));
+        wrap.append(av, txt, btn);
+        box.append(wrap);
+        return;
+      }
+      const s = stages[i], e = this._entries[i];
+      box.dataset.tone = s.tone; box.dataset.feel = feelOf(e.score);
+      const top = make("div", "cjm-d-top cjm-fade");
+      const title = make("div", "cjm-d-title");
+      title.append(make("span", "cjm-kick", `${fill(L.stageOf, { n: i + 1, total: stages.length })} · ${p.name || ""}`), make("h3", null, s.label));
+      const chip = make("span", "cjm-feel-chip");
+      chip.append(faceSvg(e.score), `${e.mood} · ${signed(Math.round(e.score))}`);
+      const nav = make("div", "cjm-d-nav");
+      const mk = (icon, label, fn, disabled) => { const b = make("button", "cjm-iconbtn"); b.type = "button"; b.innerHTML = icon; b.setAttribute("aria-label", label); b.disabled = disabled; b.addEventListener("click", fn); return b; };
+      nav.append(
+        mk(ICON_PREV, L.prev, () => this._select(stages[i - 1].id, true), i === 0),
+        mk(ICON_NEXT, L.next, () => this._select(stages[i + 1].id, true), i === stages.length - 1),
+        mk(ICON_X, L.close, () => this._select(null, true), false)
+      );
+      top.append(title, chip, nav);
+      const grid = make("div", "cjm-d-grid cjm-fade");
+      grid.append(this._block(L.opportunity, e.opportunity), this._metric(L, e.metric));
+      if (e.quote) grid.append(this._quote(L, e.quote));
+      box.append(top, grid);
+    }
+
+    _select(id, focusBtn) {
+      const prev = this.stage;
+      const next = id && this._stages().some(s => s.id === id) ? id : "";
+      if (prev === next) return;
+      this.stage = next;
+      if (focusBtn && next) { const b = this.$.map.querySelector(`.cjm-stage-btn[data-stage="${next}"]`); if (b && !this.$.map.contains(document.activeElement)) b.focus({ preventScroll: true }); }
+      const stages = this._stages(), i = stages.findIndex(s => s.id === next), e = i >= 0 ? this._entries[i] : null;
+      this.dispatchEvent(new CustomEvent("stageselect", {
+        bubbles: true,
+        detail: { stage: next || null, label: i >= 0 ? stages[i].label : null, index: i, persona: this.persona, emotion: e ? e.score : null, mood: e ? e.mood : null }
+      }));
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.personas.addEventListener("click", e => {
+        const b = e.target.closest(".cjm-persona");
+        if (!b || b.dataset.persona === this.persona) return;
+        this.persona = b.dataset.persona;
+        const p = this._current();
+        this.dispatchEvent(new CustomEvent("personachange", { bubbles: true, detail: { persona: this.persona, name: p ? p.name : "" } }));
+        requestAnimationFrame(() => { const nb = $.personas.querySelector(`[data-persona="${b.dataset.persona}"]`); if (nb) nb.focus(); });
+      });
+      $.map.addEventListener("click", e => {
+        const col = e.target.closest(".cjm-stage");
+        if (!col) return;
+        const vertical = this.getBoundingClientRect().width < 760;
+        const btn = e.target.closest(".cjm-stage-btn");
+        if (vertical && !btn) return;
+        this._select(this.stage === col.dataset.stage ? null : col.dataset.stage, false);
+        if (btn) btn.focus();
+      });
+      $.map.addEventListener("keydown", e => {
+        const btn = e.target.closest(".cjm-stage-btn");
+        if (!btn) return;
+        const btns = [...$.map.querySelectorAll(".cjm-stage-btn")];
+        const i = btns.indexOf(btn);
+        let ni = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowDown") ni = Math.min(btns.length - 1, i + 1);
+        else if (e.key === "ArrowLeft" || e.key === "ArrowUp") ni = Math.max(0, i - 1);
+        else if (e.key === "Home") ni = 0;
+        else if (e.key === "End") ni = btns.length - 1;
+        else if (e.key === "Escape") { if (this.stage) { e.preventDefault(); this._select(null, false); btn.focus(); } return; }
+        if (ni == null) return;
+        e.preventDefault();
+        this._select(btns[ni].dataset.stage, false);
+        const nb = $.map.querySelectorAll(".cjm-stage-btn")[ni];
+        if (nb) nb.focus();
+      });
+    }
+  }
+
+  if (!customElements.get("customer-journey-map")) customElements.define("customer-journey-map", CustomerJourneyMap);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const say = (strong, rest) => { const b = document.createElement("b"); b.textContent = strong; note.replaceChildren(b, rest); };
+  el.addEventListener("stageselect", e => {
+    const d = e.detail;
+    if (!d.stage) say("Stage focus cleared.", " Fictional personas, not real client research.");
+    else say(`${d.label} · ${d.mood}`, ` · stageselect fired. Fictional personas, not real client research.`);
+  });
+  el.addEventListener("personachange", e => say(`Persona: ${e.detail.name}`, " · personachange fired. Fictional personas, not real client research."));
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

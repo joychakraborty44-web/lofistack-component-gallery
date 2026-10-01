@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable revenue growth chart: monthly revenue as an area line with a 6 or 12 month range, a last-year comparison, a cumulative view and a crosshair tooltip.">
+<meta property="og:title" content="Revenue Growth Chart · LofiStack Components">
+<meta property="og:description" content="A reusable revenue growth chart: monthly revenue as an area line with a 6 or 12 month range, a last-year comparison, a cumulative view and a crosshair tooltip.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Revenue Growth Chart · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #EEEBE0;
+  --stage: #F6F4EC;
+  --ink: #14231A;
+  --muted: #4E5B52;
+  --faint: #66726A;
+  --line: #DEDACB;
+  --panel: #FAF8F2;
+  --accent: #166534;
+
+  /* ---- Revenue Growth tokens (override these to re-theme the component) ---- */
+  --rgc-card: #FFFDF6;
+  --rgc-ink: #14231A;
+  --rgc-muted: #4E5B52;
+  --rgc-faint: #66726A;
+  --rgc-line: #E8E4D6;
+  --rgc-grid: #ECE8DA;
+  --rgc-tint: #F4F1E6;
+  --rgc-accent: #166534;
+  --rgc-accent-soft: rgba(22, 101, 52, 0.10);
+  --rgc-area-top: rgba(22, 101, 52, 0.26);
+  --rgc-area-bottom: rgba(22, 101, 52, 0);
+  --rgc-prev: #8C938D;
+  --rgc-good: #166534;
+  --rgc-bad: #B42318;
+  --rgc-tip-bg: #14231A;
+  --rgc-tip-ink: #F4F7F2;
+  --rgc-tip-muted: #B9C6BD;
+  --rgc-tip-good: #86EFAC;
+  --rgc-tip-bad: #FCA5A5;
+  --rgc-shadow: rgba(20, 35, 26, 0.24);
+  --rgc-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --rgc-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --rgc-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0B110D; --stage: #101712; --ink: #E6EFE8; --muted: #A3B3A8; --faint: #82938A;
+    --line: #223027; --panel: #121A15; --accent: #4ADE80;
+    --rgc-card: #111A14; --rgc-ink: #E6EFE8; --rgc-muted: #A3B3A8; --rgc-faint: #8A9A90;
+    --rgc-line: #24322A; --rgc-grid: #1D2A22; --rgc-tint: #17221B;
+    --rgc-accent: #4ADE80; --rgc-accent-soft: rgba(74, 222, 128, 0.12);
+    --rgc-area-top: rgba(74, 222, 128, 0.30); --rgc-area-bottom: rgba(74, 222, 128, 0);
+    --rgc-prev: #74837A; --rgc-good: #4ADE80; --rgc-bad: #FF8A7A;
+    --rgc-tip-bg: #E6EFE8; --rgc-tip-ink: #0F1712; --rgc-tip-muted: #43544A; --rgc-tip-good: #166534; --rgc-tip-bad: #B42318;
+    --rgc-shadow: rgba(0, 0, 0, 0.65);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0B110D; --stage: #101712; --ink: #E6EFE8; --muted: #A3B3A8; --faint: #82938A;
+  --line: #223027; --panel: #121A15; --accent: #4ADE80;
+  --rgc-card: #111A14; --rgc-ink: #E6EFE8; --rgc-muted: #A3B3A8; --rgc-faint: #8A9A90;
+  --rgc-line: #24322A; --rgc-grid: #1D2A22; --rgc-tint: #17221B;
+  --rgc-accent: #4ADE80; --rgc-accent-soft: rgba(74, 222, 128, 0.12);
+  --rgc-area-top: rgba(74, 222, 128, 0.30); --rgc-area-bottom: rgba(74, 222, 128, 0);
+  --rgc-prev: #74837A; --rgc-good: #4ADE80; --rgc-bad: #FF8A7A;
+  --rgc-tip-bg: #E6EFE8; --rgc-tip-ink: #0F1712; --rgc-tip-muted: #43544A; --rgc-tip-good: #166534; --rgc-tip-bad: #B42318;
+  --rgc-shadow: rgba(0, 0, 0, 0.65);
+}
+
+/* =========================================================
+   Revenue Growth component  (copy this block + the script)
+   ========================================================= */
+revenue-growth-chart {
+  display: block;
+  container: rgc / inline-size;
+  width: 100%;
+  max-width: 980px;
+  font-family: var(--rgc-sans);
+  color: var(--rgc-ink);
+}
+.rgc {
+  position: relative;
+  background: radial-gradient(70% 60% at 100% 0%, var(--rgc-accent-soft), transparent 70%), var(--rgc-card);
+  border: 1px solid var(--rgc-line);
+  border-radius: 18px;
+  padding: 28px 28px 18px;
+  box-shadow: 0 32px 60px -46px var(--rgc-shadow), 0 2px 6px -4px var(--rgc-shadow);
+}
+
+/* header */
+.rgc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px 24px; flex-wrap: wrap; }
+.rgc-intro { display: grid; gap: 6px; min-width: 0; max-width: 46ch; }
+.rgc-eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 500 10.5px/1 var(--rgc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--rgc-accent); }
+.rgc-eyebrow::before { content: ""; width: 14px; height: 2px; border-radius: 2px; background: currentColor; }
+.rgc-title { margin: 0; font: 650 clamp(19px, 3cqi, 24px)/1.2 var(--rgc-display); letter-spacing: -0.015em; text-wrap: balance; }
+.rgc-sub { margin: 0; font-size: 13.5px; color: var(--rgc-muted); }
+.rgc-eyebrow:empty, .rgc-title:empty, .rgc-sub:empty, .rgc-source:empty, .rgc-chip:empty { display: none; }
+
+.rgc-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rgc-seg { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--rgc-tint); border: 1px solid var(--rgc-line); }
+.rgc-seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  min-width: 46px; padding: 8px 12px; border-radius: 7px;
+  font: 600 12.5px/1 var(--rgc-sans); color: var(--rgc-muted); font-variant-numeric: tabular-nums;
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.rgc-seg button:hover { color: var(--rgc-ink); }
+.rgc-seg button[aria-pressed="true"] { background: var(--rgc-card); color: var(--rgc-ink); box-shadow: 0 1px 3px -1px var(--rgc-shadow), 0 0 0 1px var(--rgc-line); }
+.rgc-toggle {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 12px 7px 8px; border-radius: 10px;
+  border: 1px solid var(--rgc-line); background: var(--rgc-card); color: var(--rgc-muted);
+  font: 500 12.5px/1 var(--rgc-sans);
+  transition: color .2s, border-color .2s;
+}
+.rgc-toggle:hover { color: var(--rgc-ink); border-color: var(--rgc-faint); }
+.rgc-toggle[aria-pressed="true"] { color: var(--rgc-ink); }
+.rgc-switch { position: relative; flex: none; width: 26px; height: 16px; border-radius: 999px; background: var(--rgc-grid); box-shadow: inset 0 0 0 1px var(--rgc-line); transition: background .25s; }
+.rgc-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--rgc-card); box-shadow: 0 1px 2px var(--rgc-shadow); transition: transform .25s cubic-bezier(.2,.7,.2,1); }
+.rgc-toggle[aria-pressed="true"] .rgc-switch { background: var(--rgc-accent); box-shadow: none; }
+.rgc-toggle[aria-pressed="true"] .rgc-switch::after { transform: translateX(10px); }
+.rgc-seg button:focus-visible, .rgc-toggle:focus-visible { outline: 2px solid var(--rgc-accent); outline-offset: 2px; }
+
+/* headline stats */
+.rgc-stats { margin: 24px 0 0; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 0; }
+.rgc-stat { margin: 0; min-width: 0; display: grid; gap: 6px; align-content: start; padding: 0 22px; }
+.rgc-stat:first-child { padding-left: 0; }
+.rgc-stat + .rgc-stat { border-left: 1px solid var(--rgc-line); }
+.rgc-stat dt { font: 500 10.5px/1.2 var(--rgc-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--rgc-faint); }
+.rgc-stat dd { margin: 0; }
+.rgc-big-row { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; }
+.rgc-big { font: 650 clamp(32px, 5.4cqi, 46px)/1 var(--rgc-display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.rgc-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 8px; border-radius: 999px;
+  font: 650 12px/1 var(--rgc-sans); font-variant-numeric: tabular-nums;
+  color: var(--rgc-muted); background: var(--rgc-tint);
+}
+.rgc-chip[data-tone="good"] { color: var(--rgc-good); background: color-mix(in oklab, var(--rgc-good) 13%, transparent); }
+.rgc-chip[data-tone="bad"] { color: var(--rgc-bad); background: color-mix(in oklab, var(--rgc-bad) 12%, transparent); }
+.rgc-val { font: 650 21px/1.15 var(--rgc-display); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.rgc-stat-sub { font-size: 12.5px; line-height: 1.4; color: var(--rgc-muted); font-variant-numeric: tabular-nums; }
+
+/* legend */
+.rgc-legend { margin: 22px 0 6px; display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--rgc-muted); }
+.rgc-leg { display: inline-flex; align-items: center; gap: 8px; transition: opacity .3s ease, transform .3s ease; }
+.rgc-leg i { width: 18px; height: 0; border-top: 2.5px solid var(--rgc-accent); border-radius: 2px; }
+.rgc-leg--prev i { border-top: 2px dashed var(--rgc-prev); }
+.rgc-leg--prev.rgc-off { opacity: 0; transform: translateX(-4px); pointer-events: none; }
+.rgc-leg-hint { margin-left: auto; font-size: 12px; color: var(--rgc-faint); }
+
+/* plot */
+.rgc-plot { position: relative; touch-action: pan-y; border-radius: 10px; outline: none; cursor: crosshair; }
+.rgc-plot:focus-visible { outline: 2px solid var(--rgc-accent); outline-offset: 4px; }
+.rgc-svg { display: block; width: 100%; height: auto; overflow: visible; }
+.rgc-gridline { stroke: var(--rgc-grid); stroke-width: 1; shape-rendering: crispEdges; }
+.rgc-gridline.rgc-base { stroke: var(--rgc-line); }
+.rgc-ytick, .rgc-xtick { fill: var(--rgc-faint); font: 500 11px/1 var(--rgc-sans); font-variant-numeric: tabular-nums; }
+.rgc-xtick.rgc-xtick--on { fill: var(--rgc-ink); font-weight: 650; }
+.rgc-stop-a { stop-color: var(--rgc-area-top); }
+.rgc-stop-b { stop-color: var(--rgc-area-bottom); }
+.rgc-line { fill: none; stroke: var(--rgc-accent); stroke-width: 2.6; stroke-linejoin: round; stroke-linecap: round; }
+.rgc-prev { fill: none; stroke: var(--rgc-prev); stroke-width: 2; stroke-dasharray: 5 5; stroke-linecap: round; transition: opacity .35s ease; }
+.rgc-prev.rgc-off { opacity: 0; }
+.rgc-end { fill: var(--rgc-accent); stroke: var(--rgc-accent-soft); stroke-width: 8; paint-order: stroke; transition: opacity .25s; }
+.rgc-cross { opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+.rgc-cross.rgc-on { opacity: 1; }
+.rgc-cross-line { stroke: var(--rgc-ink); stroke-opacity: .35; stroke-width: 1; stroke-dasharray: 3 3; }
+.rgc-dot { fill: var(--rgc-card); stroke: var(--rgc-accent); stroke-width: 2.6; }
+.rgc-dot-prev { fill: var(--rgc-card); stroke: var(--rgc-prev); stroke-width: 2; }
+.rgc-cross.rgc-on ~ .rgc-end { opacity: 0; }
+.rgc-empty { fill: var(--rgc-faint); font: 500 13px/1 var(--rgc-sans); }
+
+.rgc-tip {
+  position: absolute; top: 4px; left: 0; z-index: 2;
+  min-width: 176px; padding: 10px 12px; border-radius: 10px;
+  background: var(--rgc-tip-bg); color: var(--rgc-tip-ink);
+  box-shadow: 0 18px 32px -16px var(--rgc-shadow);
+  font-size: 12.5px; line-height: 1.3; font-variant-numeric: tabular-nums;
+  pointer-events: none; opacity: 0;
+  transition: opacity .15s ease;
+}
+.rgc-tip.rgc-on { opacity: 1; }
+.rgc-tip-m { margin: 0 0 8px; font: 650 12.5px/1.2 var(--rgc-sans); }
+.rgc-tip-row { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 2px 0; }
+.rgc-tip-row i { width: 12px; height: 0; border-top: 2.5px solid var(--rgc-accent); }
+.rgc-tip-prev i { border-top: 2px dashed var(--rgc-tip-muted); }
+.rgc-tip-row span { color: var(--rgc-tip-muted); }
+.rgc-tip-row b { font-weight: 650; }
+.rgc-tip-row[hidden] { display: none; }
+.rgc-tip-chg i { border: 0; }
+.rgc-tip-chg { margin-top: 6px; padding-top: 6px; border-top: 1px solid color-mix(in oklab, var(--rgc-tip-muted) 40%, transparent); }
+.rgc-tip-chg b[data-tone="good"] { color: var(--rgc-tip-good); }
+.rgc-tip-chg b[data-tone="bad"] { color: var(--rgc-tip-bad); }
+
+.rgc-foot { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--rgc-line); display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; font-size: 12px; color: var(--rgc-faint); }
+.rgc-sr { position: absolute; top: 0; left: 0; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; margin: 0; padding: 0; border: 0; }
+.rgc-table { border-collapse: collapse; }
+
+/* first-view reveal */
+.rgc.rgc-pending .rgc-line, .rgc.rgc-pending .rgc-prev, .rgc.rgc-pending .rgc-end { opacity: 0; }
+.rgc.rgc-pending .rgc-area { opacity: 0; }
+
+/* tablet */
+@container rgc (max-width: 759px) {
+  .rgc { padding: 24px 22px 16px; }
+  .rgc-stats { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 16px; }
+  .rgc-stat--main { grid-column: 1 / -1; padding: 0; }
+  .rgc-stat--main + .rgc-stat { border-left: 0; padding-left: 0; }
+  .rgc-stat:not(.rgc-stat--main) { padding-top: 14px; border-top: 1px solid var(--rgc-line); }
+  .rgc-leg-hint { display: none; }
+}
+/* phone */
+@container rgc (max-width: 479px) {
+  .rgc { padding: 20px 14px 14px; border-radius: 16px; }
+  .rgc-controls { width: 100%; }
+  .rgc-seg { flex: 1 1 100%; }
+  .rgc-seg button { flex: 1; }
+  .rgc-toggle { flex: 1 1 0; justify-content: center; padding-inline: 8px; }
+  .rgc-stats { grid-template-columns: minmax(0, 1fr); }
+  .rgc-stat:not(.rgc-stat--main) { border-left: 0; padding-left: 0; }
+  .rgc-val { font-size: 18px; }
+  .rgc-tip { min-width: 150px; padding: 8px 10px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rgc-seg button, .rgc-toggle, .rgc-switch, .rgc-switch::after, .rgc-leg, .rgc-prev, .rgc-end, .rgc-cross, .rgc-tip { transition: none; }
+}
+@media print {
+  .rgc.rgc-pending .rgc-line, .rgc.rgc-pending .rgc-prev, .rgc.rgc-pending .rgc-end, .rgc.rgc-pending .rgc-area { opacity: 1; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--rgc-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--rgc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--rgc-display); letter-spacing: -0.025em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    linear-gradient(to right, var(--line) 1px, transparent 1px) 0 0 / 64px 100%,
+    var(--stage);
+  background-blend-mode: normal;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 44px);
+  display: grid; justify-items: center; gap: 20px;
+  position: relative; isolation: isolate;
+}
+.stage::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(80% 70% at 50% 40%, var(--stage) 30%, transparent 100%); z-index: -1; }
+.stage-bar { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--rgc-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--rgc-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--rgc-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--rgc-card); cursor: pointer;
+  font: 500 12px/1 var(--rgc-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--rgc-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--rgc-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart" aria-current="page"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 15</span></div>
+    <h1>Revenue Growth Chart</h1>
+    <p>Monthly revenue as an area chart, with the total and the change against the same months last year. Switch between 6 and 12 months, add last year as a dashed line, or show a running total. Hover the chart, or focus it and use the arrow keys, to read each month.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <revenue-growth-chart id="demo" range="12m" compare>
+      <script type="application/json">
+        {
+          "eyebrow": "Revenue growth",
+          "title": "Membership revenue · Cedar Fitness Co.",
+          "subtitle": "Memberships and class packs, by month",
+          "currency": "USD",
+          "series": [
+            { "month": "2025-10", "revenue": 31200, "lastYear": 24800 },
+            { "month": "2025-11", "revenue": 32850, "lastYear": 25900 },
+            { "month": "2025-12", "revenue": 30400, "lastYear": 23700 },
+            { "month": "2026-01", "revenue": 36900, "lastYear": 29800 },
+            { "month": "2026-02", "revenue": 38200, "lastYear": 30500 },
+            { "month": "2026-03", "revenue": 39750, "lastYear": 31200 },
+            { "month": "2026-04", "revenue": 41300, "lastYear": 32400 },
+            { "month": "2026-05", "revenue": 42100, "lastYear": 33100 },
+            { "month": "2026-06", "revenue": 40800, "lastYear": 31900 },
+            { "month": "2026-07", "revenue": 44600, "lastYear": 34300 },
+            { "month": "2026-08", "revenue": 47900, "lastYear": 36200 },
+            { "month": "2026-09", "revenue": 52400, "lastYear": 38900 }
+          ],
+          "source": "Source: billing system export"
+        }
+      </script>
+    </revenue-growth-chart>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Not real client results.</p>
+      <button type="button" class="btn" id="replay">Replay animation</button>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>range</td><td>Attribute. <code>6m</code> or <code>12m</code> (default). The range buttons update it.</td></tr>
+          <tr><td>compare</td><td>Boolean attribute. Shows last year as a dashed line with a legend.</td></tr>
+          <tr><td>cumulative</td><td>Boolean attribute. Draws a running total instead of monthly values.</td></tr>
+          <tr><td>eyebrow · title · subtitle</td><td>Optional header text.</td></tr>
+          <tr><td>currency</td><td>Any ISO currency code (default USD). Attribute or JSON.</td></tr>
+          <tr><td>series[].month</td><td>Month as <code>YYYY-MM</code>, oldest first.</td></tr>
+          <tr><td>series[].revenue</td><td>Revenue for that month.</td></tr>
+          <tr><td>series[].lastYear</td><td>Optional. Revenue for the same month a year earlier. Used for the growth figures and the dashed line.</td></tr>
+          <tr><td>source</td><td>Optional footer note.</td></tr>
+          <tr><td>labels · locale</td><td>Optional. Override built-in text, and the number and date locale (default <code>en-US</code>).</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;revenue-growth-chart</span> <span class="a">range=</span>"12m" <span class="a">compare</span><span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "title": "Membership revenue",
+      "currency": "USD",
+      "series": [
+        { "month": "2026-08", "revenue": 47900, "lastYear": 36200 },
+        { "month": "2026-09", "revenue": 52400, "lastYear": 38900 }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/revenue-growth-chart&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { title, currency, series: [...] };
+el.addEventListener("rangechange", e =&gt; e.detail);
+el.replay();  <span class="a">// re-draw the line</span></pre></div>
+      <p>The total, growth and averages are worked out from the series. Changing the range fires <code>rangechange</code> with the range, total and growth. The two toggles fire <code>viewchange</code>. A hidden table carries every value for screen readers.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/lead-source-breakdown"><small>← Previous · 14</small><strong>Lead Source Breakdown</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/appointment-pipeline"><small>Next · 16 →</small><strong>Appointment Pipeline</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 15 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <revenue-growth-chart> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    range: "Date range", compare: "Compare to last year", cumulative: "Cumulative",
+    total: "Revenue · last {n} months", totalSub: "vs {prev} in the same months last year",
+    latest: "Latest month", latestSub: "{chg} vs {month} last year",
+    avg: "Monthly average", avgSub: "Best month: {month} · {value}",
+    thisYear: "This year", lastYear: "Last year", running: "running total", change: "Change",
+    hint: "Hover the chart or use ← → to read each month",
+    chart: "Revenue chart, {from} to {to}. Use the left and right arrow keys to read each month.",
+    caption: "Monthly revenue, {from} to {to}", month: "Month", revenue: "Revenue", running2: "Running total",
+    noData: "No revenue data to show."
+  };
+  const NS = "http://www.w3.org/2000/svg";
+  const TEMPLATE = `
+    <article class="rgc">
+      <header class="rgc-head">
+        <div class="rgc-intro">
+          <span class="rgc-eyebrow"></span>
+          <h2 class="rgc-title"></h2>
+          <p class="rgc-sub"></p>
+        </div>
+        <div class="rgc-controls">
+          <div class="rgc-seg" role="group">
+            <button type="button" data-range="6m">6M</button>
+            <button type="button" data-range="12m">12M</button>
+          </div>
+          <button type="button" class="rgc-toggle" data-opt="compare"><span class="rgc-switch" aria-hidden="true"></span><span class="rgc-tl"></span></button>
+          <button type="button" class="rgc-toggle" data-opt="cumulative"><span class="rgc-switch" aria-hidden="true"></span><span class="rgc-tl"></span></button>
+        </div>
+      </header>
+      <dl class="rgc-stats">
+        <div class="rgc-stat rgc-stat--main">
+          <dt class="rgc-k-total"></dt>
+          <dd class="rgc-big-row"><span class="rgc-big"></span><span class="rgc-chip"></span></dd>
+          <dd class="rgc-stat-sub rgc-total-sub"></dd>
+        </div>
+        <div class="rgc-stat">
+          <dt class="rgc-k-latest"></dt>
+          <dd class="rgc-val rgc-latest"></dd>
+          <dd class="rgc-stat-sub rgc-latest-sub"></dd>
+        </div>
+        <div class="rgc-stat">
+          <dt class="rgc-k-avg"></dt>
+          <dd class="rgc-val rgc-avg"></dd>
+          <dd class="rgc-stat-sub rgc-avg-sub"></dd>
+        </div>
+      </dl>
+      <div class="rgc-legend" aria-hidden="true">
+        <span class="rgc-leg rgc-leg--cur"><i></i><span class="rgc-leg-cur"></span></span>
+        <span class="rgc-leg rgc-leg--prev"><i></i><span class="rgc-leg-prev"></span></span>
+        <span class="rgc-leg-hint"></span>
+      </div>
+      <div class="rgc-plot" tabindex="0" role="group" aria-roledescription="chart">
+        <svg class="rgc-svg" aria-hidden="true" focusable="false">
+          <defs><linearGradient x1="0" y1="0" x2="0" y2="1"><stop offset="0" class="rgc-stop-a"/><stop offset="1" class="rgc-stop-b"/></linearGradient></defs>
+          <g class="rgc-grid"></g>
+          <path class="rgc-area"/>
+          <path class="rgc-prev"/>
+          <path class="rgc-line"/>
+          <g class="rgc-x"></g>
+          <g class="rgc-cross"><line class="rgc-cross-line"/><circle class="rgc-dot-prev" r="4"/><circle class="rgc-dot" r="5.5"/></g>
+          <circle class="rgc-end" r="4.5"/>
+        </svg>
+        <div class="rgc-tip" aria-hidden="true">
+          <p class="rgc-tip-m"></p>
+          <div class="rgc-tip-row rgc-tip-cur"><i></i><span></span><b></b></div>
+          <div class="rgc-tip-row rgc-tip-prev"><i></i><span></span><b></b></div>
+          <div class="rgc-tip-row rgc-tip-chg"><i></i><span></span><b></b></div>
+        </div>
+      </div>
+      <div class="rgc-sr"><table class="rgc-table"><caption></caption><thead><tr></tr></thead><tbody></tbody></table></div>
+      <footer class="rgc-foot"><span class="rgc-source"></span></footer>
+      <p class="rgc-sr rgc-live" aria-live="polite"></p>
+    </article>`;
+
+  let uid = 0;
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const svg = (tag, attrs) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  /* monotone cubic (Fritsch–Carlson): smooth, never overshoots the data */
+  const smooth = pts => {
+    const n = pts.length;
+    if (!n) return "";
+    if (n === 1) return `M${pts[0][0]},${pts[0][1]}`;
+    const dx = [], m = [], t = [];
+    for (let i = 0; i < n - 1; i++) { dx[i] = pts[i + 1][0] - pts[i][0]; m[i] = (pts[i + 1][1] - pts[i][1]) / (dx[i] || 1); }
+    t[0] = m[0]; t[n - 1] = m[n - 2];
+    for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+    for (let i = 0; i < n - 1; i++) {
+      if (m[i] === 0) { t[i] = 0; t[i + 1] = 0; continue; }
+      const a = t[i] / m[i], b = t[i + 1] / m[i], s = a * a + b * b;
+      if (s > 9) { const k = 3 / Math.sqrt(s); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; }
+    }
+    let d = `M${pts[0][0].toFixed(2)},${pts[0][1].toFixed(2)}`;
+    for (let i = 0; i < n - 1; i++) {
+      const h = dx[i] / 3;
+      d += `C${(pts[i][0] + h).toFixed(2)},${(pts[i][1] + t[i] * h).toFixed(2)} ${(pts[i + 1][0] - h).toFixed(2)},${(pts[i + 1][1] - t[i + 1] * h).toFixed(2)} ${pts[i + 1][0].toFixed(2)},${pts[i + 1][1].toFixed(2)}`;
+    }
+    return d;
+  };
+  const niceTicks = max => {
+    if (!(max > 0)) return [0, 1];
+    const raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(f => f * p).find(s => s >= raw) || 10 * p;
+    const top = Math.ceil(max / step) * step;
+    const out = [];
+    for (let v = 0; v <= top + step / 2; v += step) out.push(Math.round(v * 1e6) / 1e6);
+    return out;
+  };
+
+  class RevenueGrowthChart extends HTMLElement {
+    static get observedAttributes() { return ["range", "compare", "cumulative", "currency"]; }
+
+    connectedCallback() {
+      if (this._built) { this._observe(); return; }
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<revenue-growth-chart>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this._uid = ++uid;
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".rgc"), eyebrow: q(".rgc-eyebrow"), title: q(".rgc-title"), sub: q(".rgc-sub"),
+        seg: q(".rgc-seg"), toggles: [...this.querySelectorAll(".rgc-toggle")],
+        kTotal: q(".rgc-k-total"), big: q(".rgc-big"), chip: q(".rgc-chip"), totalSub: q(".rgc-total-sub"),
+        kLatest: q(".rgc-k-latest"), latest: q(".rgc-latest"), latestSub: q(".rgc-latest-sub"),
+        kAvg: q(".rgc-k-avg"), avg: q(".rgc-avg"), avgSub: q(".rgc-avg-sub"),
+        legCur: q(".rgc-leg-cur"), legPrev: q(".rgc-leg-prev"), legPrevWrap: q(".rgc-leg--prev"), hint: q(".rgc-leg-hint"),
+        plot: q(".rgc-plot"), svg: q(".rgc-svg"), grad: q("linearGradient"), grid: q(".rgc-grid"), area: q(".rgc-area"),
+        prev: q(".rgc-prev"), line: q(".rgc-line"), xAxis: q(".rgc-x"), cross: q(".rgc-cross"), crossLine: q(".rgc-cross-line"),
+        dot: q(".rgc-dot"), dotPrev: q(".rgc-dot-prev"), end: q(".rgc-end"),
+        tip: q(".rgc-tip"), tipM: q(".rgc-tip-m"), tipCur: q(".rgc-tip-cur"), tipPrev: q(".rgc-tip-prev"), tipChg: q(".rgc-tip-chg"),
+        table: q(".rgc-table"), source: q(".rgc-source"), live: q(".rgc-live")
+      };
+      const gid = `rgc-grad-${this._uid}`;
+      this.$.grad.id = gid;
+      this.$.area.setAttribute("fill", `url(#${gid})`);
+      this._active = null;
+      this._wire();
+      this._built = true;
+      this._render("none");
+      this._observe();
+      this._reveal();
+    }
+
+    disconnectedCallback() {
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
+      if (this._io) { this._io.disconnect(); this._io = null; }
+      cancelAnimationFrame(this._raf);
+      cancelAnimationFrame(this._numRaf);
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "range") this._render("draw");
+      else if (name === "currency") this._render("none");
+      else this._render("tween");
+    }
+
+    /* Programmatic API: el.data = { eyebrow, title, subtitle, currency, series: [{ month, revenue, lastYear }], source } */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) this._render("draw"); }
+    get range() { return (this.getAttribute("range") || this._data.range || "12m").toLowerCase() === "6m" ? "6m" : "12m"; }
+    set range(v) { this.setAttribute("range", String(v).toLowerCase() === "6m" ? "6m" : "12m"); }
+    get compare() { return this.hasAttribute("compare"); }
+    set compare(v) { this.toggleAttribute("compare", !!v); }
+    get cumulative() { return this.hasAttribute("cumulative"); }
+    set cumulative(v) { this.toggleAttribute("cumulative", !!v); }
+
+    /* Re-run the line-draw animation. */
+    replay() { if (this._built) this._intro(); }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _loc() { return this._data.locale || "en-US"; }
+    _currency() { return (this.getAttribute("currency") || this._data.currency || "USD").toUpperCase(); }
+    _money(v, compact) {
+      try {
+        return new Intl.NumberFormat(this._loc(), compact
+          ? { style: "currency", currency: this._currency(), notation: "compact", maximumFractionDigits: v >= 1e6 ? 2 : 1 }
+          : { style: "currency", currency: this._currency(), maximumFractionDigits: 0 }).format(v);
+      } catch (e) { return this._currency() + " " + Math.round(v).toLocaleString(); }
+    }
+    _pct(r, signed) {
+      if (r == null || !Number.isFinite(r)) return "—";
+      const s = (Math.abs(r) * 100).toLocaleString(this._loc(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+      return signed ? (r > 0 ? "+" : r < 0 ? "−" : "") + s : s;
+    }
+    _month(m, style) {
+      const r = /^(\d{4})-(\d{2})/.exec(m || "");
+      if (!r) return String(m || "");
+      const d = Date.UTC(+r[1], +r[2] - 1, 1);
+      const opt = style === "long" ? { month: "long", year: "numeric" } : style === "mid" ? { month: "short", year: "numeric" } : { month: "short" };
+      try { return new Intl.DateTimeFormat(this._loc(), Object.assign({ timeZone: "UTC" }, opt)).format(d); } catch (e) { return m; }
+    }
+
+    _series() {
+      return (Array.isArray(this._data.series) ? this._data.series : [])
+        .filter(p => p && num(p.revenue) != null)
+        .map(p => ({ month: String(p.month || ""), revenue: Math.max(0, num(p.revenue)), lastYear: num(p.lastYear) }));
+    }
+
+    _state() {
+      const all = this._series();
+      const n = this.range === "6m" ? 6 : 12;
+      const pts = all.slice(-n);
+      const cum = this.cumulative;
+      let a = 0, b = 0;
+      const cur = pts.map(p => (cum ? (a += p.revenue) : p.revenue));
+      const hasPrev = pts.length > 0 && pts.every(p => p.lastYear != null);
+      const prev = hasPrev ? pts.map(p => (cum ? (b += p.lastYear) : p.lastYear)) : [];
+      const showPrev = this.compare && hasPrev;
+      const max = Math.max(1, ...cur, ...(showPrev ? prev : []));
+      const ticks = niceTicks(max);
+      return { pts, cur, prev, hasPrev, showPrev, cum, ticks, yMax: ticks[ticks.length - 1] };
+    }
+
+    /* ---------- render ---------- */
+    _render(mode) {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      $.source.textContent = d.source || "";
+      $.seg.setAttribute("aria-label", L.range);
+      $.seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.range === this.range)));
+      $.toggles.forEach(b => {
+        b.querySelector(".rgc-tl").textContent = L[b.dataset.opt];
+        b.setAttribute("aria-pressed", String(this[b.dataset.opt]));
+      });
+
+      const s = this._state();
+      this._s = s;
+      const { pts } = s, n = pts.length;
+      const total = pts.reduce((x, p) => x + p.revenue, 0);
+      const prevTotal = s.hasPrev ? pts.reduce((x, p) => x + p.lastYear, 0) : null;
+      const growth = prevTotal > 0 ? total / prevTotal - 1 : null;
+      this._totals = { total, growth };
+
+      // headline
+      $.kTotal.textContent = fill(L.total, { n });
+      this._tweenNumber($.big, total, mode !== "none");
+      $.chip.textContent = growth == null ? "" : `${growth >= 0 ? "▲" : "▼"} ${this._pct(growth)}`;      $.chip.dataset.tone = growth == null ? "" : growth >= 0 ? "good" : "bad";
+      $.totalSub.textContent = prevTotal != null ? fill(L.totalSub, { prev: this._money(prevTotal) }) : "";
+
+      const last = pts[n - 1];
+      $.kLatest.textContent = L.latest;
+      $.latest.textContent = last ? `${this._month(last.month, "mid")} · ${this._money(last.revenue)}` : "—";
+      const lyChg = last && last.lastYear > 0 ? last.revenue / last.lastYear - 1 : null;
+      $.latestSub.textContent = lyChg != null ? fill(L.latestSub, { chg: this._pct(lyChg, true), month: this._month(last.month) }) : "";
+
+      const best = pts.reduce((a, p) => (!a || p.revenue > a.revenue ? p : a), null);
+      $.kAvg.textContent = L.avg;
+      $.avg.textContent = n ? this._money(total / n) : "—";
+      $.avgSub.textContent = best ? fill(L.avgSub, { month: this._month(best.month), value: this._money(best.revenue, true) }) : "";
+
+      // legend
+      $.legCur.textContent = s.cum ? `${L.thisYear} · ${L.running}` : L.thisYear;
+      $.legPrev.textContent = L.lastYear;
+      $.legPrevWrap.classList.toggle("rgc-off", !s.showPrev);
+      $.prev.classList.toggle("rgc-off", !s.showPrev);
+      $.hint.textContent = L.hint;
+
+      // accessible summary + table
+      const from = n ? this._month(pts[0].month, "long") : "", to = n ? this._month(last.month, "long") : "";
+      $.plot.setAttribute("aria-label", fill(L.chart, { from, to }));
+      this._table(s, L, from, to);
+
+      // chart
+      if (this._active != null && this._active >= n) this._active = n - 1;
+      if (mode === "tween" && this._frame && this._frame.cur.length === n) this._tweenTo(s);
+      else { this._frame = { cur: s.cur.slice(), prev: s.prev.slice(), yMax: s.yMax }; this._draw(); if (mode === "draw") this._intro(true); }
+    }
+
+    _table(s, L, from, to) {
+      const t = this.$.table;
+      t.querySelector("caption").textContent = fill(L.caption, { from, to });
+      const head = [L.month, s.cum ? L.running2 : L.revenue];
+      if (s.hasPrev) head.push(L.lastYear, L.change);
+      t.querySelector("thead tr").replaceChildren(...head.map(h => { const th = make("th", null, h); th.scope = "col"; return th; }));
+      t.querySelector("tbody").replaceChildren(...s.pts.map((p, i) => {
+        const tr = make("tr");
+        const th = make("th", null, this._month(p.month, "long")); th.scope = "row";
+        tr.append(th, make("td", null, this._money(s.cur[i])));
+        if (s.hasPrev) tr.append(make("td", null, this._money(s.prev[i])), make("td", null, this._pct(s.prev[i] > 0 ? s.cur[i] / s.prev[i] - 1 : null, true)));
+        return tr;
+      }));
+    }
+
+    _tweenNumber(el, to, animate) {
+      cancelAnimationFrame(this._numRaf);
+      const from = this._shownTotal;
+      this._shownTotal = to;
+      if (!animate || from == null || from === to || reduceMotion()) { el.textContent = this._money(to); return; }
+      const t0 = performance.now(), dur = 520;
+      const tick = now => {
+        const k = ease(Math.min(1, (now - t0) / dur));
+        el.textContent = this._money(lerp(from, to, k));
+        if (k < 1) this._numRaf = requestAnimationFrame(tick);
+      };
+      this._numRaf = requestAnimationFrame(tick);
+    }
+
+    _tweenTo(s) {
+      cancelAnimationFrame(this._raf);
+      const a = this._frame;
+      const fromPrev = a.prev.length === s.cur.length ? a.prev : s.prev;
+      const target = { cur: s.cur.slice(), prev: s.prev.slice(), yMax: s.yMax };
+      if (reduceMotion()) { this._frame = target; this._draw(); return; }
+      const t0 = performance.now(), dur = 460, start = { cur: a.cur.slice(), prev: fromPrev.slice(), yMax: a.yMax };
+      const tick = now => {
+        const k = ease(Math.min(1, (now - t0) / dur));
+        this._frame = {
+          cur: start.cur.map((v, i) => lerp(v, target.cur[i], k)),
+          prev: target.prev.map((v, i) => lerp(start.prev[i] ?? v, v, k)),
+          yMax: lerp(start.yMax, target.yMax, k)
+        };
+        this._draw();
+        if (k < 1) this._raf = requestAnimationFrame(tick);
+      };
+      this._raf = requestAnimationFrame(tick);
+    }
+
+    /* ---------- drawing ---------- */
+    _geo() {
+      const W = Math.max(240, Math.round(this.$.plot.clientWidth || 600));
+      const H = W > 700 ? 300 : W > 460 ? 260 : 220;
+      const left = W > 460 ? 54 : 44, right = 12, top = 14, bottom = 30;
+      return { W, H, left, right, top, bottom, pw: W - left - right, ph: H - top - bottom };
+    }
+
+    _draw() {
+      const $ = this.$, s = this._s, f = this._frame, g = this._geo();
+      const n = f.cur.length;
+      $.svg.setAttribute("viewBox", `0 0 ${g.W} ${g.H}`);
+      $.svg.setAttribute("width", g.W); $.svg.setAttribute("height", g.H);
+      const x = i => g.left + (n > 1 ? i * g.pw / (n - 1) : g.pw / 2);
+      const y = v => g.top + g.ph - (v / (f.yMax || 1)) * g.ph;
+      this._geom = { g, x, y, n };
+
+      // y grid + labels
+      const grid = [];
+      s.ticks.forEach((v, i) => {
+        if (v > f.yMax * 1.001) return;
+        const yy = Math.round(y(v)) + 0.5;
+        grid.push(svg("line", { class: "rgc-gridline" + (i === 0 ? " rgc-base" : ""), x1: g.left, x2: g.W - g.right, y1: yy, y2: yy }));
+        const t = svg("text", { class: "rgc-ytick", x: g.left - 10, y: yy + 4, "text-anchor": "end" });
+        t.textContent = v === 0 ? this._money(0) : this._money(v, true);
+        grid.push(t);
+      });
+      if (!n) {
+        const t = svg("text", { class: "rgc-empty", x: g.W / 2, y: g.H / 2, "text-anchor": "middle" });
+        t.textContent = this._labels().noData;
+        grid.push(t);
+      }
+      $.grid.replaceChildren(...grid);
+
+      // x labels (thin them out when space is tight; the last month always shows)
+      const every = g.pw / Math.max(1, n - 1) < 40 ? 2 : 1;
+      $.xAxis.replaceChildren(...s.pts.map((p, i) => {
+        if ((n - 1 - i) % every) return null;
+        const t = svg("text", { class: "rgc-xtick" + (i === this._active ? " rgc-xtick--on" : ""), x: x(i), y: g.H - 8, "text-anchor": n > 1 && i === 0 ? "start" : n > 1 && i === n - 1 ? "end" : "middle" });
+        const roomy = every * g.pw / Math.max(1, n - 1) >= 60;
+        t.textContent = roomy && (i === 0 || /-01$/.test(p.month)) ? this._month(p.month, "mid") : this._month(p.month);
+        if (n > 1 && i === 0) t.setAttribute("x", x(i) - 4);
+        if (n > 1 && i === n - 1) t.setAttribute("x", x(i) + 4);
+        t.dataset.i = i;
+        return t;
+      }).filter(Boolean));
+
+      // lines
+      const curPts = f.cur.map((v, i) => [x(i), y(v)]);
+      const line = smooth(curPts);
+      $.line.setAttribute("d", line);
+      $.area.setAttribute("d", n ? `${line}L${x(n - 1).toFixed(2)},${g.top + g.ph}L${x(0).toFixed(2)},${g.top + g.ph}Z` : "");
+      $.prev.setAttribute("d", f.prev.length === n ? smooth(f.prev.map((v, i) => [x(i), y(v)])) : "");
+      $.prev.classList.toggle("rgc-off", !s.showPrev);
+      if (n) { $.end.setAttribute("cx", x(n - 1)); $.end.setAttribute("cy", y(f.cur[n - 1])); }
+      $.end.style.display = n ? "" : "none";
+      if (this._active != null) this._place(this._active, false);
+    }
+
+    _intro(quick) {
+      const $ = this.$;
+      if (reduceMotion() || !("animate" in Element.prototype)) { $.card.classList.remove("rgc-pending"); return; }
+      $.card.classList.remove("rgc-pending");
+      const dur = quick ? 650 : 1200;
+      const opts = { duration: dur, easing: "cubic-bezier(.45,.05,.25,1)", fill: "backwards" };
+      [$.line, this._s.showPrev ? $.prev : null].forEach((p, k) => {
+        if (!p || !p.getTotalLength) return;
+        let len = 0;
+        try { len = p.getTotalLength(); } catch (e) { len = 0; }
+        if (!len) return;
+        const dash = p === $.prev ? null : `${len} ${len}`;
+        if (dash) {
+          p.style.strokeDasharray = dash;
+          const a = p.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], Object.assign({}, opts, { delay: k * 120 }));
+          a.onfinish = a.oncancel = () => { p.style.strokeDasharray = ""; };
+        } else {
+          p.animate([{ opacity: 0 }, { opacity: 1 }], Object.assign({}, opts, { duration: dur * .7, delay: dur * .3 }));
+        }
+      });
+      $.area.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], Object.assign({}, opts, { duration: dur * .8, delay: dur * .25 }));
+      $.end.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 260, delay: dur, fill: "backwards" });
+    }
+
+    _reveal() {
+      if (reduceMotion()) return;
+      const card = this.$.card;
+      card.classList.add("rgc-pending");
+      if (!("IntersectionObserver" in window)) { this._intro(); return; }
+      this._io = new IntersectionObserver(entries => {
+        if (entries.some(e => e.isIntersecting)) { this._io.disconnect(); this._io = null; requestAnimationFrame(() => this._intro()); }
+      }, { threshold: 0.25 });
+      this._io.observe(card);
+    }
+
+    _observe() {
+      if (this._ro || !("ResizeObserver" in window)) return;
+      let w = 0;
+      this._ro = new ResizeObserver(() => {
+        const nw = this.$.plot.clientWidth;
+        if (nw && nw !== w) { w = nw; cancelAnimationFrame(this._raf); if (this._s) { this._frame = { cur: this._s.cur.slice(), prev: this._s.prev.slice(), yMax: this._s.yMax }; this._draw(); } }
+      });
+      this._ro.observe(this.$.plot);
+    }
+
+    /* ---------- crosshair + tooltip ---------- */
+    _place(i, announce) {
+      const $ = this.$, s = this._s, f = this._frame, G = this._geom;
+      if (!G || !G.n || i == null) { this._clear(); return; }
+      i = Math.max(0, Math.min(G.n - 1, i));
+      const changed = this._active !== i;
+      this._active = i;
+      const { g, x, y } = G, L = this._labels(), p = s.pts[i];
+      const cx = x(i), cy = y(f.cur[i]);
+      $.crossLine.setAttribute("x1", cx); $.crossLine.setAttribute("x2", cx);
+      $.crossLine.setAttribute("y1", g.top); $.crossLine.setAttribute("y2", g.top + g.ph);
+      $.dot.setAttribute("cx", cx); $.dot.setAttribute("cy", cy);
+      const showPrev = s.showPrev && f.prev.length === G.n;
+      $.dotPrev.style.display = showPrev ? "" : "none";
+      if (showPrev) { $.dotPrev.setAttribute("cx", cx); $.dotPrev.setAttribute("cy", y(f.prev[i])); }
+      $.cross.classList.add("rgc-on");
+      $.xAxis.querySelectorAll(".rgc-xtick").forEach(t => t.classList.toggle("rgc-xtick--on", +t.dataset.i === i));
+
+      // tooltip content
+      const curV = s.cur[i], prevV = s.hasPrev ? s.prev[i] : null;
+      $.tipM.textContent = this._month(p.month, "long") + (s.cum ? ` · ${L.running}` : "");
+      $.tipCur.querySelector("span").textContent = L.thisYear;
+      $.tipCur.querySelector("b").textContent = this._money(curV);
+      $.tipPrev.hidden = !showPrev;
+      $.tipPrev.querySelector("span").textContent = L.lastYear;
+      $.tipPrev.querySelector("b").textContent = prevV != null ? this._money(prevV) : "—";
+      const chg = prevV > 0 ? curV / prevV - 1 : null;
+      $.tipChg.hidden = chg == null;
+      $.tipChg.querySelector("span").textContent = L.change;
+      const cb = $.tipChg.querySelector("b");
+      cb.textContent = this._pct(chg, true);
+      cb.dataset.tone = chg == null ? "" : chg >= 0 ? "good" : "bad";
+      $.tip.classList.add("rgc-on");
+      // position: beside the crosshair, flipped near the right edge
+      const tw = $.tip.offsetWidth, pw = $.plot.clientWidth, scale = pw / g.W;
+      const px = cx * scale;
+      let left = px + 14;
+      if (left + tw > pw) left = px - 14 - tw;
+      $.tip.style.transform = `translateX(${Math.round(Math.max(0, left))}px)`;
+
+      if (announce && changed) {
+        const parts = [`${this._month(p.month, "long")}: ${this._money(curV)}`];
+        if (prevV != null) parts.push(`${L.lastYear.toLowerCase()} ${this._money(prevV)}`, `${L.change.toLowerCase()} ${this._pct(chg, true)}`);
+        $.live.textContent = parts.join(", ") + ".";
+      }
+    }
+
+    _clear() {
+      this._active = null;
+      this.$.cross.classList.remove("rgc-on");
+      this.$.tip.classList.remove("rgc-on");
+      this.$.xAxis.querySelectorAll(".rgc-xtick--on").forEach(t => t.classList.remove("rgc-xtick--on"));
+    }
+
+    _indexAt(clientX) {
+      const G = this._geom;
+      if (!G || !G.n) return null;
+      const r = this.$.svg.getBoundingClientRect();
+      const sx = (clientX - r.left) * (G.g.W / (r.width || 1));
+      const step = G.n > 1 ? G.g.pw / (G.n - 1) : 1;
+      return Math.max(0, Math.min(G.n - 1, Math.round((sx - G.g.left) / step)));
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.seg.addEventListener("click", e => {
+        const b = e.target.closest("button[data-range]");
+        if (!b || b.dataset.range === this.range) return;
+        this.range = b.dataset.range;
+        this.dispatchEvent(new CustomEvent("rangechange", { bubbles: true, detail: { range: this.range, total: this._totals.total, growth: this._totals.growth } }));
+      });
+      $.toggles.forEach(b => b.addEventListener("click", () => {
+        const opt = b.dataset.opt;
+        this[opt] = !this[opt];
+        this.dispatchEvent(new CustomEvent("viewchange", { bubbles: true, detail: { compare: this.compare, cumulative: this.cumulative } }));
+      }));
+
+      const plot = $.plot;
+      plot.addEventListener("pointermove", e => this._place(this._indexAt(e.clientX), false));
+      plot.addEventListener("pointerdown", e => this._place(this._indexAt(e.clientX), false));
+      plot.addEventListener("pointerleave", e => { if (e.pointerType !== "touch" && document.activeElement !== plot) this._clear(); });
+      plot.addEventListener("focus", () => { if (this._active == null && this._s && this._s.pts.length) this._place(this._s.pts.length - 1, true); });
+      plot.addEventListener("blur", () => this._clear());
+      plot.addEventListener("keydown", e => {
+        const n = this._s ? this._s.pts.length : 0;
+        if (!n) return;
+        const i = this._active == null ? n - 1 : this._active;
+        let ni = null;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") ni = i + 1;
+        else if (e.key === "ArrowLeft" || e.key === "ArrowDown") ni = i - 1;
+        else if (e.key === "Home") ni = 0;
+        else if (e.key === "End") ni = n - 1;
+        else if (e.key === "Escape") { this._clear(); return; }
+        if (ni == null) return;
+        e.preventDefault();
+        this._place(Math.max(0, Math.min(n - 1, ni)), true);
+      });
+    }
+  }
+
+  if (!customElements.get("revenue-growth-chart")) customElements.define("revenue-growth-chart", RevenueGrowthChart);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const say = (strong, rest) => { const b = document.createElement("b"); b.textContent = strong; note.replaceChildren(b, rest); };
+  el.addEventListener("rangechange", e => {
+    const g = e.detail.growth;
+    say(`Range: ${e.detail.range.toUpperCase()}`, ` · rangechange fired (growth ${g == null ? "n/a" : (g * 100).toFixed(1) + "%"}). Example data, not real client results.`);
+  });
+  el.addEventListener("viewchange", e => {
+    say(`Compare ${e.detail.compare ? "on" : "off"} · cumulative ${e.detail.cumulative ? "on" : "off"}`, " · viewchange fired. Example data, not real client results.");
+  });
+  document.getElementById("replay").addEventListener("click", () => el.replay());
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

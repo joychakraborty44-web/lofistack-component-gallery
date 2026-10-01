@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable CRM client profile card: account health, MRR, tenure and pipeline at a glance, with tabs for overview, contacts and notes.">
+<meta property="og:title" content="Client Overview Card · LofiStack Components">
+<meta property="og:description" content="A reusable CRM client profile card: account health, MRR, tenure and pipeline at a glance, with tabs for overview, contacts and notes.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Client Overview Card · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #E8E6E1;
+  --stage: #F2F0EB;
+  --ink: #1A2333;
+  --muted: #575E6B;
+  --faint: #737884;
+  --line: #DAD6CE;
+  --panel: #F7F5F1;
+  --accent: #3F6B4C;
+
+  /* ---- Client Overview tokens (override these to re-theme the component) ---- */
+  --cov-card: #FFFEFB;
+  --cov-band: #F2EEE7;
+  --cov-ink: #18233A;
+  --cov-muted: #565D6B;
+  --cov-faint: #6B717D;
+  --cov-line: #E6E1D8;
+  --cov-tint: #F6F3EE;
+  --cov-navy: #1F2D4D;
+  --cov-navy-ink: #F6F1E7;
+  --cov-accent: #4D7C5B;
+  --cov-accent-strong: #3E6A4B;
+  --cov-accent-soft: #E3ECE4;
+  --cov-warn: #925600;
+  --cov-warn-soft: #F7EBD6;
+  --cov-bad: #B42318;
+  --cov-bad-soft: #F9E1DE;
+  --cov-star: #B7791F;
+  --cov-shadow: rgba(32, 36, 48, 0.22);
+  --cov-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --cov-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --cov-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0E0F11; --stage: #141518; --ink: #ECE8E1; --muted: #A9A79F; --faint: #8A8881;
+    --line: #2A2A2C; --panel: #17181B; --accent: #93C6A1;
+    --cov-card: #181A1E; --cov-band: #1F2126; --cov-ink: #ECE8E1; --cov-muted: #AEABA3; --cov-faint: #8E8B84;
+    --cov-line: #2E3035; --cov-tint: #1D1F24; --cov-navy: #2C3D63; --cov-navy-ink: #F1ECE2;
+    --cov-accent: #8FC29E; --cov-accent-strong: #A6D3B3; --cov-accent-soft: rgba(143, 194, 158, 0.14);
+    --cov-warn: #E8B65A; --cov-warn-soft: rgba(232, 182, 90, 0.14);
+    --cov-bad: #F59484; --cov-bad-soft: rgba(245, 148, 132, 0.14);
+    --cov-star: #F2C14E; --cov-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0E0F11; --stage: #141518; --ink: #ECE8E1; --muted: #A9A79F; --faint: #8A8881;
+  --line: #2A2A2C; --panel: #17181B; --accent: #93C6A1;
+  --cov-card: #181A1E; --cov-band: #1F2126; --cov-ink: #ECE8E1; --cov-muted: #AEABA3; --cov-faint: #8E8B84;
+  --cov-line: #2E3035; --cov-tint: #1D1F24; --cov-navy: #2C3D63; --cov-navy-ink: #F1ECE2;
+  --cov-accent: #8FC29E; --cov-accent-strong: #A6D3B3; --cov-accent-soft: rgba(143, 194, 158, 0.14);
+  --cov-warn: #E8B65A; --cov-warn-soft: rgba(232, 182, 90, 0.14);
+  --cov-bad: #F59484; --cov-bad-soft: rgba(245, 148, 132, 0.14);
+  --cov-star: #F2C14E; --cov-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   Client Overview component  (copy this block + the script)
+   ========================================================= */
+client-overview {
+  display: block;
+  container: cov / inline-size;
+  width: 100%;
+  max-width: 920px;
+  font-family: var(--cov-sans);
+  color: var(--cov-ink);
+}
+.cov {
+  position: relative;
+  background: var(--cov-card);
+  border: 1px solid var(--cov-line);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -46px var(--cov-shadow), 0 2px 6px -4px var(--cov-shadow);
+}
+.cov-sc { font-variant-caps: all-small-caps; letter-spacing: .07em; font-weight: 600; }
+
+/* header band */
+.cov-band {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "id actions" "owner actions";
+  gap: 14px 24px;
+  padding: 28px 30px 22px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, color-mix(in oklab, var(--cov-accent) 11%, transparent), transparent 55%),
+    repeating-linear-gradient(135deg, transparent 0 11px, color-mix(in oklab, var(--cov-line) 55%, transparent) 11px 12px),
+    var(--cov-band);
+  border-bottom: 1px solid var(--cov-line);
+}
+.cov-id { grid-area: id; display: flex; align-items: center; gap: 18px; min-width: 0; }
+.cov-avatar {
+  flex: none; width: 64px; height: 64px; border-radius: 16px;
+  display: grid; place-items: center;
+  background: linear-gradient(150deg, color-mix(in oklab, var(--cov-navy), #fff 10%), var(--cov-navy));
+  color: var(--cov-navy-ink);
+  font: 600 22px/1 var(--cov-display); letter-spacing: .02em;
+  box-shadow: 0 0 0 4px var(--cov-card), 0 14px 26px -16px var(--cov-shadow);
+}
+.cov-id-text { display: grid; gap: 5px; min-width: 0; }
+.cov-kicker { margin: 0; font-size: 13px; line-height: 1; color: var(--cov-accent-strong); }
+.cov-name { margin: 0; font: 600 clamp(22px, 3.6cqi, 30px)/1.1 var(--cov-display); letter-spacing: -0.02em; overflow-wrap: anywhere; text-wrap: balance; }
+.cov-meta { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13.5px; color: var(--cov-muted); }
+.cov-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.cov-meta svg { width: 13px; height: 13px; color: var(--cov-faint); flex: none; }
+.cov-meta span:empty, .cov-kicker:empty { display: none; }
+
+.cov-owner { grid-area: owner; display: flex; align-items: center; gap: 10px; padding-left: 82px; font-size: 13px; color: var(--cov-muted); }
+.cov-owner-av {
+  width: 26px; height: 26px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--cov-accent-soft); color: var(--cov-accent-strong);
+  font: 700 10.5px/1 var(--cov-sans); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cov-accent) 35%, transparent);
+}
+.cov-owner b { color: var(--cov-ink); font-weight: 600; }
+.cov-owner[hidden] { display: none; }
+
+.cov-actions { grid-area: actions; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.cov-health {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 12px 7px 10px; border-radius: 999px;
+  font: 600 12.5px/1 var(--cov-sans); font-variant-numeric: tabular-nums;
+  color: var(--cov-tone); background: var(--cov-tone-soft);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--cov-tone) 28%, transparent);
+  transition: color .3s, background .3s, box-shadow .3s;
+}
+.cov-health[data-status="healthy"] { --cov-tone: var(--cov-accent-strong); --cov-tone-soft: var(--cov-accent-soft); }
+.cov-health[data-status="at-risk"] { --cov-tone: var(--cov-warn); --cov-tone-soft: var(--cov-warn-soft); }
+.cov-health[data-status="critical"] { --cov-tone: var(--cov-bad); --cov-tone-soft: var(--cov-bad-soft); }
+.cov-health svg { width: 13px; height: 13px; flex: none; }
+.cov-health-score { font-weight: 500; opacity: .85; }
+.cov-health-score:empty { display: none; }
+
+.cov-fav {
+  appearance: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 12px 8px 10px; border-radius: 10px;
+  border: 1px solid var(--cov-line); background: var(--cov-card);
+  font: 600 12.5px/1 var(--cov-sans); color: var(--cov-muted);
+  transition: color .2s, border-color .2s, background .2s;
+}
+.cov-fav:hover { color: var(--cov-ink); border-color: color-mix(in oklab, var(--cov-faint) 60%, var(--cov-line)); }
+.cov-fav svg { width: 16px; height: 16px; flex: none; transition: transform .35s cubic-bezier(.2,.7,.2,1), color .2s; }
+.cov-fav svg path { fill: transparent; stroke: currentColor; transition: fill .25s; }
+.cov-fav[aria-pressed="true"] { color: var(--cov-ink); border-color: color-mix(in oklab, var(--cov-star) 45%, var(--cov-line)); background: color-mix(in oklab, var(--cov-star) 9%, var(--cov-card)); }
+.cov-fav[aria-pressed="true"] svg { color: var(--cov-star); }
+.cov-fav[aria-pressed="true"] svg path { fill: currentColor; }
+.cov-fav.is-pop svg { animation: cov-pop .42s cubic-bezier(.2,.7,.2,1); }
+@keyframes cov-pop { 0% { transform: scale(1); } 40% { transform: scale(1.32) rotate(-10deg); } 100% { transform: scale(1); } }
+
+/* stat row */
+.cov-stats { margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--cov-line); }
+.cov-stat { margin: 0; min-width: 0; padding: 18px 22px 18px; display: grid; gap: 6px; align-content: start; }
+.cov-stat + .cov-stat { border-left: 1px solid var(--cov-line); }
+.cov-stat:first-child { padding-left: 30px; }
+.cov-stat dt { font-size: 13px; line-height: 1; color: var(--cov-faint); }
+.cov-stat dd { margin: 0; min-width: 0; }
+.cov-val { font: 600 clamp(20px, 3cqi, 25px)/1.1 var(--cov-display); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cov-sub { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 12.5px; line-height: 1.35; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+.cov-delta { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; color: var(--cov-muted); }
+.cov-delta[data-tone="good"] { color: var(--cov-accent-strong); }
+.cov-delta[data-tone="bad"] { color: var(--cov-bad); }
+.cov-delta:empty { display: none; }
+
+/* tabs */
+.cov-tabs { position: relative; display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid var(--cov-line); }
+.cov-tab {
+  appearance: none; position: relative; border: 0; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 15px 12px 14px;
+  font: 600 14px/1 var(--cov-sans); color: var(--cov-muted);
+  border-radius: 8px 8px 0 0;
+  transition: color .2s, background .2s;
+}
+.cov-tab:hover { color: var(--cov-ink); background: color-mix(in oklab, var(--cov-tint) 70%, transparent); }
+.cov-tab[aria-selected="true"] { color: var(--cov-ink); }
+.cov-tab:focus-visible { outline: 2px solid var(--cov-accent); outline-offset: -4px; }
+.cov-count {
+  min-width: 20px; padding: 3px 6px; border-radius: 999px;
+  font: 600 11px/1 var(--cov-sans); font-variant-numeric: tabular-nums; text-align: center;
+  background: var(--cov-tint); color: var(--cov-muted); box-shadow: inset 0 0 0 1px var(--cov-line);
+  transition: background .25s, color .25s;
+}
+.cov-tab[aria-selected="true"] .cov-count { background: var(--cov-accent-soft); color: var(--cov-accent-strong); box-shadow: none; }
+.cov-ink-bar {
+  position: absolute; bottom: -1px; left: 0; height: 2px; width: 0;
+  border-radius: 2px 2px 0 0; background: var(--cov-accent);
+}
+.cov-tabs.is-ready .cov-ink-bar { transition: transform .38s cubic-bezier(.3,.8,.25,1), width .38s cubic-bezier(.3,.8,.25,1); }
+
+.cov-panel { padding: 24px 30px 28px; outline: none; }
+.cov-panel:focus-visible { box-shadow: inset 0 0 0 2px var(--cov-accent); }
+.cov-panel.is-entering { animation: cov-in .32s cubic-bezier(.2,.7,.2,1); }
+@keyframes cov-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.cov-h3 { margin: 0 0 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13.5px; line-height: 1; color: var(--cov-faint); }
+.cov-h3 small { font: 500 12.5px/1 var(--cov-sans); font-variant-caps: normal; letter-spacing: 0; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+
+/* overview */
+.cov-ov { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 28px; }
+.cov-opps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cov-opp {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 14px; align-items: center;
+  padding: 13px 14px; border-radius: 12px; border: 1px solid var(--cov-line); background: var(--cov-card);
+  transition: border-color .2s, transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s;
+}
+.cov-opp:hover { border-color: color-mix(in oklab, var(--cov-accent) 40%, var(--cov-line)); transform: translateY(-1px); box-shadow: 0 12px 22px -18px var(--cov-shadow); }
+.cov-opp-name { font: 600 14px/1.3 var(--cov-sans); overflow-wrap: anywhere; }
+.cov-opp-val { font: 600 15px/1 var(--cov-display); font-variant-numeric: tabular-nums; text-align: right; }
+.cov-opp-meta { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; font-size: 12.5px; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+.cov-steps { display: inline-flex; align-items: center; gap: 8px; }
+.cov-ticks { display: inline-flex; gap: 3px; }
+.cov-ticks i { width: 16px; height: 4px; border-radius: 2px; background: var(--cov-line); }
+.cov-ticks i.is-on { background: var(--cov-accent); }
+.cov-opp-total { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--cov-line); display: flex; justify-content: space-between; gap: 10px; font-size: 13px; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+.cov-opp-total b { color: var(--cov-ink); font-weight: 600; }
+
+.cov-facts { margin: 0; display: grid; }
+.cov-fact { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--cov-line); font-size: 13.5px; }
+.cov-fact:first-child { border-top: 0; padding-top: 2px; }
+.cov-fact dt { color: var(--cov-faint); font-size: 13px; }
+.cov-fact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.cov-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.cov-chip { padding: 5px 9px; border-radius: 7px; font-size: 12.5px; line-height: 1; background: var(--cov-tint); box-shadow: inset 0 0 0 1px var(--cov-line); color: var(--cov-ink); }
+.cov-health-note { margin: 16px 0 0; padding: 12px 14px; border-radius: 10px; font-size: 13px; line-height: 1.5; color: var(--cov-ink); background: var(--cov-tone-soft); border-left: 3px solid var(--cov-tone); }
+.cov-health-note[data-status="healthy"] { --cov-tone: var(--cov-accent); --cov-tone-soft: var(--cov-accent-soft); }
+.cov-health-note[data-status="at-risk"] { --cov-tone: var(--cov-warn); --cov-tone-soft: var(--cov-warn-soft); }
+.cov-health-note[data-status="critical"] { --cov-tone: var(--cov-bad); --cov-tone-soft: var(--cov-bad-soft); }
+.cov-health-note:empty { display: none; }
+
+/* contacts */
+.cov-people { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.cov-person {
+  display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 4px 12px; align-items: start;
+  padding: 14px; border-radius: 12px; border: 1px solid var(--cov-line);
+  transition: border-color .2s;
+}
+.cov-person:hover { border-color: color-mix(in oklab, var(--cov-accent) 35%, var(--cov-line)); }
+.cov-p-av { grid-row: span 3; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--cov-tint); box-shadow: inset 0 0 0 1px var(--cov-line); font: 600 13px/1 var(--cov-display); color: var(--cov-ink); }
+.cov-person.is-primary .cov-p-av { background: var(--cov-navy); color: var(--cov-navy-ink); box-shadow: none; }
+.cov-p-name { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 600 14.5px/1.25 var(--cov-sans); }
+.cov-badge { padding: 3px 7px; border-radius: 999px; font-size: 12px; line-height: 1; color: var(--cov-accent-strong); background: var(--cov-accent-soft); }
+.cov-p-role { font-size: 12.5px; color: var(--cov-muted); }
+.cov-p-line { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; min-width: 0; }
+.cov-email { font: 400 12.5px/1.4 var(--cov-mono); color: var(--cov-ink); overflow-wrap: anywhere; min-width: 0; }
+.cov-phone { font-size: 12.5px; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+.cov-copy {
+  appearance: none; flex: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 9px; border-radius: 8px; border: 1px solid var(--cov-line); background: var(--cov-card);
+  font: 600 12px/1 var(--cov-sans); color: var(--cov-muted);
+  transition: color .2s, border-color .2s, background .2s;
+}
+.cov-copy:hover { color: var(--cov-ink); border-color: var(--cov-faint); }
+.cov-copy svg { width: 13px; height: 13px; }
+.cov-copy.is-done { color: var(--cov-accent-strong); border-color: color-mix(in oklab, var(--cov-accent) 50%, var(--cov-line)); background: var(--cov-accent-soft); }
+
+/* notes */
+.cov-form { display: grid; gap: 10px; padding: 14px; border-radius: 14px; background: var(--cov-tint); border: 1px solid var(--cov-line); }
+.cov-form label { font-size: 13.5px; line-height: 1; color: var(--cov-faint); }
+.cov-textarea {
+  box-sizing: border-box; width: 100%; min-height: 76px; resize: vertical;
+  padding: 11px 13px; border-radius: 10px; border: 1px solid var(--cov-line); background: var(--cov-card);
+  font: 400 14px/1.5 var(--cov-sans); color: var(--cov-ink);
+  transition: border-color .2s, box-shadow .2s;
+}
+.cov-textarea::placeholder { color: var(--cov-faint); }
+.cov-textarea:focus { outline: none; border-color: var(--cov-accent); box-shadow: 0 0 0 3px color-mix(in oklab, var(--cov-accent) 22%, transparent); }
+.cov-form-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cov-hint { font-size: 12.5px; color: var(--cov-muted); }
+.cov-hint kbd { font: 500 11px/1 var(--cov-mono); padding: 3px 5px; border-radius: 4px; background: var(--cov-card); box-shadow: inset 0 0 0 1px var(--cov-line); }
+.cov-add {
+  appearance: none; cursor: pointer; border: 0;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 10px;
+  background: var(--cov-navy); color: var(--cov-navy-ink);
+  font: 600 13px/1 var(--cov-sans);
+  transition: background .2s, opacity .2s, transform .15s;
+}
+.cov-add:hover:not(:disabled) { background: color-mix(in oklab, var(--cov-navy), #000 18%); }
+.cov-add:active:not(:disabled) { transform: scale(.98); }
+.cov-add:disabled { opacity: .45; cursor: not-allowed; }
+.cov-add svg { width: 13px; height: 13px; }
+.cov-notes { list-style: none; margin: 18px 0 0; padding: 0; display: grid; }
+.cov-note { position: relative; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 2px 12px; padding: 14px 0; border-top: 1px solid var(--cov-line); }
+.cov-note:first-child { border-top: 0; }
+.cov-note-av { grid-row: span 2; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--cov-accent-soft); color: var(--cov-accent-strong); font: 700 10.5px/1 var(--cov-sans); }
+.cov-note-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; font-size: 13px; }
+.cov-note-head b { font-weight: 600; }
+.cov-note-head time { font-size: 12.5px; color: var(--cov-muted); font-variant-numeric: tabular-nums; }
+.cov-note-text { margin: 4px 0 0; font-size: 14px; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cov-note.is-new { animation: cov-note-in .45s cubic-bezier(.2,.7,.2,1); }
+.cov-note.is-new .cov-note-av { background: var(--cov-navy); color: var(--cov-navy-ink); }
+@keyframes cov-note-in { from { opacity: 0; transform: translateY(-8px); background: var(--cov-accent-soft); } to { opacity: 1; transform: none; background: transparent; } }
+.cov-empty { padding: 22px; text-align: center; font-size: 13.5px; color: var(--cov-muted); border: 1px dashed var(--cov-line); border-radius: 12px; }
+
+.cov-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* tablet */
+@container cov (max-width: 719px) {
+  .cov-band { padding: 24px 22px 20px; }
+  .cov-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cov-stat:nth-child(3) { border-left: 0; }
+  .cov-stat:nth-child(n+3) { border-top: 1px solid var(--cov-line); }
+  .cov-stat, .cov-stat:first-child, .cov-stat:nth-child(3) { padding: 16px 22px; }
+  .cov-tabs { padding: 0 14px; }
+  .cov-panel { padding: 22px 22px 24px; }
+  .cov-ov { grid-template-columns: 1fr; gap: 24px; }
+  .cov-people { grid-template-columns: 1fr; }
+}
+/* phone */
+@container cov (max-width: 479px) {
+  .cov { border-radius: 16px; }
+  .cov-band { grid-template-columns: minmax(0, 1fr); grid-template-areas: "id" "owner" "actions"; padding: 20px 16px 16px; gap: 14px; }
+  .cov-id { gap: 14px; align-items: flex-start; }
+  .cov-avatar { width: 50px; height: 50px; border-radius: 13px; font-size: 18px; }
+  .cov-owner { padding-left: 0; }
+  .cov-actions { flex-direction: row; align-items: center; flex-wrap: wrap; }
+  .cov-stat, .cov-stat:first-child, .cov-stat:nth-child(3) { padding: 14px 16px; }
+  .cov-val { font-size: 19px; }
+  .cov-tabs { padding: 0 6px; gap: 0; }
+  .cov-tab { flex: 1; padding: 14px 6px 13px; font-size: 13.5px; gap: 6px; }
+  .cov-panel { padding: 18px 16px 20px; }
+  .cov-fact { grid-template-columns: 1fr; gap: 4px; }
+  .cov-p-line { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cov-health, .cov-fav, .cov-fav svg, .cov-fav svg path, .cov-tab, .cov-count, .cov-tabs.is-ready .cov-ink-bar,
+  .cov-opp, .cov-person, .cov-copy, .cov-textarea, .cov-add { transition: none; }
+  .cov-fav.is-pop svg, .cov-panel.is-entering, .cov-note.is-new { animation: none; }
+  .cov-opp:hover, .cov-add:active:not(:disabled) { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--cov-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--cov-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--cov-display); letter-spacing: -0.025em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  position: relative;
+  background:
+    radial-gradient(80% 60% at 50% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 48px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 920px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 56ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.seg-wrap { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg-label { font: 500 10.5px/1 var(--cov-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 9px; background: var(--ground); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 500 12.5px/1 var(--cov-sans); color: var(--muted);
+  padding: 8px 11px; border-radius: 6px; transition: background .2s, color .2s;
+}
+.seg button[aria-pressed="true"] { background: var(--cov-card); color: var(--ink); box-shadow: 0 1px 3px -1px var(--cov-shadow); }
+.seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 600 17px/1.2 var(--cov-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--cov-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--cov-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--cov-card); cursor: pointer;
+  font: 500 12px/1 var(--cov-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--cov-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--cov-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card" aria-current="page"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 07</span></div>
+    <h1>Client Overview Card</h1>
+    <p>One client at a glance: account health, monthly revenue, tenure and open pipeline. Tabs hold the account details, the people you talk to, and a running set of notes.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <client-overview id="demo" tab="overview">
+      <script type="application/json">
+        {
+          "company": "Harbor & Pine Realty",
+          "initials": "HP",
+          "industry": "Residential real estate",
+          "location": "Portland, Maine",
+          "website": "harborandpine.example",
+          "plan": "Growth retainer",
+          "owner": { "name": "Maya Okafor", "role": "Account owner" },
+          "health": { "status": "healthy", "score": 82, "note": "Lead volume is up and invoices are paid on time. Renewal talk is due in early March." },
+          "currency": "USD",
+          "mrr": 4800,
+          "mrrPrevious": 4200,
+          "mrrCompareLabel": "last quarter",
+          "clientSince": "2024-03-11",
+          "renewal": "2027-03-11",
+          "billing": "Monthly, paid by card",
+          "asOf": "2026-10-02",
+          "lastActivity": { "date": "2026-09-30T15:20", "summary": "Call with Dana Whitfield" },
+          "services": ["Paid social", "Search ads", "Email nurture", "Landing pages"],
+          "opportunities": [
+            { "name": "Second office launch", "stage": "Discovery", "value": 9200, "close": "2026-12-15" },
+            { "name": "Spring listings campaign", "stage": "Proposal", "value": 6500, "close": "2026-10-20" },
+            { "name": "Video tour add-on", "stage": "Negotiation", "value": 1800, "close": "2026-10-09" }
+          ],
+          "contacts": [
+            { "name": "Dana Whitfield", "role": "Managing broker", "email": "dana@harborandpine.example", "phone": "(207) 555-0142", "primary": true },
+            { "name": "Luis Moreno", "role": "Marketing coordinator", "email": "luis@harborandpine.example", "phone": "(207) 555-0187" },
+            { "name": "Priya Raman", "role": "Office manager", "email": "priya@harborandpine.example", "phone": "(207) 555-0119" },
+            { "name": "Tom Becker", "role": "Lead agent, Falmouth", "email": "tom@harborandpine.example", "phone": "(207) 555-0163" }
+          ],
+          "notes": [
+            { "author": "Maya Okafor", "date": "2026-09-30T15:40", "text": "Dana wants the spring listings plan by 14 Oct. She asked for a short video tour test first." },
+            { "author": "Jon Ellis", "date": "2026-09-22T10:05", "text": "Swapped the seller-lead form to two steps. Form completions up from 3.1% to 4.4% in the first week." }
+          ]
+        }
+      </script>
+    </client-overview>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Fictional client, not real results.</p>
+      <div class="controls">
+        <div class="seg-wrap">
+          <span class="seg-label">Health</span>
+          <div class="seg" role="group" aria-label="Health status">
+            <button type="button" data-value="healthy" aria-pressed="true">Healthy</button>
+            <button type="button" data-value="at-risk" aria-pressed="false">At risk</button>
+            <button type="button" data-value="critical" aria-pressed="false">Critical</button>
+          </div>
+        </div>
+        <button type="button" class="btn" id="reset">Reset demo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>tab</td><td>Attribute. <code>overview</code>, <code>contacts</code> or <code>notes</code>. The tabs update it.</td></tr>
+          <tr><td>favourite</td><td>Boolean attribute (or JSON). The star button toggles it.</td></tr>
+          <tr><td>health</td><td>Attribute. Overrides <code>health.status</code>: <code>healthy</code>, <code>at-risk</code>, <code>critical</code>.</td></tr>
+          <tr><td>company · initials</td><td>Client name. Initials are worked out from the name if left out.</td></tr>
+          <tr><td>industry · location · website</td><td>Optional details under the name and in the Overview tab.</td></tr>
+          <tr><td>plan · billing · renewal</td><td>Plan name, billing text and renewal date (ISO).</td></tr>
+          <tr><td>owner</td><td><code>{ name, role }</code> of the account owner.</td></tr>
+          <tr><td>health</td><td><code>{ status, score, note }</code>. Score is 0–100; the note shows in Overview.</td></tr>
+          <tr><td>mrr · mrrPrevious</td><td>Monthly recurring revenue, and the earlier figure for the change. <code>mrrCompareLabel</code> names it.</td></tr>
+          <tr><td>currency · locale</td><td>ISO currency (default USD) and number/date locale (default <code>en-GB</code>).</td></tr>
+          <tr><td>clientSince · asOf</td><td>ISO dates. Tenure and "days ago" are counted to <code>asOf</code> (default: today).</td></tr>
+          <tr><td>lastActivity</td><td><code>{ date, summary }</code>.</td></tr>
+          <tr><td>services[]</td><td>Strings, shown as chips.</td></tr>
+          <tr><td>opportunities[]</td><td><code>{ name, stage, value, close }</code>. <code>stages[]</code> sets the stage order (default Discovery → Closing).</td></tr>
+          <tr><td>contacts[]</td><td><code>{ name, role, email, phone, primary }</code>.</td></tr>
+          <tr><td>notes[]</td><td><code>{ author, date, text }</code>, newest first. <code>noteAuthor</code> names who adds new notes (default "You").</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;client-overview</span> <span class="a">tab=</span>"overview" <span class="a">favourite</span><span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "company": "Harbor &amp; Pine Realty",
+      "plan": "Growth retainer",
+      "owner": { "name": "Maya Okafor" },
+      "health": { "status": "healthy", "score": 82 },
+      "mrr": 4800, "mrrPrevious": 4200,
+      "clientSince": "2024-03-11",
+      "contacts": [{ "name": "Dana Whitfield",
+        "email": "dana@harborandpine.example" }],
+      "notes": []
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/client-overview&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { company, mrr, contacts: [...] };
+el.addNote("Sent the Q4 plan");
+el.addEventListener("noteadd", e =&gt; e.detail.note);</pre></div>
+      <p>Adding a note fires <code>noteadd</code> with the note and the new count. The star fires <code>favouritechange</code>, the tabs fire <code>tabchange</code> and copying an email fires <code>emailcopy</code>. Notes live in memory only; save them from the event.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/ai-prompt-card"><small>← Previous · 06</small><strong>AI Prompt Card</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/task-progress-board"><small>Next · 08 →</small><strong>Task Progress Board</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 07 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <client-overview> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    client: "Client", owner: "Account owner",
+    healthy: "Healthy", "at-risk": "At risk", critical: "Critical",
+    favourite: "Favourite", addFavourite: "Mark as favourite", removeFavourite: "Remove favourite",
+    mrr: "Monthly revenue", since: "Client since", opps: "Open opportunities", activity: "Last activity",
+    vs: "vs {label}", pipeline: "{value} pipeline", none: "None open",
+    tabs: "Client details", overview: "Overview", contacts: "Contacts", notes: "Notes",
+    oppsHead: "Open opportunities", oppsTotal: "{n} open", account: "Account",
+    plan: "Plan", renewal: "Renewal", billing: "Billing", website: "Website", services: "Services",
+    closes: "closes {date}", stageOf: "stage {i} of {n}",
+    primary: "Primary", copy: "Copy", copied: "Copied", pressCopy: "Press Ctrl+C", copyFor: "Copy email for {name}",
+    copiedAnnounce: "Email for {name} copied",
+    addLabel: "Add a note", placeholder: "What happened, what's next…", add: "Add note", hint: "Ctrl + Enter to add",
+    you: "You", justNow: "Just now", noteAdded: "Note added", noNotes: "No notes yet. Add the first one above.",
+    noContacts: "No contacts yet.", noOpps: "No open opportunities."
+  };
+  const ICON = {
+    star: '<svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.4l2.35 4.76 5.25.77-3.8 3.7.9 5.23L10 14.4l-4.7 2.46.9-5.23-3.8-3.7 5.25-.77z" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+    pin: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M8 14.5s4.5-4.2 4.5-7.7a4.5 4.5 0 0 0-9 0c0 3.5 4.5 7.7 4.5 7.7z"/><circle cx="8" cy="6.8" r="1.6"/></svg>',
+    tag: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M2.5 3.5h5l6 6-4 4-6-6z"/><circle cx="5.5" cy="6" r="1"/></svg>',
+    ok: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M5.3 8.2 7.2 10l3.5-3.8"/></svg>',
+    warn: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.2 14.3 13H1.7z"/><path d="M8 6.6v2.9M8 11.4v.1"/></svg>',
+    bad: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8v3.8M8 11v.1"/></svg>',
+    copy: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><rect x="5.5" y="5.5" width="8" height="8" rx="1.8"/><path d="M10.5 5.5V3.8a1.3 1.3 0 0 0-1.3-1.3H3.8a1.3 1.3 0 0 0-1.3 1.3v5.4a1.3 1.3 0 0 0 1.3 1.3h1.7"/></svg>',
+    check: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 8.4 6.6 11.3 12.5 4.9"/></svg>',
+    plus: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>',
+    up: "▲", down: "▼"
+  };
+  const TABS = ["overview", "contacts", "notes"];
+  const STATUSES = ["healthy", "at-risk", "critical"];
+  const DEFAULT_STAGES = ["Discovery", "Proposal", "Negotiation", "Closing"];
+
+  let uid = 0;
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const initialsOf = name => String(name || "").replace(/&/g, " ").split(/\s+/).filter(w => /[A-Za-z0-9]/.test(w)).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
+  const parseDate = s => {
+    if (s instanceof Date) return s;
+    if (!s) return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s));
+    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : new Date(s);
+    return isNaN(d) ? null : d;
+  };
+
+  const TEMPLATE = `
+    <article class="cov">
+      <header class="cov-band">
+        <div class="cov-id">
+          <span class="cov-avatar" aria-hidden="true"></span>
+          <div class="cov-id-text">
+            <p class="cov-kicker cov-sc"></p>
+            <h2 class="cov-name"></h2>
+            <p class="cov-meta"><span class="cov-industry"></span><span class="cov-location"></span></p>
+          </div>
+        </div>
+        <div class="cov-owner"><span class="cov-owner-av" aria-hidden="true"></span><span class="cov-owner-text"></span></div>
+        <div class="cov-actions">
+          <span class="cov-health"><span class="cov-health-ico"></span><span class="cov-sr">Health: </span><span class="cov-health-label"></span><span class="cov-health-score"></span></span>
+          <button type="button" class="cov-fav" aria-pressed="false"><span class="cov-fav-ico"></span><span class="cov-fav-label"></span></button>
+        </div>
+      </header>
+      <dl class="cov-stats"></dl>
+      <div class="cov-tabs" role="tablist"><span class="cov-ink-bar" aria-hidden="true"></span></div>
+      <div class="cov-panels"></div>
+      <p class="cov-sr" aria-live="polite"></p>
+    </article>`;
+
+  class ClientOverview extends HTMLElement {
+    static get observedAttributes() { return ["tab", "favourite", "health"]; }
+
+    connectedCallback() {
+      if (this._built) return;
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<client-overview>: the JSON data could not be read.", e); this._data = {}; }
+        this._notes = this._copyNotes();
+      }
+      this._id = "cov" + (++uid);
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        avatar: q(".cov-avatar"), kicker: q(".cov-kicker"), name: q(".cov-name"),
+        industry: q(".cov-industry"), location: q(".cov-location"),
+        owner: q(".cov-owner"), ownerAv: q(".cov-owner-av"), ownerText: q(".cov-owner-text"),
+        health: q(".cov-health"), healthIco: q(".cov-health-ico"), healthLabel: q(".cov-health-label"), healthScore: q(".cov-health-score"),
+        fav: q(".cov-fav"), favIco: q(".cov-fav-ico"), favLabel: q(".cov-fav-label"),
+        stats: q(".cov-stats"), tabs: q(".cov-tabs"), bar: q(".cov-ink-bar"), panels: q(".cov-panels"), sr: q(".cov-sr")
+      };
+      this.$.favIco.innerHTML = ICON.star;
+      this.$.fav.addEventListener("click", () => {
+        const on = !this.favourite;
+        this.favourite = on;
+        if (on && !reduceMotion()) {
+          this.$.fav.classList.remove("is-pop"); void this.$.fav.offsetWidth; this.$.fav.classList.add("is-pop");
+        }
+        this.dispatchEvent(new CustomEvent("favouritechange", { bubbles: true, detail: { favourite: on, company: this._data.company || "" } }));
+      });
+      this.$.fav.addEventListener("animationend", () => this.$.fav.classList.remove("is-pop"));
+      this._buildTabs();
+      this._built = true;
+      this._render();
+      const place = () => this._placeBar();
+      if ("ResizeObserver" in window) { this._ro = new ResizeObserver(place); this._ro.observe(this.$.tabs); }
+      requestAnimationFrame(() => requestAnimationFrame(() => this.$.tabs.classList.add("is-ready")));
+    }
+
+    disconnectedCallback() {
+      if (this._ro) { this._ro.disconnect(); this._ro = null; }
+      clearTimeout(this._copyTimer);
+      this._built = false;
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "tab") this._applyTab(false);
+      else if (name === "favourite") this._applyFav();
+      else this._render();
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; this._notes = this._copyNotes(); if (this._built) this._render(); }
+    get notes() { return this._notes.map(n => Object.assign({}, n)); }
+
+    get tab() { const t = (this.getAttribute("tab") || "").toLowerCase(); return TABS.includes(t) ? t : "overview"; }
+    set tab(v) { this.setAttribute("tab", TABS.includes(v) ? v : "overview"); }
+
+    get favourite() { return this.hasAttribute("favourite") ? this.getAttribute("favourite") !== "false" : !!(this._data && this._data.favourite); }
+    set favourite(v) { if (v) this.setAttribute("favourite", ""); else this.setAttribute("favourite", "false"); }
+
+    addNote(text, author) {
+      const t = String(text == null ? "" : text).trim();
+      if (!t) return null;
+      const note = { author: author || this._data.noteAuthor || this._labels().you, date: new Date().toISOString(), text: t, isNew: true };
+      this._notes.unshift(note);
+      if (this._built) {
+        this._renderCounts();
+        if (this.tab === "notes") this._renderNotesList(true);
+        this.$.sr.textContent = this._labels().noteAdded;
+      }
+      const detail = { note: { author: note.author, date: note.date, text: note.text }, count: this._notes.length, company: this._data.company || "" };
+      this.dispatchEvent(new CustomEvent("noteadd", { bubbles: true, detail }));
+      return detail.note;
+    }
+
+    _copyNotes() { return (Array.isArray(this._data && this._data.notes) ? this._data.notes : []).filter(n => n && n.text).map(n => Object.assign({}, n)); }
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _locale() { return (this._data && this._data.locale) || "en-GB"; }
+    _money(v) {
+      try { return new Intl.NumberFormat(this._locale(), { style: "currency", currency: (this._data.currency || "USD").toUpperCase(), currencyDisplay: "narrowSymbol", maximumFractionDigits: 0 }).format(v); }
+      catch (e) { return "$" + Math.round(v).toLocaleString(); }
+    }
+    _date(d, withTime) {
+      if (!d) return "";
+      const o = { day: "numeric", month: "short", year: "numeric" };
+      if (withTime) Object.assign(o, { hour: "2-digit", minute: "2-digit" });
+      try { return new Intl.DateTimeFormat(this._locale(), o).format(d); } catch (e) { return d.toDateString(); }
+    }
+    _asOf() { return parseDate(this._data.asOf) || new Date(); }
+    _status() {
+      const a = (this.getAttribute("health") || "").toLowerCase();
+      const h = this._data.health || {};
+      const s = STATUSES.includes(a) ? a : String(h.status || "healthy").toLowerCase();
+      return STATUSES.includes(s) ? s : "healthy";
+    }
+
+    _buildTabs() {
+      const list = this.$.tabs;
+      this._tabBtns = {};
+      this._panels = {};
+      TABS.forEach(t => {
+        const b = make("button", "cov-tab");
+        b.type = "button";
+        b.setAttribute("role", "tab");
+        b.id = `${this._id}-tab-${t}`;
+        b.setAttribute("aria-controls", `${this._id}-panel-${t}`);
+        b.dataset.tab = t;
+        b.append(make("span", "cov-tab-label"));
+        if (t !== "overview") b.append(make("span", "cov-count"));
+        b.addEventListener("click", () => this._select(t, false));
+        list.insertBefore(b, this.$.bar);
+        this._tabBtns[t] = b;
+        const p = make("section", "cov-panel");
+        p.id = `${this._id}-panel-${t}`;
+        p.setAttribute("role", "tabpanel");
+        p.setAttribute("aria-labelledby", b.id);
+        p.tabIndex = 0;
+        this.$.panels.append(p);
+        this._panels[t] = p;
+      });
+      list.addEventListener("keydown", e => {
+        const i = TABS.indexOf(e.target.dataset && e.target.dataset.tab);
+        if (i < 0) return;
+        let n = null;
+        if (e.key === "ArrowRight") n = (i + 1) % TABS.length;
+        else if (e.key === "ArrowLeft") n = (i - 1 + TABS.length) % TABS.length;
+        else if (e.key === "Home") n = 0;
+        else if (e.key === "End") n = TABS.length - 1;
+        if (n == null) return;
+        e.preventDefault();
+        this._select(TABS[n], true);
+      });
+    }
+
+    _select(t, focus) {
+      const changed = t !== this.tab;
+      this.tab = t;
+      if (focus) this._tabBtns[t].focus();
+      if (changed) this.dispatchEvent(new CustomEvent("tabchange", { bubbles: true, detail: { tab: t } }));
+    }
+
+    _render() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.avatar.textContent = d.initials || initialsOf(d.company);
+      $.kicker.textContent = [L.client, d.plan].filter(Boolean).join(" · ");
+      $.name.textContent = d.company || "Untitled client";
+      $.industry.replaceChildren(); $.location.replaceChildren();
+      if (d.industry) { $.industry.innerHTML = ICON.tag; $.industry.append(d.industry); }
+      if (d.location) { $.location.innerHTML = ICON.pin; $.location.append(d.location); }
+
+      const o = d.owner || null;
+      $.owner.hidden = !(o && o.name);
+      if (o && o.name) {
+        $.ownerAv.textContent = initialsOf(o.name);
+        $.ownerText.replaceChildren(document.createTextNode((o.role || L.owner) + " · "), make("b", null, o.name));
+      }
+
+      // health
+      const st = this._status(), h = d.health || {};
+      $.health.dataset.status = st;
+      $.healthIco.innerHTML = st === "healthy" ? ICON.ok : st === "at-risk" ? ICON.warn : ICON.bad;
+      $.healthLabel.textContent = L[st];
+      const score = num(h.score);
+      $.healthScore.replaceChildren();
+      if (score != null) $.healthScore.append(`· ${Math.round(score)}`, make("span", "cov-sr", " out of 100"));
+
+      this._renderStats();
+      this._renderCounts();
+      this._applyFav();
+      this._renderPanel(this.tab);
+      this._applyTab(false, true);
+    }
+
+    _renderStats() {
+      const d = this._data, L = this._labels(), asOf = this._asOf();
+      const stat = (label, value, sub) => {
+        const w = make("div", "cov-stat");
+        const dt = make("dt", "cov-sc", label);
+        const v = make("dd", "cov-val", value);
+        const s = make("dd", "cov-sub");
+        (Array.isArray(sub) ? sub : [sub]).forEach(x => x != null && x !== "" && s.append(x));
+        w.append(dt, v, s);
+        return w;
+      };
+      // MRR + change
+      const mrr = num(d.mrr), prev = num(d.mrrPrevious);
+      const delta = make("span", "cov-delta");
+      if (mrr != null && prev > 0) {
+        const p = (mrr - prev) / prev * 100, r = Math.round(p * 10) / 10;
+        delta.dataset.tone = r > 0 ? "good" : r < 0 ? "bad" : "flat";
+        delta.textContent = `${r > 0 ? ICON.up : r < 0 ? ICON.down : "▶"} ${Math.abs(r).toFixed(1)}%`;
+      }
+      const mrrSub = delta.textContent ? [delta, d.mrrCompareLabel ? fill(L.vs, { label: d.mrrCompareLabel }) : ""] : [""];
+
+      // tenure
+      const since = parseDate(d.clientSince);
+      let tenure = "";
+      if (since) {
+        let months = (asOf.getFullYear() - since.getFullYear()) * 12 + (asOf.getMonth() - since.getMonth());
+        if (asOf.getDate() < since.getDate()) months--;
+        months = Math.max(0, months);
+        const y = Math.floor(months / 12), m = months % 12;
+        tenure = [y ? `${y} yr` : "", m || !y ? `${m} mo` : ""].filter(Boolean).join(" ");
+      }
+      let sinceTxt = "—";
+      if (since) { try { sinceTxt = new Intl.DateTimeFormat(this._locale(), { month: "short", year: "numeric" }).format(since); } catch (e) { sinceTxt = String(d.clientSince); } }
+
+      // opportunities
+      const opps = Array.isArray(d.opportunities) ? d.opportunities : [];
+      const total = opps.reduce((a, x) => a + (num(x && x.value) || 0), 0);
+
+      // last activity
+      const la = d.lastActivity || {};
+      const laDate = parseDate(la.date);
+      let rel = "—";
+      if (laDate) {
+        const day = x => new Date(x.getFullYear(), x.getMonth(), x.getDate());
+        const days = Math.round((day(laDate) - day(asOf)) / 864e5);
+        try { rel = new Intl.RelativeTimeFormat(this._locale(), { numeric: "auto" }).format(days, "day"); } catch (e) { rel = `${Math.abs(days)} days ago`; }
+        rel = rel.charAt(0).toUpperCase() + rel.slice(1);
+      }
+
+      this.$.stats.replaceChildren(
+        stat(L.mrr, mrr == null ? "—" : this._money(mrr), mrrSub),
+        stat(L.since, sinceTxt, tenure),
+        stat(L.opps, String(opps.length), opps.length ? fill(L.pipeline, { value: this._money(total) }) : L.none),
+        stat(L.activity, rel, la.summary || "")
+      );
+    }
+
+    _renderCounts() {
+      const d = this._data, L = this._labels();
+      const counts = { contacts: (Array.isArray(d.contacts) ? d.contacts : []).length, notes: this._notes.length };
+      TABS.forEach(t => {
+        const b = this._tabBtns[t];
+        b.querySelector(".cov-tab-label").textContent = L[t];
+        const c = b.querySelector(".cov-count");
+        if (c) c.textContent = counts[t];
+      });
+      this.$.tabs.setAttribute("aria-label", L.tabs);
+      this._placeBar();
+    }
+
+    _applyFav() {
+      const L = this._labels(), on = this.favourite;
+      this.$.fav.setAttribute("aria-pressed", String(on));
+      this.$.fav.setAttribute("aria-label", on ? L.removeFavourite : L.addFavourite);
+      this.$.favLabel.textContent = L.favourite;
+    }
+
+    _applyTab(animate, skipRender) {
+      const t = this.tab;
+      TABS.forEach(k => {
+        const b = this._tabBtns[k], p = this._panels[k], on = k === t;
+        b.setAttribute("aria-selected", String(on));
+        b.tabIndex = on ? 0 : -1;
+        p.hidden = !on;
+      });
+      if (!skipRender) this._renderPanel(t);
+      const p = this._panels[t];
+      if (!reduceMotion() && !skipRender) { p.classList.remove("is-entering"); void p.offsetWidth; p.classList.add("is-entering"); }
+      this._placeBar();
+    }
+
+    _placeBar() {
+      const b = this._tabBtns && this._tabBtns[this.tab];
+      if (!b || !b.offsetWidth) return;
+      this.$.bar.style.width = (b.offsetWidth - 16) + "px";
+      this.$.bar.style.transform = `translateX(${b.offsetLeft + 8}px)`;
+    }
+
+    _renderPanel(t) {
+      const p = this._panels[t];
+      if (t === "overview") this._renderOverview(p);
+      else if (t === "contacts") this._renderContacts(p);
+      else this._renderNotes(p);
+    }
+
+    _renderOverview(p) {
+      const d = this._data, L = this._labels();
+      const wrap = make("div", "cov-ov");
+
+      // opportunities
+      const left = make("div");
+      const opps = (Array.isArray(d.opportunities) ? d.opportunities : []).filter(Boolean);
+      const stages = Array.isArray(d.stages) && d.stages.length ? d.stages : DEFAULT_STAGES;
+      const h = make("h3", "cov-h3");
+      h.append(make("span", "cov-sc", L.oppsHead), make("small", null, fill(L.oppsTotal, { n: opps.length })));
+      left.append(h);
+      if (!opps.length) left.append(make("p", "cov-empty", L.noOpps));
+      else {
+        const ul = make("ul", "cov-opps");
+        opps.forEach(o => {
+          const li = make("li", "cov-opp");
+          const v = num(o.value);
+          li.append(make("span", "cov-opp-name", o.name || "Untitled"), make("span", "cov-opp-val", v == null ? "—" : this._money(v)));
+          const meta = make("div", "cov-opp-meta");
+          const si = Math.max(0, stages.findIndex(s => String(s).toLowerCase() === String(o.stage || "").toLowerCase()));
+          const steps = make("span", "cov-steps");
+          const ticks = make("span", "cov-ticks");
+          ticks.setAttribute("aria-hidden", "true");
+          stages.forEach((_, i) => { const tk = make("i"); if (i <= si) tk.className = "is-on"; ticks.append(tk); });
+          steps.append(ticks, make("span", null, o.stage || stages[si]), make("span", "cov-sr", ", " + fill(L.stageOf, { i: si + 1, n: stages.length })));
+          meta.append(steps);
+          const close = parseDate(o.close);
+          if (close) meta.append(make("span", null, fill(L.closes, { date: this._date(close) })));
+          li.append(meta);
+          ul.append(li);
+        });
+        left.append(ul);
+        const total = opps.reduce((a, x) => a + (num(x.value) || 0), 0);
+        const tot = make("div", "cov-opp-total");
+        tot.append(make("span", null, fill(L.oppsTotal, { n: opps.length })), make("b", null, fill(L.pipeline, { value: this._money(total) })));
+        left.append(tot);
+      }
+
+      // account facts
+      const right = make("div");
+      const h2 = make("h3", "cov-h3");
+      h2.append(make("span", "cov-sc", L.account));
+      right.append(h2);
+      const dl = make("dl", "cov-facts");
+      const fact = (k, v) => {
+        if (v == null || v === "" || (v instanceof Node && !v.childNodes.length)) return;
+        const row = make("div", "cov-fact");
+        const dd = make("dd");
+        dd.append(v);
+        row.append(make("dt", "cov-sc", k), dd);
+        dl.append(row);
+      };
+      fact(L.plan, d.plan);
+      const ren = parseDate(d.renewal);
+      fact(L.renewal, ren ? this._date(ren) : "");
+      fact(L.billing, d.billing);
+      fact(L.website, d.website);
+      const chips = make("div", "cov-chips");
+      (Array.isArray(d.services) ? d.services : []).forEach(s => chips.append(make("span", "cov-chip", s)));
+      fact(L.services, chips);
+      right.append(dl);
+      const h0 = d.health || {};
+      const note = make("p", "cov-health-note", h0.note || "");
+      note.dataset.status = this._status();
+      right.append(note);
+
+      wrap.append(left, right);
+      p.replaceChildren(wrap);
+    }
+
+    _renderContacts(p) {
+      const d = this._data, L = this._labels();
+      const people = (Array.isArray(d.contacts) ? d.contacts : []).filter(Boolean);
+      if (!people.length) { p.replaceChildren(make("p", "cov-empty", L.noContacts)); return; }
+      const ul = make("ul", "cov-people");
+      people.forEach(c => {
+        const li = make("li", "cov-person" + (c.primary ? " is-primary" : ""));
+        const av = make("span", "cov-p-av", initialsOf(c.name));
+        av.setAttribute("aria-hidden", "true");
+        const name = make("div", "cov-p-name", c.name || "Unnamed");
+        if (c.primary) name.append(make("span", "cov-badge cov-sc", L.primary));
+        const role = make("div", "cov-p-role", [c.role, c.phone].filter(Boolean).join(" · "));
+        li.append(av, name, role);
+        if (c.email) {
+          const line = make("div", "cov-p-line");
+          const em = make("span", "cov-email", c.email);
+          const btn = make("button", "cov-copy");
+          btn.type = "button";
+          btn.setAttribute("aria-label", fill(L.copyFor, { name: c.name || c.email }));
+          btn.innerHTML = ICON.copy;
+          btn.append(make("span", "cov-copy-txt", L.copy));
+          btn.addEventListener("click", () => this._copyEmail(btn, em, c));
+          line.append(em, btn);
+          li.append(line);
+        }
+        ul.append(li);
+      });
+      p.replaceChildren(ul);
+    }
+
+    _copyEmail(btn, emNode, c) {
+      const L = this._labels();
+      const done = (ok) => {
+        btn.classList.toggle("is-done", ok);
+        btn.innerHTML = ok ? ICON.check : ICON.copy;
+        btn.append(make("span", "cov-copy-txt", ok ? L.copied : L.pressCopy));
+        this.$.sr.textContent = ok ? fill(L.copiedAnnounce, { name: c.name || c.email }) : L.pressCopy;
+        clearTimeout(btn._t);
+        btn._t = setTimeout(() => {
+          if (!btn.isConnected) return;
+          btn.classList.remove("is-done");
+          btn.innerHTML = ICON.copy;
+          btn.append(make("span", "cov-copy-txt", L.copy));
+        }, 1800);
+        if (ok) this.dispatchEvent(new CustomEvent("emailcopy", { bubbles: true, detail: { name: c.name || "", email: c.email } }));
+      };
+      const select = () => {
+        const r = document.createRange(); r.selectNodeContents(emNode);
+        const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+        done(false);
+      };
+      try { navigator.clipboard.writeText(c.email).then(() => done(true), select); }
+      catch (e) { select(); }
+    }
+
+    _renderNotes(p) {
+      const L = this._labels();
+      const form = make("form", "cov-form");
+      const tid = `${this._id}-note`;
+      const old = p.querySelector(".cov-textarea"), draft = old ? old.value : "";
+      const label = make("label", "cov-sc", L.addLabel);
+      label.htmlFor = tid;
+      const ta = make("textarea", "cov-textarea");
+      ta.id = tid; ta.rows = 3; ta.placeholder = L.placeholder; ta.maxLength = 1000; ta.value = draft;
+      const row = make("div", "cov-form-row");
+      const hint = make("span", "cov-hint");
+      hint.append(make("kbd", null, "Ctrl"), " + ", make("kbd", null, "Enter"), L.hint.replace(/^Ctrl \+ Enter/, ""));
+      const add = make("button", "cov-add");
+      add.type = "submit"; add.disabled = !draft.trim();
+      add.innerHTML = ICON.plus;
+      add.append(L.add);
+      row.append(hint, add);
+      form.append(label, ta, row);
+      ta.addEventListener("input", () => { add.disabled = !ta.value.trim(); });
+      ta.addEventListener("keydown", e => {
+        if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true })); }
+      });
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        if (!ta.value.trim()) return;
+        this.addNote(ta.value);
+        ta.value = ""; add.disabled = true; ta.focus();
+      });
+      const list = make("ol", "cov-notes");
+      list.setAttribute("aria-label", L.notes);
+      p.replaceChildren(form, list);
+      this._renderNotesList(false);
+    }
+
+    _renderNotesList(animateFirst) {
+      const L = this._labels();
+      const list = this._panels.notes.querySelector(".cov-notes");
+      if (!list) return;
+      if (!this._notes.length) { list.replaceChildren(make("li", "cov-empty", L.noNotes)); return; }
+      list.replaceChildren(...this._notes.map((n, i) => {
+        const li = make("li", "cov-note");
+        if (animateFirst && i === 0) li.classList.add("is-new");
+        const av = make("span", "cov-note-av", initialsOf(n.author || L.you));
+        av.setAttribute("aria-hidden", "true");
+        const head = make("div", "cov-note-head");
+        head.append(make("b", null, n.author || L.you));
+        const dt = parseDate(n.date);
+        if (dt) {
+          const time = make("time", null, n.isNew && (Date.now() - dt) < 6e4 ? `${L.justNow} · ${this._date(dt, true)}` : this._date(dt, /T\d/.test(String(n.date))));
+          time.dateTime = dt.toISOString();
+          head.append(time);
+        }
+        li.append(av, head, make("p", "cov-note-text", n.text));
+        return li;
+      }));
+    }
+  }
+
+  if (!customElements.get("client-overview")) customElements.define("client-overview", ClientOverview);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const original = JSON.parse(JSON.stringify(el.data || {}));
+  const buttons = document.querySelectorAll(".seg button");
+  const say = (strong, rest) => {
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = strong;
+    note.append(b, " " + rest + " Example data, not real results.");
+  };
+  buttons.forEach(b => b.addEventListener("click", () => {
+    el.setAttribute("health", b.dataset.value);
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  document.getElementById("reset").addEventListener("click", () => {
+    el.removeAttribute("health");
+    el.removeAttribute("favourite");
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x.dataset.value === "healthy")));
+    el.data = JSON.parse(JSON.stringify(original));
+    el.tab = "overview";
+    say("Demo reset.", "Notes and favourite are back to the start.");
+  });
+  el.addEventListener("noteadd", e => say("noteadd", `fired. The client now has ${e.detail.count} notes.`));
+  el.addEventListener("favouritechange", e => say("favouritechange", e.detail.favourite ? "fired. Marked as a favourite." : "fired. Removed from favourites."));
+  el.addEventListener("emailcopy", e => say("emailcopy", `fired for ${e.detail.name}.`));
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

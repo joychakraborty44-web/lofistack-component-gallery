@@ -11,6 +11,32 @@ There's no framework, build step or package install. It is a static site that de
 | 02 · Campaign Performance Snapshot | `/components/campaign-performance` |
 | 03 · Pricing Comparison Card | `/components/pricing-comparison` |
 | 04 · Lead Funnel Analytics | `/components/lead-funnel-analytics` |
+| 05 · KPI Metrics Dashboard | `/components/kpi-metrics-dashboard` |
+| 06 · AI Prompt Card | `/components/ai-prompt-card` |
+| 07 · Client Overview Card | `/components/client-overview-card` |
+| 08 · Task Progress Board | `/components/task-progress-board` |
+| 09 · Ad Creative Performance | `/components/ad-creative-performance` |
+| 10 · SEO Ranking Tracker | `/components/seo-ranking-tracker` |
+| 11 · Conversion Rate Card | `/components/conversion-rate-card` |
+| 12 · Activity Timeline | `/components/activity-timeline` |
+| 13 · Campaign Status Card | `/components/campaign-status-card` |
+| 14 · Lead Source Breakdown | `/components/lead-source-breakdown` |
+| 15 · Revenue Growth Chart | `/components/revenue-growth-chart` |
+| 16 · Appointment Pipeline | `/components/appointment-pipeline` |
+| 17 · Workflow Automation Card | `/components/workflow-automation-card` |
+| 18 · AI Agent Status Panel | `/components/ai-agent-status-panel` |
+| 19 · Notification Center | `/components/notification-center` |
+| 20 · Client Health Score | `/components/client-health-score` |
+| 21 · Ad Spend Budget Tracker | `/components/ad-spend-budget-tracker` |
+| 22 · Form Conversion Card | `/components/form-conversion-card` |
+| 23 · SEO Audit Scorecard | `/components/seo-audit-scorecard` |
+| 24 · Integration Status Grid | `/components/integration-status-grid` |
+| 25 · Team Member Performance | `/components/team-member-performance` |
+| 26 · Revenue Goal Tracker | `/components/revenue-goal-tracker` |
+| 27 · Webhook Event Monitor | `/components/webhook-event-monitor` |
+| 28 · AI Usage Analytics | `/components/ai-usage-analytics` |
+| 29 · Customer Journey Map | `/components/customer-journey-map` |
+| 30 · Weekly Marketing Report | `/components/weekly-marketing-report` |
 
 ## Project structure
 
@@ -19,17 +45,12 @@ There's no framework, build step or package install. It is a static site that de
 ├── index.html                          # Gallery homepage
 ├── 404.html                            # Not-found page (served automatically by Vercel)
 ├── components/
-│   ├── agent-log-card/
-│   │   └── index.html                  # 01 · Agent Log Card  → /components/agent-log-card
-│   ├── campaign-performance/
-│   │   └── index.html                  # 02 · Campaign Performance Snapshot → /components/campaign-performance
-│   ├── pricing-comparison/
-│   │   └── index.html                  # 03 · Pricing Comparison Card → /components/pricing-comparison
-│   └── lead-funnel-analytics/
-│       └── index.html                  # 04 · Lead Funnel Analytics → /components/lead-funnel-analytics
+│   └── <slug>/
+│       └── index.html                  # One folder per component (30) → /components/<slug>
 ├── assets/
 │   ├── gallery.css                     # Shared nav, footer and homepage styles (all classes prefixed lsg-)
 │   ├── gallery.js                      # Scales the live previews on the homepage
+│   ├── gallery-nav.js                  # Keeps the long nav bar scrollable and the current page in view
 │   ├── agent-log-card.css / .js        # Copy of the Agent Log Card, for the Week 02 log on the homepage
 │   └── favicon.svg
 ├── vercel.json                         # Clean URLs, redirects, security headers
@@ -89,7 +110,7 @@ You can also deploy from the command line with `npx vercel`, and `npx vercel --p
 ## Adding a new component
 
 1. Create `components/<slug>/index.html`. Copying an existing component page is the quickest start, since it already has the navigation bar, footer and embed script.
-2. Add a link to it in the navigation bar (`<nav class="lsg-links">`) on every page: `index.html`, `404.html` and each component page.
+2. Add a link to it in the navigation bar (`<nav class="lsg-links">`) on every page: `index.html`, `404.html` and each component page. Every page also loads `/assets/gallery-nav.js` at the end of `<body>`.
 3. Add a card for it to the grid in `index.html`. Point the preview `<iframe>` at `/components/<slug>?embed`.
 4. Update the previous/next links in the component page footers.
 
@@ -97,6 +118,6 @@ Adding `?embed` to any component URL hides the gallery chrome and shows only the
 
 ## Notes
 
-- **Sample data:** the Campaign Performance Snapshot, Pricing Comparison Card and Lead Funnel Analytics show example figures only; each page labels them as such.
+- **Sample data:** every component except the Agent Log Card shows example data only, with fictional clients; each page labels it as such.
 - **Fonts:** the Agent Log Card loads its typefaces from Google Fonts. Everything else uses system fonts.
 - **Private files:** `CLAUDE.md`, `logs/` and `submissions.md` hold the private LofiStack Agent Log. They are listed in `.gitignore` and `.vercelignore`, so they are not pushed or deployed.

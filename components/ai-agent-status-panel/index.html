@@ -1,0 +1,1076 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable ops console for AI agents: live status, current task, queue depth, success rate and throughput, with start, pause and restart controls.">
+<meta property="og:title" content="AI Agent Status Panel · LofiStack Components">
+<meta property="og:description" content="A reusable ops console for AI agents: live status, current task, queue depth, success rate and throughput, with start, pause and restart controls.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>AI Agent Status Panel · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #E5ECE7;
+  --stage: #EDF3EF;
+  --ink: #0E2116;
+  --muted: #4A6253;
+  --faint: #677D70;
+  --line: #CFDBD3;
+  --panel: #F4F8F5;
+  --accent: #166534;
+
+  /* ---- Agent Status tokens (override these to re-theme the component) ---- */
+  --asp-bg: #F3F7F4;
+  --asp-row: #FAFCFB;
+  --asp-row-hover: #FFFFFF;
+  --asp-ink: #0E2116;
+  --asp-muted: #48604F;
+  --asp-faint: #5F7567;
+  --asp-line: #D5E1D9;
+  --asp-accent: #166534;
+  --asp-accent-soft: rgba(22, 101, 52, 0.10);
+  --asp-run: #15803D;
+  --asp-idle: #5B6878;
+  --asp-err: #B42318;
+  --asp-pause: #9A5B05;
+  --asp-restart: #0E7490;
+  --asp-glow: 0.35;
+  --asp-scan: rgba(14, 33, 22, 0.025);
+  --asp-shadow: rgba(14, 33, 22, 0.20);
+  --asp-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+  --asp-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #050706; --stage: #090D0A; --ink: #D5E8DB; --muted: #8CA394; --faint: #6E8577;
+    --line: #19241D; --panel: #0B100D; --accent: #4ADE80;
+    --asp-bg: #080B09; --asp-row: #0D1310; --asp-row-hover: #111914; --asp-ink: #D5E8DB; --asp-muted: #8CA394; --asp-faint: #71897A;
+    --asp-line: #1B2820; --asp-accent: #4ADE80; --asp-accent-soft: rgba(74, 222, 128, 0.10);
+    --asp-run: #4ADE80; --asp-idle: #94A3B8; --asp-err: #F87171; --asp-pause: #FBBF24; --asp-restart: #67E8F9;
+    --asp-glow: 0.75; --asp-scan: rgba(74, 222, 128, 0.022); --asp-shadow: rgba(0, 0, 0, 0.7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #050706; --stage: #090D0A; --ink: #D5E8DB; --muted: #8CA394; --faint: #6E8577;
+  --line: #19241D; --panel: #0B100D; --accent: #4ADE80;
+  --asp-bg: #080B09; --asp-row: #0D1310; --asp-row-hover: #111914; --asp-ink: #D5E8DB; --asp-muted: #8CA394; --asp-faint: #71897A;
+  --asp-line: #1B2820; --asp-accent: #4ADE80; --asp-accent-soft: rgba(74, 222, 128, 0.10);
+  --asp-run: #4ADE80; --asp-idle: #94A3B8; --asp-err: #F87171; --asp-pause: #FBBF24; --asp-restart: #67E8F9;
+  --asp-glow: 0.75; --asp-scan: rgba(74, 222, 128, 0.022); --asp-shadow: rgba(0, 0, 0, 0.7);
+}
+
+/* =========================================================
+   Agent Status Panel component  (copy this block + the script)
+   ========================================================= */
+agent-status-panel {
+  display: block;
+  container: asp / inline-size;
+  width: 100%;
+  max-width: 980px;
+  font-family: var(--asp-mono);
+  color: var(--asp-ink);
+}
+.asp {
+  position: relative; overflow: hidden;
+  display: grid; gap: 18px;
+  padding: 22px 24px 18px;
+  background:
+    repeating-linear-gradient(to bottom, var(--asp-scan) 0 1px, transparent 1px 3px),
+    var(--asp-bg);
+  border: 1px solid var(--asp-line);
+  border-radius: 14px;
+  box-shadow: 0 30px 60px -44px var(--asp-shadow), 0 2px 6px -4px var(--asp-shadow);
+}
+.asp::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--asp-accent) 30%, var(--asp-accent) 70%, transparent);
+  opacity: .55;
+}
+
+/* header */
+.asp-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px 20px; flex-wrap: wrap; }
+.asp-id { display: grid; gap: 6px; min-width: 0; }
+.asp-path { font: 500 11px/1 var(--asp-mono); letter-spacing: .06em; color: var(--asp-accent); }
+.asp-path::before { content: "> "; opacity: .7; }
+.asp-title { margin: 0; font: 600 clamp(20px, 3.1cqi, 25px)/1.15 var(--asp-mono); letter-spacing: -0.03em; }
+.asp-sub { margin: 0; font: 400 12.5px/1.4 var(--asp-mono); color: var(--asp-muted); }
+.asp-path:empty, .asp-sub:empty { display: none; }
+
+.asp-live { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; }
+.asp-beacon {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 7px;
+  font: 600 11px/1 var(--asp-mono); letter-spacing: .12em; text-transform: uppercase;
+  color: var(--asp-run); background: color-mix(in oklab, var(--asp-run) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--asp-run) 30%, transparent);
+}
+.asp-beacon i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px rgba(74, 222, 128, var(--asp-glow)); }
+.asp.is-live .asp-beacon i { animation: asp-pulse 2s ease-in-out infinite; }
+.asp:not(.is-live) .asp-beacon { color: var(--asp-pause); background: color-mix(in oklab, var(--asp-pause) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--asp-pause) 30%, transparent); }
+.asp:not(.is-live) .asp-beacon i { box-shadow: none; }
+.asp-clock { font: 400 11.5px/1 var(--asp-mono); color: var(--asp-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+@keyframes asp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+.asp-btn {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 34px; padding: 0 12px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--asp-line); background: var(--asp-row); color: var(--asp-ink);
+  font: 600 12px/1 var(--asp-mono);
+  transition: background .2s, border-color .2s, color .2s, transform .12s;
+}
+.asp-btn svg { width: 13px; height: 13px; flex: none; }
+.asp-btn:hover:not(:disabled) { border-color: var(--asp-accent); color: var(--asp-accent); }
+.asp-btn:active:not(:disabled) { transform: translateY(1px); }
+.asp-btn:focus-visible, .asp-fbtn:focus-visible, .asp-ibtn:focus-visible, .asp-more:focus-visible { outline: 2px solid var(--asp-accent); outline-offset: 2px; }
+.asp-btn:disabled { opacity: .45; cursor: default; }
+.asp-btn[aria-pressed="true"] { background: var(--asp-accent); border-color: var(--asp-accent); color: var(--asp-bg); }
+
+/* summary strip */
+.asp-sum {
+  margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.5fr);
+  border: 1px solid var(--asp-line); border-radius: 10px; background: var(--asp-row);
+}
+.asp-stat { display: grid; gap: 7px; align-content: start; padding: 13px 16px; min-width: 0; }
+.asp-stat + .asp-stat { border-left: 1px dashed var(--asp-line); }
+.asp-stat dt { font: 500 10px/1.2 var(--asp-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--asp-faint); }
+.asp-stat dd { margin: 0; display: flex; align-items: baseline; gap: 6px; font: 600 20px/1 var(--asp-mono); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.asp-stat dd small { font: 400 11px/1 var(--asp-mono); letter-spacing: 0; color: var(--asp-faint); }
+.asp-stat--tp dd { justify-content: space-between; align-items: flex-end; }
+.asp-fleet { display: flex; align-items: flex-end; gap: 2px; height: 24px; flex: 1; max-width: 150px; }
+.asp-fleet span, .asp-bars span {
+  flex: 1; min-width: 2px; border-radius: 1px;
+  height: max(2px, calc(var(--h, 0) * 1%));
+  background: var(--asp-run); opacity: .8;
+  transition: height .35s ease;
+}
+.asp-fleet span:last-child { opacity: 1; box-shadow: 0 0 6px rgba(74, 222, 128, var(--asp-glow)); }
+
+/* filters */
+.asp-bar { display: flex; justify-content: space-between; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+.asp-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.asp-fbtn {
+  appearance: none; display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  padding: 7px 10px; border-radius: 7px; border: 1px solid var(--asp-line); background: transparent; color: var(--asp-muted);
+  font: 500 12px/1 var(--asp-mono);
+  transition: background .2s, color .2s, border-color .2s;
+}
+.asp-fbtn i { width: 6px; height: 6px; border-radius: 50%; background: var(--c, var(--asp-faint)); }
+.asp-fbtn b { font-weight: 600; color: var(--asp-ink); font-variant-numeric: tabular-nums; }
+.asp-fbtn:hover { color: var(--asp-ink); border-color: var(--asp-faint); }
+.asp-fbtn[aria-pressed="true"] { color: var(--asp-ink); background: var(--asp-accent-soft); border-color: var(--asp-accent); }
+.asp-hint { font: 400 11.5px/1.3 var(--asp-mono); color: var(--asp-faint); }
+
+/* agent list */
+.asp-cols, .asp-row {
+  display: grid;
+  grid-template-columns: minmax(150px, 1.25fr) minmax(0, 1.8fr) 62px 74px 128px 112px;
+  grid-template-areas: "agent task queue succ tp act";
+  column-gap: 16px; align-items: center;
+}
+.asp-cols { padding: 0 14px; font: 500 10px/1 var(--asp-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--asp-faint); }
+.asp-cols span:nth-child(3), .asp-cols span:nth-child(4) { text-align: right; }
+.asp-cols span:last-child { text-align: right; }
+.asp-list { list-style: none; margin: -10px 0 0; padding: 0; display: grid; gap: 6px; }
+.asp-row {
+  position: relative; row-gap: 10px;
+  padding: 12px 14px; border-radius: 10px;
+  background: var(--asp-row); border: 1px solid var(--asp-line);
+  transition: background .2s, border-color .3s;
+}
+.asp-row::before {
+  content: ""; position: absolute; left: -1px; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--c); opacity: .9;
+}
+.asp-row:hover { background: var(--asp-row-hover); }
+.asp-row[data-status="running"] { --c: var(--asp-run); }
+.asp-row[data-status="idle"] { --c: var(--asp-idle); }
+.asp-row[data-status="error"] { --c: var(--asp-err); border-color: color-mix(in oklab, var(--asp-err) 40%, var(--asp-line)); }
+.asp-row[data-status="paused"] { --c: var(--asp-pause); }
+.asp-row[data-status="restarting"] { --c: var(--asp-restart); }
+.asp-row.is-flash { animation: asp-flash .6s ease; }
+@keyframes asp-flash { from { background: color-mix(in oklab, var(--c) 14%, var(--asp-row)); } to { background: var(--asp-row); } }
+
+.asp-agent { grid-area: agent; display: flex; align-items: center; gap: 11px; min-width: 0; }
+.asp-led {
+  flex: none; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 18%, transparent), 0 0 10px color-mix(in oklab, var(--c) calc(var(--asp-glow) * 100%), transparent);
+}
+.asp-row[data-status="running"] .asp-led { animation: asp-pulse 2.4s ease-in-out infinite; }
+.asp-row[data-status="restarting"] .asp-led { animation: asp-pulse .7s linear infinite; }
+.asp:not(.is-live) .asp-row[data-status="running"] .asp-led { animation: none; }
+.asp-who { display: grid; gap: 5px; min-width: 0; }
+.asp-name { margin: 0; font: 600 13.5px/1.2 var(--asp-mono); letter-spacing: -0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asp-meta { font: 400 11px/1.2 var(--asp-mono); color: var(--asp-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.asp-state { color: var(--c); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; font-size: 10.5px; }
+
+.asp-task { grid-area: task; display: grid; gap: 4px; min-width: 0; }
+.asp-task-text { font: 400 13px/1.35 var(--asp-sans); color: var(--asp-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asp-row[data-status="running"] .asp-task-text { color: var(--asp-ink); }
+.asp-row[data-status="error"] .asp-task-text { color: var(--asp-err); }
+.asp-more {
+  appearance: none; justify-self: start; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  padding: 3px 0; border: 0; background: none; color: var(--asp-err);
+  font: 600 11px/1 var(--asp-mono); letter-spacing: .04em; text-decoration: underline; text-underline-offset: 3px;
+}
+.asp-more svg { width: 10px; height: 10px; transition: transform .25s ease; }
+.asp-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+.asp-m { display: grid; gap: 4px; min-width: 0; }
+.asp-queue { grid-area: queue; text-align: right; }
+.asp-succ { grid-area: succ; text-align: right; }
+.asp-tp { grid-area: tp; grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 8px; }
+.asp-v { font: 600 14px/1 var(--asp-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.asp-v.is-bump { color: var(--asp-accent); }
+.asp-tp .asp-v { font-size: 11.5px; font-weight: 500; color: var(--asp-muted); white-space: nowrap; }
+.asp-bars { display: flex; align-items: flex-end; gap: 2px; height: 22px; }
+.asp-bars span { background: var(--c); opacity: .75; }
+.asp-row:not([data-status="running"]) .asp-bars span { opacity: .3; }
+.asp-k {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  font: 500 10px/1 var(--asp-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--asp-faint);
+}
+
+.asp-act { grid-area: act; display: flex; justify-content: flex-end; gap: 4px; }
+.asp-ibtn {
+  appearance: none; position: relative; width: 34px; height: 34px; display: grid; place-items: center; cursor: pointer;
+  border-radius: 8px; border: 1px solid var(--asp-line); background: transparent; color: var(--asp-muted);
+  transition: background .2s, color .2s, border-color .2s, transform .12s;
+}
+.asp-ibtn svg { width: 14px; height: 14px; }
+.asp-ibtn:hover:not(:disabled) { color: var(--asp-ink); border-color: var(--asp-faint); background: var(--asp-bg); }
+.asp-ibtn[data-act="start"]:hover:not(:disabled) { color: var(--asp-run); border-color: var(--asp-run); }
+.asp-ibtn[data-act="pause"]:hover:not(:disabled) { color: var(--asp-pause); border-color: var(--asp-pause); }
+.asp-ibtn[data-act="restart"]:hover:not(:disabled) { color: var(--asp-restart); border-color: var(--asp-restart); }
+.asp-ibtn:active:not(:disabled) { transform: translateY(1px); }
+.asp-ibtn:disabled { opacity: .3; cursor: default; }
+.asp-ibtn::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; z-index: 3;
+  transform: translate(-50%, 3px); opacity: 0; pointer-events: none; white-space: nowrap;
+  padding: 5px 7px; border-radius: 5px; background: var(--asp-ink); color: var(--asp-bg);
+  font: 600 10.5px/1 var(--asp-mono);
+  transition: opacity .15s, transform .15s;
+}
+.asp-ibtn:hover:not(:disabled)::after, .asp-ibtn:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+
+.asp-detail {
+  grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 16px; align-items: start;
+  padding: 12px 14px; border-radius: 8px;
+  background: color-mix(in oklab, var(--asp-err) 7%, var(--asp-bg));
+  border: 1px dashed color-mix(in oklab, var(--asp-err) 45%, transparent);
+}
+.asp-err-log { margin: 0; font: 400 12px/1.6 var(--asp-mono); color: var(--asp-ink); white-space: pre-wrap; overflow-wrap: anywhere; }
+.asp-err-log b { color: var(--asp-err); font-weight: 600; }
+.asp-detail .asp-btn { border-color: var(--asp-err); color: var(--asp-err); }
+.asp-detail .asp-btn:hover:not(:disabled) { background: var(--asp-err); color: var(--asp-bg); border-color: var(--asp-err); }
+.asp-detail[hidden] { display: none; }
+
+.asp-empty { margin: -6px 0 0; padding: 22px; text-align: center; border: 1px dashed var(--asp-line); border-radius: 10px; font: 400 12.5px/1.4 var(--asp-mono); color: var(--asp-faint); }
+
+/* event log */
+.asp-log { display: grid; gap: 8px; padding-top: 14px; border-top: 1px dashed var(--asp-line); }
+.asp-log-title { margin: 0; display: flex; justify-content: space-between; gap: 8px; font: 500 10px/1 var(--asp-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--asp-faint); }
+.asp-log-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; min-height: calc(5 * 19px); align-content: end; }
+.asp-log-list li { display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 10px; font: 400 11.5px/16px var(--asp-mono); color: var(--asp-muted); }
+.asp-log-list li span:first-child { color: var(--asp-faint); font-variant-numeric: tabular-nums; }
+.asp-log-list li span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.asp-log-list li[data-tone="good"] span:last-child { color: var(--asp-run); }
+.asp-log-list li[data-tone="bad"] span:last-child { color: var(--asp-err); }
+.asp-log-list li[data-tone="warn"] span:last-child { color: var(--asp-pause); }
+.asp-log-list li:last-child { color: var(--asp-ink); }
+.asp-log-list li.is-new { animation: asp-in .3s ease; }
+@keyframes asp-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.asp-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* compact desktop: drop the throughput column header width a little */
+@container asp (max-width: 879px) {
+  .asp-cols, .asp-row { grid-template-columns: minmax(140px, 1.2fr) minmax(0, 1.5fr) 56px 68px 104px 112px; column-gap: 12px; }
+}
+/* tablet: each agent becomes a two-line card with labelled figures */
+@container asp (max-width: 759px) {
+  .asp { padding: 20px 18px 16px; }
+  .asp-sum { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .asp-stat--tp { grid-column: 1 / -1; border-left: 0 !important; border-top: 1px dashed var(--asp-line); }
+  .asp-stat:nth-child(1) { border-left: 0; }
+  .asp-fleet { max-width: none; }
+  .asp-cols { display: none; }
+  .asp-list { margin-top: 0; }
+  .asp-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) auto;
+    grid-template-areas: "agent agent agent act" "task task task task" "queue succ tp tp";
+    row-gap: 12px; padding: 14px 14px 14px 16px;
+  }
+  .asp-queue, .asp-succ { text-align: left; }
+  .asp-m { padding-top: 10px; border-top: 1px dashed var(--asp-line); align-self: stretch; }
+  .asp-tp { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; }
+  .asp-tp .asp-k { grid-column: 1 / -1; }
+  .asp-k { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .asp-task-text { white-space: normal; }
+}
+/* phone */
+@container asp (max-width: 479px) {
+  .asp { padding: 18px 14px 14px; gap: 16px; border-radius: 12px; }
+  .asp-head { flex-direction: column; }
+  .asp-live { width: 100%; justify-content: space-between; }
+  .asp-live .asp-btn { flex: 1 1 100%; }
+  .asp-sum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .asp-stat { padding: 11px 12px; }
+  .asp-stat:nth-child(3) { border-left: 0; }
+  .asp-stat:nth-child(n+3) { border-top: 1px dashed var(--asp-line); }
+  .asp-stat dd { font-size: 18px; }
+  .asp-hint { display: none; }
+  .asp-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-areas: "agent agent agent" "act act act" "task task task" "queue succ tp";
+    padding: 13px 12px 13px 14px;
+  }
+  .asp-act { justify-content: flex-start; }
+  .asp-ibtn { width: 40px; height: 36px; }
+  .asp-tp { grid-template-columns: minmax(0, 1fr); row-gap: 5px; }
+  .asp-bars { height: 18px; }
+  .asp-detail { grid-template-columns: 1fr; }
+  .asp-log-list li { grid-template-columns: 58px minmax(0, 1fr); gap: 8px; font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asp.is-live .asp-beacon i, .asp-row .asp-led, .asp-row[data-status="running"] .asp-led, .asp-row[data-status="restarting"] .asp-led,
+  .asp-row.is-flash, .asp-log-list li.is-new { animation: none; }
+  .asp-fleet span, .asp-bars span, .asp-btn, .asp-fbtn, .asp-ibtn, .asp-ibtn::after, .asp-row, .asp-more svg { transition: none; }
+  .asp-btn:active:not(:disabled), .asp-ibtn:active:not(:disabled) { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--asp-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--asp-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 600 clamp(28px, 4.6vw, 40px)/1.08 var(--asp-mono); letter-spacing: -0.045em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    radial-gradient(70% 60% at 50% 0%, var(--asp-accent-soft), transparent 70%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 44px);
+  display: grid; justify-items: center; gap: 22px;
+}
+.stage-bar { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 600 16px/1.2 var(--asp-mono); letter-spacing: -0.02em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--asp-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--asp-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--asp-row); cursor: pointer;
+  font: 500 12px/1 var(--asp-mono); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--asp-bg); border: 1px solid var(--line); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--asp-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel" aria-current="page"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 18</span></div>
+    <h1>AI Agent Status Panel</h1>
+    <p>An ops console for a team of AI agents. Each agent shows its status, current task, queue, success rate and recent throughput. You can start, pause or restart any agent, and open an error to retry it.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <agent-status-panel id="demo" interval="2000">
+      <script type="application/json">
+        {
+          "path": "studio / agents",
+          "title": "Agent fleet",
+          "subtitle": "6 agents · shared workspace",
+          "seed": 42,
+          "agents": [
+            { "id": "agt-01", "name": "Lead Qualifier", "model": "Large model", "status": "running",
+              "task": "Scoring new form leads · Brightside Dental",
+              "queue": 14, "processed": 1286, "succeeded": 1262, "load": 3, "failRate": 0.02 },
+            { "id": "agt-02", "name": "Inbox Triage", "model": "Fast model", "status": "running",
+              "task": "Sorting the support inbox · Cedar Fitness Co.",
+              "queue": 31, "processed": 2410, "succeeded": 2391, "load": 4, "failRate": 0.01 },
+            { "id": "agt-03", "name": "Ad Copy Writer", "model": "Large model", "status": "idle",
+              "task": "Writing ad variations for the October offer",
+              "queue": 0, "processed": 148, "succeeded": 141, "load": 1, "failRate": 0.04 },
+            { "id": "agt-04", "name": "Appointment Setter", "model": "Fast model", "status": "error",
+              "task": "Booking consultations · Harbor & Pine Realty",
+              "queue": 9, "processed": 612, "succeeded": 577, "load": 2, "failRate": 0.03,
+              "error": { "code": "409", "at": "14:28", "message": "Calendar sync rejected the booking. The 2:30 pm slot on 2 Oct is already taken. Stopped after 3 retries." } },
+            { "id": "agt-05", "name": "Report Builder", "model": "Large model", "status": "paused",
+              "task": "Weekly report · Harbor & Pine Realty",
+              "queue": 3, "processed": 88, "succeeded": 88, "load": 1, "failRate": 0 },
+            { "id": "agt-06", "name": "Review Responder", "model": "Fast model", "status": "running",
+              "task": "Drafting replies to new reviews · Cedar Fitness Co.",
+              "queue": 6, "processed": 734, "succeeded": 719, "load": 2, "failRate": 0.02 }
+          ]
+        }
+      </script>
+    </agent-status-panel>
+
+    <div class="stage-bar">
+      <p class="note" id="asp-note" aria-live="polite"><b>Example data.</b> Simulated agents, not a real system.</p>
+      <div class="controls">
+        <button type="button" class="btn" id="trigger-error">Simulate an error</button>
+        <button type="button" class="btn" id="reset-demo">Reset demo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>filter</td><td>Attribute. <code>all</code>, <code>running</code>, <code>idle</code>, <code>error</code> or <code>paused</code>. The filter buttons update it.</td></tr>
+          <tr><td>paused</td><td>Boolean attribute. Stops live updates. The Pause button toggles it.</td></tr>
+          <tr><td>interval</td><td>Attribute. Milliseconds between live updates (default 2000, minimum 500).</td></tr>
+          <tr><td>path · title · subtitle</td><td>Optional header text.</td></tr>
+          <tr><td>seed</td><td>Number that makes the simulated updates repeat the same way each time.</td></tr>
+          <tr><td>agents[].id · name · model</td><td>Agent key, display name and model label.</td></tr>
+          <tr><td>agents[].status</td><td><code>running</code>, <code>idle</code>, <code>error</code> or <code>paused</code>.</td></tr>
+          <tr><td>agents[].task</td><td>What the agent is working on.</td></tr>
+          <tr><td>agents[].queue</td><td>Items waiting.</td></tr>
+          <tr><td>agents[].processed · succeeded</td><td>Item counts. Success rate is <code>succeeded ÷ processed</code>.</td></tr>
+          <tr><td>agents[].load · failRate</td><td>Simulation only: average items per update, and the share that fail.</td></tr>
+          <tr><td>agents[].error</td><td><code>{ code, at, message }</code> shown when an error row is opened.</td></tr>
+          <tr><td>labels · locale</td><td>Override any built-in text; number and time locale (default <code>en-GB</code>).</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;agent-status-panel</span> <span class="a">interval=</span>"2000"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "title": "Agent fleet",
+      "agents": [
+        { "id": "agt-01", "name": "Lead Qualifier",
+          "status": "running", "task": "Scoring leads",
+          "queue": 14, "processed": 1286,
+          "succeeded": 1262, "load": 3 }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/agent-status-panel&gt;</span>
+
+<span class="a">// or from data, and control it:</span>
+el.data = { agents: [...] };
+el.setStatus("agt-01", "error", "Timed out");
+el.paused = true;
+el.addEventListener("agentaction", e =&gt; e.detail);</pre></div>
+      <p>Start, Pause, Restart and Retry fire an <code>agentaction</code> event with the agent, the action and the status before and after. <code>setStatus(id, status, message)</code> changes an agent from code. Live updates stop while the tab is hidden, and when you press Pause.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/workflow-automation-card"><small>← Previous · 17</small><strong>Workflow Automation Card</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/notification-center"><small>Next · 19 →</small><strong>Notification Center</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 18 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <agent-status-panel> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    running: "Running", idle: "Idle", error: "Error", paused: "Paused", restarting: "Restarting", all: "All",
+    live: "Live", stopped: "Paused", pauseLive: "Pause live updates", resumeLive: "Resume live updates",
+    agentsRunning: "Running", queue: "Queue", processed: "Processed", success: "Success", throughput: "Throughput",
+    perMin: "/min", task: "Current task", agent: "Agent", actions: "Actions",
+    start: "Start", pause: "Pause", restart: "Restart", retry: "Retry now", showError: "Show error", hideError: "Hide error",
+    waiting: "Waiting for new work", restartingTask: "Restarting…", filterLabel: "Filter by status",
+    hint: "Updates every {s}s", empty: "No agents with this status.", log: "Event log", tick: "tick {n}",
+    tickLine: "{n} processed · {f} failed · {q} queued", noWork: "no work processed · {q} queued",
+    actionLine: "{name} · {action}", logStart: "started by you", logPause: "paused by you", logRestart: "restart requested", logRetry: "retry requested",
+nowRunning: "{name} picked up new work", nowIdle: "{name} queue empty, now idle",
+    restarted: "{name} restarted", failed: "{name} failed: {message}",
+    announce: "{name} is now {status}."
+  };
+  const ICONS = {
+    play: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.2v9.6c0 .5.5.8.9.5l7.2-4.8a.6.6 0 0 0 0-1L5.9 2.7c-.4-.3-.9 0-.9.5Z"/></svg>',
+    pause: '<svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="3.5" y="3" width="3" height="10" rx="1"/><rect x="9.5" y="3" width="3" height="10" rx="1"/></svg>',
+    restart: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13 2.5v3h-3"/></svg>',
+    chevron: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 4.5 3 3 3-3"/></svg>'
+  };
+  const STATUSES = ["running", "idle", "error", "paused"];
+  const FILTERS = ["all"].concat(STATUSES);
+  const HISTORY = 14, FLEET = 28;
+
+  const TEMPLATE = `
+    <article class="asp">
+      <header class="asp-head">
+        <div class="asp-id">
+          <span class="asp-path"></span>
+          <h2 class="asp-title"></h2>
+          <p class="asp-sub"></p>
+        </div>
+        <div class="asp-live">
+          <span class="asp-beacon"><i></i><span class="asp-beacon-text"></span></span>
+          <span class="asp-clock"></span>
+          <button type="button" class="asp-btn asp-toggle" aria-pressed="false"></button>
+        </div>
+      </header>
+      <dl class="asp-sum">
+        <div class="asp-stat"><dt class="asp-k-run"></dt><dd><span class="asp-s-run"></span><small class="asp-s-of"></small></dd></div>
+        <div class="asp-stat"><dt class="asp-k-queue"></dt><dd class="asp-s-queue"></dd></div>
+        <div class="asp-stat"><dt class="asp-k-proc"></dt><dd class="asp-s-proc"></dd></div>
+        <div class="asp-stat"><dt class="asp-k-succ"></dt><dd class="asp-s-succ"></dd></div>
+        <div class="asp-stat asp-stat--tp"><dt class="asp-k-tp"></dt><dd><span><span class="asp-s-tp"></span> <small class="asp-s-unit"></small></span><span class="asp-fleet" aria-hidden="true"></span></dd></div>
+      </dl>
+      <div class="asp-bar">
+        <div class="asp-filters" role="group"></div>
+        <span class="asp-hint"></span>
+      </div>
+      <div class="asp-cols" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <ul class="asp-list"></ul>
+      <p class="asp-empty" hidden></p>
+      <section class="asp-log">
+        <h3 class="asp-log-title"><span class="asp-log-k"></span><span class="asp-log-tick"></span></h3>
+        <ol class="asp-log-list"></ol>
+      </section>
+      <p class="asp-sr" aria-live="polite"></p>
+    </article>`;
+
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* small deterministic PRNG so the simulation repeats the same way for the same seed */
+  const prng = seed => { let a = (seed >>> 0) || 1; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+  let uidCount = 0;
+
+  class AgentStatusPanel extends HTMLElement {
+    static get observedAttributes() { return ["filter", "paused", "interval"]; }
+
+    constructor() { super(); this._uid = "asp" + (++uidCount); this._timers = new Map(); }
+
+    connectedCallback() {
+      if (!this._built) {
+        if (!this._data) {
+          const src = this.querySelector(':scope > script[type="application/json"]');
+          try { this._data = src ? JSON.parse(src.textContent) : {}; }
+          catch (e) { console.warn("<agent-status-panel>: the JSON data could not be read.", e); this._data = {}; }
+        }
+        this.innerHTML = TEMPLATE;
+        const q = s => this.querySelector(s);
+        this.$ = {
+          card: q(".asp"), path: q(".asp-path"), title: q(".asp-title"), sub: q(".asp-sub"),
+          beacon: q(".asp-beacon-text"), clock: q(".asp-clock"), toggle: q(".asp-toggle"),
+          kRun: q(".asp-k-run"), sRun: q(".asp-s-run"), sOf: q(".asp-s-of"), kQueue: q(".asp-k-queue"), sQueue: q(".asp-s-queue"),
+          kProc: q(".asp-k-proc"), sProc: q(".asp-s-proc"), kSucc: q(".asp-k-succ"), sSucc: q(".asp-s-succ"),
+          kTp: q(".asp-k-tp"), sTp: q(".asp-s-tp"), sUnit: q(".asp-s-unit"), fleet: q(".asp-fleet"),
+          filters: q(".asp-filters"), hint: q(".asp-hint"), cols: q(".asp-cols"), list: q(".asp-list"), empty: q(".asp-empty"),
+          logK: q(".asp-log-k"), logTick: q(".asp-log-tick"), log: q(".asp-log-list"), sr: q(".asp-sr")
+        };
+        this._wire();
+        this._built = true;
+        this._load();
+      } else {
+        // re-attached: refresh rows in case a restart was finished while detached
+        this._agents.forEach(a => this._updateRow(a, false));
+        this._summary();
+        this._applyFilter();
+      }
+      this._sync();
+    }
+
+    disconnectedCallback() {
+      this._stop();
+      // finish any restart that was in flight so nothing is left half-way
+      this._timers.forEach((t, id) => { clearTimeout(t); const a = this._find(id); if (a) this._finishRestart(a, true); });
+      this._timers.clear();
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "filter") this._applyFilter();
+      else this._sync();
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) { this._load(); this._sync(); } }
+    get paused() { return this.hasAttribute("paused"); }
+    set paused(v) { this.toggleAttribute("paused", !!v); }
+    get filter() { const f = (this.getAttribute("filter") || "all").toLowerCase(); return FILTERS.includes(f) ? f : "all"; }
+    set filter(v) { this.setAttribute("filter", String(v)); }
+    get agents() { return (this._agents || []).map(a => ({ id: a.id, name: a.name, status: a.status, queue: a.queue, processed: a.processed, succeeded: a.succeeded })); }
+
+    setStatus(id, status, message) {
+      const a = this._find(id), L = this._labels();
+      if (!a || !STATUSES.includes(status)) return false;
+      this._cancelRestart(a);
+      const from = a.status;
+      a.status = status;
+      if (status === "error") {
+        a.error = { code: "", at: this._time(), message: message || "Unknown error" };
+        this._logLine(fill(L.failed, { name: a.name, message: a.error.message }), "bad");
+      } else a.error = null;
+      if (status === "running" && a.queue === 0) a.queue = 1;
+      this._updateRow(a, true);
+      this._summary();
+      if (from !== status) this._announce(a);
+      return true;
+    }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _locale() { return (this._data && this._data.locale) || "en-GB"; }
+    _int(v) { return Math.round(v).toLocaleString(this._locale()); }
+    _pct(v) { return v == null ? "—" : v.toLocaleString(this._locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%"; }
+    _time() {
+      try { return new Intl.DateTimeFormat(this._locale(), { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()); }
+      catch (e) { return new Date().toTimeString().slice(0, 8); }
+    }
+    _interval() { return Math.max(500, num(this.getAttribute("interval")) || num(this._data && this._data.interval) || 2000); }
+    _find(id) { return (this._agents || []).find(a => a.id === id); }
+
+    /* ---------- state ---------- */
+    _load() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      this._timers.forEach(t => clearTimeout(t)); this._timers.clear();
+      this._rand = prng(num(d.seed) ?? 7);
+      this._tick = 0;
+      this._logItems = [];
+      this._fleet = [];
+
+      this._agents = (Array.isArray(d.agents) ? d.agents : []).map((x, i) => {
+        x = x || {};
+        const processed = Math.max(0, num(x.processed) ?? 0);
+        const status = STATUSES.includes(x.status) ? x.status : "idle";
+        const load = Math.max(0, num(x.load) ?? 1);
+        const a = {
+          id: String(x.id || `agent-${i + 1}`), name: x.name || `Agent ${i + 1}`, model: x.model || "",
+          status, task: x.task || "", queue: Math.max(0, Math.round(num(x.queue) ?? 0)),
+          processed, succeeded: Math.min(processed, Math.max(0, num(x.succeeded) ?? processed)),
+          load, failRate: Math.min(1, Math.max(0, num(x.failRate) ?? 0)),
+          error: status === "error" ? Object.assign({ code: "", at: "", message: "Unknown error" }, x.error || {}) : null,
+          expanded: false, history: []
+        };
+        for (let h = 0; h < HISTORY; h++) a.history.push(status === "running" ? Math.round(this._rand() * load * 2) : 0);
+        return a;
+      });
+      for (let h = 0; h < FLEET; h++) this._fleet.push(this._agents.reduce((s, a) => s + (a.history[h % HISTORY] || 0), 0));
+
+      $.path.textContent = d.path || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      $.kRun.textContent = L.agentsRunning; $.kQueue.textContent = L.queue; $.kProc.textContent = L.processed;
+      $.kSucc.textContent = L.success; $.kTp.textContent = L.throughput; $.sUnit.textContent = L.perMin;
+      $.logK.textContent = L.log;
+      $.empty.textContent = L.empty;
+      $.filters.setAttribute("aria-label", L.filterLabel);
+      [L.agent, L.task, L.queue, L.success, L.throughput, L.actions].forEach((t, i) => { $.cols.children[i].textContent = t; });
+      $.fleet.replaceChildren(...this._fleet.map(() => make("span")));
+
+      $.filters.replaceChildren(...FILTERS.map(f => {
+        const b = make("button", "asp-fbtn");
+        b.type = "button"; b.dataset.filter = f;
+        if (f !== "all") { const i = make("i"); i.style.setProperty("--c", `var(--asp-${f === "running" ? "run" : f === "error" ? "err" : f === "paused" ? "pause" : "idle"})`); b.append(i); }
+        b.append(make("span", null, L[f]), make("b"));
+        return b;
+      }));
+
+      $.list.replaceChildren(...this._agents.map(a => this._buildRow(a)));
+      this._agents.forEach(a => this._updateRow(a, false));
+      this._logLine(`${this._agents.length} agents loaded`, "");
+      this._summary();
+      this._applyFilter();
+    }
+
+    _sync() {
+      const L = this._labels(), $ = this.$, live = !this.paused;
+      $.card.classList.toggle("is-live", live);
+      $.beacon.textContent = live ? L.live : L.stopped;
+      $.toggle.setAttribute("aria-pressed", String(!live));
+      $.toggle.innerHTML = live ? ICONS.pause : ICONS.play;
+      $.toggle.append(live ? L.pauseLive : L.resumeLive);
+      $.hint.textContent = fill(L.hint, { s: (this._interval() / 1000).toLocaleString(this._locale()) });
+      this._stop();
+      if (live && this.isConnected) this._timer = setInterval(() => this._step(), this._interval());
+      this._clock();
+    }
+    _stop() { if (this._timer) { clearInterval(this._timer); this._timer = null; } }
+    _clock() { this.$.clock.textContent = `${fill(this._labels().tick, { n: String(this._tick).padStart(4, "0") })} · ${this._time()}`; }
+
+    _step() {
+      if (document.hidden) return;
+      const r = this._rand, L = this._labels();
+      this._tick++;
+      let done = 0, failed = 0;
+      this._agents.forEach(a => {
+        let k = 0;
+        const arrive = () => Math.floor(r() * (a.load * 2 + 0.2));
+        if (a.status === "running") {
+          k = Math.min(a.queue, Math.round(r() * a.load * 2));
+          let f = 0;
+          for (let i = 0; i < k; i++) if (r() < a.failRate) f++;
+          a.processed += k; a.succeeded += k - f; a.queue -= k;
+          const add = arrive();
+          a.queue += add;
+          done += k; failed += f;
+          if (a.queue === 0 && add === 0 && r() < 0.5) { a.status = "idle"; this._logLine(fill(L.nowIdle, { name: a.name }), ""); this._announce(a); }
+        } else if (a.status === "idle") {
+          if (r() < 0.22) { a.queue += 1 + Math.floor(r() * 3); a.status = "running"; this._logLine(fill(L.nowRunning, { name: a.name }), "good"); this._announce(a); }
+        } else if (a.status === "paused" || a.status === "error") {
+          if (r() < 0.3) a.queue += 1;
+        }
+        a.history.push(k);
+        if (a.history.length > HISTORY) a.history.shift();
+        this._updateRow(a, false);
+      });
+      this._fleet.push(done);
+      if (this._fleet.length > FLEET) this._fleet.shift();
+      const q = this._agents.reduce((s, a) => s + a.queue, 0);
+      this._logLine(done ? fill(L.tickLine, { n: done, f: failed, q: this._int(q) }) : fill(L.noWork, { q: this._int(q) }), failed ? "warn" : "");
+      this._summary();
+      this._clock();
+    }
+
+    /* ---------- actions ---------- */
+    _act(a, action) {
+      const L = this._labels(), from = a.status;
+      if (action === "pause" && (from === "running" || from === "idle")) a.status = "paused";
+      else if (action === "start" && from === "paused") a.status = a.queue > 0 ? "running" : "idle";
+      else if ((action === "start" || action === "retry") && from === "error") { action = "retry"; this._beginRestart(a); }
+      else if (action === "restart" && from !== "restarting") this._beginRestart(a);
+      else return;
+      const verbs = { start: L.logStart, pause: L.logPause, restart: L.logRestart, retry: L.logRetry };
+      this._logLine(fill(L.actionLine, { name: a.name, action: verbs[action] }), action === "pause" ? "warn" : "good");
+      this._updateRow(a, true);
+      this._summary();
+      this._announce(a);
+      this.dispatchEvent(new CustomEvent("agentaction", { bubbles: true, detail: { id: a.id, name: a.name, action, from, to: a.status } }));
+    }
+
+    _beginRestart(a) {
+      this._cancelRestart(a);
+      a.status = "restarting";
+      a.expanded = false;
+      this._timers.set(a.id, setTimeout(() => { this._timers.delete(a.id); this._finishRestart(a, false); }, 1400));
+    }
+    _cancelRestart(a) { const t = this._timers.get(a.id); if (t) { clearTimeout(t); this._timers.delete(a.id); } }
+    _finishRestart(a, quiet) {
+      if (a.status !== "restarting") return;
+      a.error = null;
+      a.status = a.queue > 0 ? "running" : "idle";
+      if (quiet) return;
+      this._logLine(fill(this._labels().restarted, { name: a.name }), "good");
+      this._updateRow(a, true);
+      this._summary();
+      this._announce(a);
+    }
+
+    _announce(a) {
+      const L = this._labels();
+      this.$.sr.textContent = fill(L.announce, { name: a.name, status: (L[a.status] || a.status).toLowerCase() });
+    }
+
+    /* ---------- rendering ---------- */
+    _buildRow(a) {
+      const L = this._labels();
+      const li = make("li", "asp-row");
+      li.dataset.id = a.id;
+
+      const agent = make("div", "asp-agent");
+      const led = make("span", "asp-led"); led.setAttribute("aria-hidden", "true");
+      const who = make("div", "asp-who");
+      const meta = make("span", "asp-meta");
+      const state = make("span", "asp-state");
+      meta.append(state, ` · ${a.id}${a.model ? " · " + a.model : ""}`);
+      who.append(make("h3", "asp-name", a.name), meta);
+      agent.append(led, who);
+
+      const task = make("div", "asp-task");
+      const taskText = make("span", "asp-task-text");
+      const more = make("button", "asp-more");
+      more.type = "button";
+      more.dataset.act = "expand";
+      more.setAttribute("aria-controls", `${this._uid}-${a.id}-err`);
+      task.append(make("span", "asp-k", L.task), taskText, more);
+
+      const metric = (cls, label) => { const m = make("div", "asp-m " + cls); const v = make("span", "asp-v"); m.append(make("span", "asp-k", label), v); return [m, v]; };
+      const [queue, queueV] = metric("asp-queue", L.queue);
+      const [succ, succV] = metric("asp-succ", L.success);
+      const tp = make("div", "asp-m asp-tp");
+      const bars = make("span", "asp-bars"); bars.setAttribute("aria-hidden", "true");
+      for (let i = 0; i < HISTORY; i++) bars.append(make("span"));
+      const tpV = make("span", "asp-v");
+      tp.append(make("span", "asp-k", L.throughput), bars, tpV);
+
+      const act = make("div", "asp-act");
+      const btn = (key, icon) => {
+        const b = make("button", "asp-ibtn");
+        b.type = "button"; b.dataset.act = key; b.dataset.tip = L[key];
+        b.setAttribute("aria-label", `${L[key]} ${a.name}`);
+        b.innerHTML = icon;
+        act.append(b);
+        return b;
+      };
+      const bStart = btn("start", ICONS.play), bPause = btn("pause", ICONS.pause), bRestart = btn("restart", ICONS.restart);
+
+      const detail = make("div", "asp-detail");
+      detail.id = `${this._uid}-${a.id}-err`;
+      detail.hidden = true;
+      const errLog = make("pre", "asp-err-log");
+      const retry = make("button", "asp-btn");
+      retry.type = "button"; retry.dataset.act = "retry";
+      retry.innerHTML = ICONS.restart; retry.append(L.retry);
+      detail.append(errLog, retry);
+
+      li.append(agent, task, queue, succ, tp, act, detail);
+      a.el = { li, state, taskText, more, queueV, succV, bars: [...bars.children], tpV, bStart, bPause, bRestart, detail, errLog, retry };
+      return li;
+    }
+
+    _updateRow(a, flash) {
+      const e = a.el, L = this._labels();
+      if (!e) return;
+      const s = a.status;
+      e.li.dataset.status = s;
+      e.state.textContent = L[s] || s;
+      const isErr = s === "error" && a.error;
+      e.taskText.textContent = isErr ? `${a.error.code ? "ERR " + a.error.code + " · " : ""}${a.error.message}`
+        : s === "restarting" ? L.restartingTask
+        : s === "idle" && a.queue === 0 ? L.waiting
+        : a.task || "—";
+      e.taskText.title = e.taskText.textContent;
+      e.more.hidden = !isErr;
+      if (!isErr) a.expanded = false;
+      e.more.setAttribute("aria-expanded", String(!!a.expanded));
+      const moreText = a.expanded ? L.hideError : L.showError;
+      if (e._more !== moreText) { e._more = moreText; e.more.innerHTML = ICONS.chevron; e.more.prepend(moreText); }
+      e.detail.hidden = !(isErr && a.expanded);
+      if (isErr) {
+        e.errLog.replaceChildren();
+        e.errLog.append(make("b", null, `[${a.error.at || this._time()}] ${a.error.code ? "ERR " + a.error.code : "ERROR"}`), `  ${a.id} · ${a.name}\n${a.error.message}`);
+      }
+
+      const q = String(this._int(a.queue));
+      if (e.queueV.textContent && e.queueV.textContent !== q && !reduceMotion()) {
+        e.queueV.classList.add("is-bump");
+        clearTimeout(e._bump); e._bump = setTimeout(() => e.queueV.classList.remove("is-bump"), 500);
+      }
+      e.queueV.textContent = q;
+      e.succV.textContent = this._pct(a.processed > 0 ? a.succeeded / a.processed * 100 : null);
+      const top = Math.max(1, Math.ceil(a.load * 2), ...a.history);
+      e.bars.forEach((b, i) => b.style.setProperty("--h", ((a.history[i] || 0) / top * 100).toFixed(1)));
+      const recent = a.history.slice(-8);
+      const perMin = recent.reduce((x, y) => x + y, 0) / Math.max(1, recent.length) * (60000 / this._interval());
+      e.tpV.textContent = `≈${this._int(perMin)}${L.perMin}`;
+
+      const busy = s === "restarting";
+      e.bStart.disabled = !(s === "paused" || s === "error");
+      e.bPause.disabled = !(s === "running" || s === "idle");
+      e.bRestart.disabled = busy;
+      e.retry.disabled = busy;
+
+      if (flash && !reduceMotion()) { e.li.classList.remove("is-flash"); void e.li.offsetWidth; e.li.classList.add("is-flash"); }
+      if (this.$ && this._agents && this._agents.indexOf(a) > -1 && this._filterReady) this._applyFilter(true);
+    }
+
+    _summary() {
+      const $ = this.$, A = this._agents;
+      const run = A.filter(a => a.status === "running").length;
+      const q = A.reduce((s, a) => s + a.queue, 0);
+      const p = A.reduce((s, a) => s + a.processed, 0), ok = A.reduce((s, a) => s + a.succeeded, 0);
+      $.sRun.textContent = this._int(run);
+      $.sOf.textContent = `/ ${this._int(A.length)}`;
+      $.sQueue.textContent = this._int(q);
+      $.sProc.textContent = this._int(p);
+      $.sSucc.textContent = this._pct(p > 0 ? ok / p * 100 : null);
+      const recent = this._fleet.slice(-8);
+      $.sTp.textContent = "≈" + this._int(recent.reduce((x, y) => x + y, 0) / Math.max(1, recent.length) * (60000 / this._interval()));
+      const top = Math.max(1, ...this._fleet);
+      [...$.fleet.children].forEach((b, i) => b.style.setProperty("--h", ((this._fleet[i] || 0) / top * 100).toFixed(1)));
+      $.logTick.textContent = fill(this._labels().tick, { n: String(this._tick).padStart(4, "0") });
+    }
+
+    _applyFilter(quiet) {
+      const f = this.filter, $ = this.$;
+      this._filterReady = true;
+      const match = a => f === "all" || a.status === f || (f === "running" && a.status === "restarting");
+      let shown = 0;
+      this._agents.forEach(a => { const ok = match(a); a.el.li.hidden = !ok; if (ok) shown++; });
+      $.empty.hidden = shown > 0;
+      $.filters.querySelectorAll(".asp-fbtn").forEach(b => {
+        const k = b.dataset.filter;
+        b.setAttribute("aria-pressed", String(k === f));
+        b.querySelector("b").textContent = this._int(k === "all" ? this._agents.length : this._agents.filter(a => a.status === k || (k === "running" && a.status === "restarting")).length);
+      });
+      if (quiet) return;
+    }
+
+    _logLine(text, tone) {
+      this._logItems.push({ time: this._time(), text, tone });
+      if (this._logItems.length > 5) this._logItems.shift();
+      const list = this.$.log;
+      list.replaceChildren(...this._logItems.map((it, i) => {
+        const li = make("li");
+        if (it.tone) li.dataset.tone = it.tone;
+        if (i === this._logItems.length - 1) li.className = "is-new";
+        li.append(make("span", null, it.time), make("span", null, it.text));
+        return li;
+      }));
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.toggle.addEventListener("click", () => { this.paused = !this.paused; });
+      $.filters.addEventListener("click", e => {
+        const b = e.target.closest(".asp-fbtn");
+        if (b) this.filter = b.dataset.filter;
+      });
+      $.list.addEventListener("click", e => {
+        const b = e.target.closest("button[data-act]");
+        if (!b || b.disabled) return;
+        const li = b.closest(".asp-row"), a = li && this._find(li.dataset.id);
+        if (!a) return;
+        const act = b.dataset.act;
+        if (act === "expand") {
+          a.expanded = !a.expanded;
+          this._updateRow(a, false);
+          if (a.expanded) a.el.retry.focus({ preventScroll: true });
+          return;
+        }
+        const hadFocus = document.activeElement === b;
+        this._act(a, act);
+        // keep keyboard focus inside the row when the pressed button becomes disabled or hidden
+        if (hadFocus && (b.disabled || !b.offsetParent)) {
+          const next = [a.el.bStart, a.el.bPause, a.el.bRestart].find(x => !x.disabled) || a.el.bRestart;
+          next.focus({ preventScroll: true });
+        }
+      });
+    }
+  }
+
+  if (!customElements.get("agent-status-panel")) customElements.define("agent-status-panel", AgentStatusPanel);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("asp-note");
+  const original = JSON.parse(JSON.stringify(el.data || {}));
+  const say = (strong, rest) => {
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = strong;
+    note.append(b, " " + rest);
+  };
+  el.addEventListener("agentaction", e => say(`${e.detail.name}: ${e.detail.action}.`, `The panel sent an agentaction event (${e.detail.from} → ${e.detail.to}). Simulated agents, not a real system.`));
+
+  document.getElementById("trigger-error").addEventListener("click", () => {
+    const pick = el.agents.find(a => a.status === "running") || el.agents[0];
+    if (!pick) return;
+    el.setStatus(pick.id, "error", "Request to the CRM timed out after 30 s. The item was put back in the queue.");
+    say(`${pick.name} set to Error.`, "Open it with “Show error” and press Retry now. Simulated agents, not a real system.");
+  });
+  document.getElementById("reset-demo").addEventListener("click", () => {
+    el.removeAttribute("filter");
+    el.data = JSON.parse(JSON.stringify(original));
+    say("Demo reset.", "Simulated agents, not a real system.");
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

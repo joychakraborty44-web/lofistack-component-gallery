@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable SEO audit scorecard: a letter grade, four category scores and every issue grouped by severity. Mark issues as fixed to see the scores and grade recompute, then re-run the audit.">
+<meta property="og:title" content="SEO Audit Scorecard · LofiStack Components">
+<meta property="og:description" content="A reusable SEO audit scorecard: a letter grade, four category scores and every issue grouped by severity. Mark issues as fixed to see the scores and grade recompute, then re-run the audit.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>SEO Audit Scorecard · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #ECEAF3;
+  --stage: #F4F3F9;
+  --ink: #1A1530;
+  --muted: #57506E;
+  --faint: #6B6585;
+  --line: #DCD8E8;
+  --panel: #F8F7FC;
+  --accent: #6D28D9;
+
+  /* ---- SEO Audit Scorecard tokens (override these to re-theme the component) ---- */
+  --sas-card: #FFFFFF;
+  --sas-ink: #1A1530;
+  --sas-muted: #57506E;
+  --sas-faint: #6B6585;
+  --sas-line: #E6E3EF;
+  --sas-tint: #F6F5FA;
+  --sas-track: #ECE9F4;
+  --sas-violet: #6D28D9;
+  --sas-violet-soft: #F1ECFE;
+  --sas-head: #2E1065;
+  --sas-head-2: #4C1D95;
+  --sas-head-ink: #FFFFFF;
+  --sas-head-muted: #D8CCFF;
+  --sas-head-line: rgba(255, 255, 255, 0.16);
+  --sas-good: #15803D;  --sas-good-soft: #E9F6EE;
+  --sas-warn: #B45309;  --sas-warn-soft: #FEF3E2;
+  --sas-bad: #B91C1C;   --sas-bad-soft: #FDECEC;
+  --sas-note: #6D28D9;  --sas-note-soft: #F1ECFE;
+  --sas-good-hi: #4ADE80; --sas-warn-hi: #FBBF24; --sas-bad-hi: #F87171;
+  --sas-shadow: rgba(30, 16, 64, 0.22);
+  --sas-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --sas-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --sas-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0C0A12; --stage: #110E19; --ink: #ECE9F5; --muted: #ABA4C2; --faint: #8E87A6;
+    --line: #262138; --panel: #141120; --accent: #A78BFA;
+    --sas-card: #15121F; --sas-ink: #ECE9F5; --sas-muted: #ABA4C2; --sas-faint: #8E87A6;
+    --sas-line: #2A2540; --sas-tint: #1C1829; --sas-track: #2A2540;
+    --sas-violet: #A78BFA; --sas-violet-soft: rgba(167, 139, 250, 0.14);
+    --sas-head: #24124F; --sas-head-2: #3B1D7A; --sas-head-muted: #C4B5FD;
+    --sas-good: #4ADE80; --sas-good-soft: rgba(74, 222, 128, 0.12);
+    --sas-warn: #FBBF24; --sas-warn-soft: rgba(251, 191, 36, 0.12);
+    --sas-bad: #F87171;  --sas-bad-soft: rgba(248, 113, 113, 0.13);
+    --sas-note: #A78BFA; --sas-note-soft: rgba(167, 139, 250, 0.14);
+    --sas-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0C0A12; --stage: #110E19; --ink: #ECE9F5; --muted: #ABA4C2; --faint: #8E87A6;
+  --line: #262138; --panel: #141120; --accent: #A78BFA;
+  --sas-card: #15121F; --sas-ink: #ECE9F5; --sas-muted: #ABA4C2; --sas-faint: #8E87A6;
+  --sas-line: #2A2540; --sas-tint: #1C1829; --sas-track: #2A2540;
+  --sas-violet: #A78BFA; --sas-violet-soft: rgba(167, 139, 250, 0.14);
+  --sas-head: #24124F; --sas-head-2: #3B1D7A; --sas-head-muted: #C4B5FD;
+  --sas-good: #4ADE80; --sas-good-soft: rgba(74, 222, 128, 0.12);
+  --sas-warn: #FBBF24; --sas-warn-soft: rgba(251, 191, 36, 0.12);
+  --sas-bad: #F87171;  --sas-bad-soft: rgba(248, 113, 113, 0.13);
+  --sas-note: #A78BFA; --sas-note-soft: rgba(167, 139, 250, 0.14);
+  --sas-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   SEO Audit Scorecard component  (copy this block + the script)
+   ========================================================= */
+seo-audit-scorecard {
+  display: block;
+  container: sas / inline-size;
+  width: 100%;
+  max-width: 940px;
+  font-family: var(--sas-sans);
+  color: var(--sas-ink);
+}
+.sas {
+  position: relative;
+  background: var(--sas-card);
+  border: 1px solid var(--sas-line);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 30px 60px -46px var(--sas-shadow), 0 2px 6px -4px var(--sas-shadow);
+}
+.sas button, .sas input { font-family: inherit; }
+.sas :is(button, [tabindex], input):focus-visible { outline: 2px solid var(--sas-violet); outline-offset: 2px; }
+.sas-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+.sas [data-tone="good"] { --sas-c: var(--sas-good); --sas-c-soft: var(--sas-good-soft); }
+.sas [data-tone="warn"] { --sas-c: var(--sas-warn); --sas-c-soft: var(--sas-warn-soft); }
+.sas [data-tone="bad"]  { --sas-c: var(--sas-bad);  --sas-c-soft: var(--sas-bad-soft); }
+.sas [data-sev="critical"] { --sas-c: var(--sas-bad);  --sas-c-soft: var(--sas-bad-soft); }
+.sas [data-sev="warning"]  { --sas-c: var(--sas-warn); --sas-c-soft: var(--sas-warn-soft); }
+.sas [data-sev="notice"]   { --sas-c: var(--sas-note); --sas-c-soft: var(--sas-note-soft); }
+.sas [data-sev="fixed"]    { --sas-c: var(--sas-good); --sas-c-soft: var(--sas-good-soft); }
+
+/* report header band */
+.sas-band {
+  position: relative; color: var(--sas-head-ink);
+  background:
+    radial-gradient(70% 120% at 100% 0%, color-mix(in oklab, var(--sas-head-2) 90%, transparent), transparent 60%),
+    linear-gradient(var(--sas-head-line) 1px, transparent 1px) 0 0 / 100% 24px,
+    var(--sas-head);
+  padding: 26px 28px 24px;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px 28px; align-items: center;
+}
+.sas-site { display: grid; gap: 8px; min-width: 0; }
+.sas-eyebrow { font: 600 11px/1 var(--sas-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--sas-head-muted); }
+.sas-title { margin: 0; font: 650 clamp(22px, 3.8cqi, 30px)/1.1 var(--sas-display); letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.sas-url { display: inline-flex; align-items: center; gap: 7px; font: 500 13px/1.2 var(--sas-mono); color: var(--sas-head-muted); overflow-wrap: anywhere; }
+.sas-url svg { width: 13px; height: 13px; flex: none; }
+.sas-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 4px 0 0; padding: 0; list-style: none; font-size: 12.5px; color: var(--sas-head-muted); font-variant-numeric: tabular-nums; }
+.sas-meta b { color: var(--sas-head-ink); font-weight: 600; }
+.sas-eyebrow:empty, .sas-title:empty, .sas-url:empty, .sas-foot:empty { display: none; }
+.sas-rerun {
+  appearance: none; cursor: pointer; justify-self: start; margin-top: 8px;
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px 9px 12px; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.08); color: var(--sas-head-ink);
+  font: 600 13px/1 var(--sas-sans);
+  transition: background .2s, border-color .2s;
+}
+.sas-rerun svg { width: 14px; height: 14px; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
+.sas-rerun:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.45); }
+.sas-rerun:hover:not(:disabled) svg { transform: rotate(-120deg); }
+.sas-rerun:disabled { cursor: progress; opacity: .7; }
+.sas-band .sas-rerun:focus-visible { outline-color: var(--sas-head-ink); }
+
+.sas-grade { display: grid; grid-template-columns: auto auto; gap: 6px 18px; align-items: center; }
+.sas-seal { position: relative; width: 128px; height: 128px; }
+.sas-seal svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.sas-seal .sas-trk { stroke: rgba(255, 255, 255, 0.14); }
+.sas-seal .sas-arc { stroke: var(--sas-c-hi); }
+.sas-seal[data-tone="good"] { --sas-c-hi: var(--sas-good-hi); }
+.sas-seal[data-tone="warn"] { --sas-c-hi: var(--sas-warn-hi); }
+.sas-seal[data-tone="bad"]  { --sas-c-hi: var(--sas-bad-hi); }
+.sas-letter { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 2px; }
+.sas-letter b { font: 750 52px/0.9 var(--sas-display); letter-spacing: -0.04em; color: var(--sas-head-ink); }
+.sas-letter small { font: 600 10px/1 var(--sas-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sas-head-muted); }
+.sas-letter b.is-swap { animation: sas-pop .45s cubic-bezier(.2,.7,.2,1); }
+@keyframes sas-pop { from { transform: scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+.sas-overall { display: grid; gap: 4px; }
+.sas-overall-k { font: 600 10.5px/1 var(--sas-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sas-head-muted); }
+.sas-overall-v { font: 650 40px/1 var(--sas-display); letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.sas-overall-v small { font-size: .42em; letter-spacing: 0; color: var(--sas-head-muted); margin-left: 3px; }
+.sas-potential { font-size: 12.5px; color: var(--sas-head-muted); max-width: 18ch; line-height: 1.35; }
+.sas-potential b { color: var(--sas-good-hi); font-weight: 600; }
+
+/* body */
+.sas-body { position: relative; padding: 22px 28px 20px; }
+.sas-cats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.sas-cat {
+  appearance: none; cursor: pointer; text-align: left; min-width: 0;
+  display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 4px 12px; align-items: center;
+  padding: 12px; border-radius: 14px; border: 1px solid var(--sas-line); background: var(--sas-card); color: var(--sas-ink);
+  transition: border-color .2s, background .2s, box-shadow .25s, transform .25s cubic-bezier(.2,.7,.2,1);
+}
+.sas-cat:hover { border-color: color-mix(in oklab, var(--sas-violet) 40%, var(--sas-line)); transform: translateY(-1px); }
+.sas-cat[aria-pressed="true"] { border-color: var(--sas-violet); background: var(--sas-violet-soft); box-shadow: 0 0 0 1px var(--sas-violet); }
+.sas-ring { grid-row: span 2; position: relative; width: 62px; height: 62px; }
+.sas-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.sas-trk { fill: none; stroke: var(--sas-track); }
+.sas-arc { fill: none; stroke: var(--sas-c); stroke-linecap: round; transition: stroke-dashoffset .7s cubic-bezier(.2,.7,.2,1), stroke .4s ease; }
+.sas-ring-v { position: absolute; inset: 0; display: grid; place-items: center; font: 650 19px/1 var(--sas-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--sas-c); }
+.sas-cat-name { font: 600 13.5px/1.2 var(--sas-sans); overflow-wrap: anywhere; align-self: end; }
+.sas-cat-sub { display: flex; flex-wrap: wrap; gap: 2px 8px; align-self: start; font-size: 12px; color: var(--sas-muted); font-variant-numeric: tabular-nums; }
+.sas-gain { color: var(--sas-good); font-weight: 600; }
+.sas-gain:empty { display: none; }
+.sas-gain.is-swap { animation: sas-rise .45s cubic-bezier(.2,.7,.2,1); }
+@keyframes sas-rise { from { transform: translateY(5px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.sas-toolbar { margin-top: 22px; display: flex; justify-content: space-between; align-items: center; gap: 10px 16px; flex-wrap: wrap; }
+.sas-h { margin: 0; font: 650 17px/1.2 var(--sas-display); letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sas-scope { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 999px; background: var(--sas-violet-soft); color: var(--sas-violet); font: 600 12px/1 var(--sas-sans); }
+.sas-scope button { appearance: none; border: 0; cursor: pointer; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: transparent; color: inherit; }
+.sas-scope button:hover { background: color-mix(in oklab, var(--sas-violet) 18%, transparent); }
+.sas-scope svg { width: 10px; height: 10px; }
+.sas-sevs { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: 11px; background: var(--sas-tint); border: 1px solid var(--sas-line); }
+.sas-sev {
+  appearance: none; border: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border-radius: 8px; background: transparent;
+  font: 600 12.5px/1 var(--sas-sans); color: var(--sas-muted);
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.sas-sev i { width: 7px; height: 7px; border-radius: 50%; background: var(--sas-c, var(--sas-faint)); }
+.sas-sev b { font-weight: 600; color: var(--sas-faint); font-variant-numeric: tabular-nums; }
+.sas-sev:hover { color: var(--sas-ink); }
+.sas-sev[aria-pressed="true"] { background: var(--sas-card); color: var(--sas-ink); box-shadow: 0 1px 3px -1px var(--sas-shadow), 0 0 0 1px var(--sas-line); }
+.sas-sev[aria-pressed="true"] b { color: var(--sas-ink); }
+
+.sas-groups { margin-top: 14px; display: grid; gap: 18px; }
+.sas-group { display: grid; gap: 8px; }
+.sas-group-h { margin: 0; display: flex; align-items: center; gap: 8px; font: 600 11px/1 var(--sas-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sas-c); }
+.sas-group-h span { margin-left: auto; color: var(--sas-faint); letter-spacing: .04em; }
+.sas-group-h::after { content: ""; flex: 1; height: 1px; background: var(--sas-line); order: 1; }
+.sas-group-h span { order: 2; }
+.sas-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sas-empty { margin: 0; padding: 22px; text-align: center; border-radius: 12px; border: 1px dashed var(--sas-line); color: var(--sas-muted); font-size: 13.5px; }
+
+.sas-issue { border-radius: 12px; border: 1px solid var(--sas-line); background: var(--sas-card); transition: border-color .25s, box-shadow .25s; }
+.sas-issue:hover { border-color: color-mix(in oklab, var(--sas-c) 35%, var(--sas-line)); }
+.sas-issue.is-open { border-color: color-mix(in oklab, var(--sas-c) 55%, var(--sas-line)); box-shadow: 0 14px 26px -22px var(--sas-shadow); }
+.sas-issue-btn {
+  appearance: none; border: 0; background: transparent; cursor: pointer; color: inherit; text-align: left; width: 100%;
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto 18px; gap: 4px 12px; align-items: center;
+  padding: 11px 14px 11px 12px; border-radius: 12px;
+}
+.sas-ico { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--sas-c-soft); color: var(--sas-c); }
+.sas-ico svg { width: 14px; height: 14px; }
+.sas-it { display: grid; gap: 4px; min-width: 0; }
+.sas-it-t { font: 600 14px/1.3 var(--sas-sans); overflow-wrap: anywhere; }
+.sas-issue[data-sev="fixed"] .sas-it-t { color: var(--sas-muted); text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--sas-good) 60%, transparent); text-decoration-thickness: 1.5px; }
+.sas-it-m { display: flex; flex-wrap: wrap; gap: 3px 10px; font-size: 12px; color: var(--sas-muted); }
+.sas-chip { padding: 2px 7px; border-radius: 5px; background: var(--sas-tint); box-shadow: inset 0 0 0 1px var(--sas-line); font-weight: 500; }
+.sas-verified { color: var(--sas-good); font-weight: 600; }
+.sas-pts { font: 650 13px/1 var(--sas-sans); color: var(--sas-c); font-variant-numeric: tabular-nums; white-space: nowrap; padding: 6px 8px; border-radius: 7px; background: var(--sas-c-soft); }
+.sas-chev { width: 18px; height: 18px; color: var(--sas-faint); transition: transform .3s cubic-bezier(.2,.7,.2,1); }
+.sas-issue.is-open .sas-chev { transform: rotate(180deg); }
+
+.sas-det { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .35s cubic-bezier(.2,.7,.2,1); }
+.sas-issue.is-open .sas-det { grid-template-rows: 1fr; }
+.sas-det-in { overflow: hidden; min-height: 0; }
+.sas-det-body { margin: 0 14px 14px 52px; padding-top: 12px; border-top: 1px dashed var(--sas-line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 22px; }
+.sas-dsec { display: grid; gap: 5px; align-content: start; }
+.sas-dsec h5 { margin: 0; font: 600 10.5px/1 var(--sas-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--sas-faint); }
+.sas-dsec p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--sas-ink); }
+.sas-urls { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.sas-urls li { font: 500 11.5px/1 var(--sas-mono); padding: 5px 7px; border-radius: 6px; background: var(--sas-tint); color: var(--sas-muted); overflow-wrap: anywhere; }
+.sas-urls li.sas-more { background: transparent; box-shadow: inset 0 0 0 1px var(--sas-line); }
+.sas-fix { grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 10px 16px; flex-wrap: wrap; padding: 10px 12px; border-radius: 10px; background: var(--sas-tint); }
+.sas-check { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font: 600 13.5px/1.2 var(--sas-sans); }
+.sas-check input { appearance: none; margin: 0; width: 20px; height: 20px; flex: none; border-radius: 6px; border: 1.5px solid var(--sas-faint); background: var(--sas-card); display: grid; place-items: center; cursor: pointer; transition: background .2s, border-color .2s; }
+.sas-check input::after { content: ""; width: 10px; height: 6px; margin-top: -3px; border: solid var(--sas-card); border-width: 0 0 2px 2px; transform: rotate(-45deg) scale(0); transition: transform .25s cubic-bezier(.2,.7,.2,1); }
+.sas-check input:checked { background: var(--sas-good); border-color: var(--sas-good); }
+.sas-check input:checked::after { transform: rotate(-45deg) scale(1); }
+.sas-fix-hint { font-size: 12px; color: var(--sas-muted); font-variant-numeric: tabular-nums; }
+.sas-fix-hint b { color: var(--sas-good); font-weight: 600; }
+
+/* scanning state */
+.sas-scan { position: absolute; inset: 0; z-index: 2; display: grid; place-items: start center; padding: 70px 20px 20px; background: color-mix(in oklab, var(--sas-card) 82%, transparent); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s linear .3s; }
+.sas.is-scanning .sas-scan { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+.sas-scan-card { width: min(360px, 100%); display: grid; gap: 12px; padding: 20px; border-radius: 16px; background: var(--sas-card); border: 1px solid var(--sas-line); box-shadow: 0 24px 48px -30px var(--sas-shadow); }
+.sas-scan-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.sas-scan-t { font: 650 15px/1.25 var(--sas-display); }
+.sas-scan-p { font: 600 13px/1 var(--sas-mono); color: var(--sas-violet); font-variant-numeric: tabular-nums; }
+.sas-scan-s { margin: 0; font-size: 13px; color: var(--sas-muted); min-height: 1.4em; }
+.sas-bar { height: 6px; border-radius: 3px; background: var(--sas-track); overflow: hidden; }
+.sas-bar i { display: block; height: 100%; width: calc(var(--sas-p, 0) * 1%); border-radius: inherit; background: linear-gradient(90deg, var(--sas-head-2), var(--sas-violet)); transition: width .35s ease; }
+.sas-pulse { position: relative; height: 34px; border-radius: 8px; overflow: hidden; background: repeating-linear-gradient(90deg, var(--sas-tint) 0 10px, transparent 10px 14px); }
+.sas-pulse::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--sas-violet) 30%, transparent), transparent); animation: sas-sweep 1.1s linear infinite; }
+@keyframes sas-sweep { from { left: -40%; } to { left: 100%; } }
+.sas-done { margin: 0 0 14px; padding: 10px 12px; border-radius: 10px; background: var(--sas-good-soft); color: var(--sas-ink); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+.sas-done svg { width: 15px; height: 15px; color: var(--sas-good); flex: none; }
+.sas-done.is-in { animation: sas-rise .4s cubic-bezier(.2,.7,.2,1); }
+
+.sas-foot { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--sas-line); font-size: 12px; color: var(--sas-faint); }
+
+/* tablet */
+@container sas (max-width: 759px) {
+  .sas-band { padding: 22px 20px; }
+  .sas-body { padding: 20px 20px 18px; }
+  .sas-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sas-det-body { margin-left: 14px; }
+}
+@container sas (max-width: 619px) {
+  .sas-band { grid-template-columns: 1fr; }
+  .sas-grade { grid-row: 1; justify-content: start; }
+  .sas-seal { width: 104px; height: 104px; }
+  .sas-letter b { font-size: 42px; }
+  .sas-det-body { grid-template-columns: 1fr; }
+}
+/* phone */
+@container sas (max-width: 479px) {
+  .sas { border-radius: 16px; }
+  .sas-band { padding: 18px 14px; }
+  .sas-body { padding: 16px 12px 14px; }
+  .sas-grade { gap: 6px 14px; }
+  .sas-seal { width: 92px; height: 92px; }
+  .sas-letter b { font-size: 38px; }
+  .sas-overall-v { font-size: 32px; }
+  .sas-cats { gap: 8px; }
+  .sas-cat { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 10px 8px; }
+  .sas-ring { grid-row: auto; width: 56px; height: 56px; }
+  .sas-cat-sub { justify-content: center; }
+  .sas-sevs { width: 100%; }
+  .sas-sev { flex: 1 1 auto; justify-content: center; padding: 7px 6px; }
+  .sas-issue-btn { grid-template-columns: 28px minmax(0, 1fr) 18px; padding: 10px; gap: 4px 10px; }
+  .sas-pts { grid-column: 2; grid-row: 2; justify-self: start; padding: 4px 6px; font-size: 12px; }
+  .sas-chev { grid-column: 3; grid-row: 1; }
+  .sas-det-body { margin: 0 10px 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sas-rerun, .sas-rerun svg, .sas-cat, .sas-arc, .sas-sev, .sas-issue, .sas-chev, .sas-det, .sas-check input, .sas-check input::after, .sas-scan, .sas-bar i { transition: none; }
+  .sas-letter b.is-swap, .sas-gain.is-swap, .sas-done.is-in, .sas-pulse::after { animation: none; }
+  .sas-cat:hover { transform: none; }
+  .sas-rerun:hover:not(:disabled) svg { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--sas-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--sas-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--sas-display); letter-spacing: -0.028em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  position: relative;
+  background:
+    radial-gradient(70% 60% at 50% 0%, color-mix(in oklab, var(--sas-violet) 10%, transparent), transparent 70%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(22px, 4.6vw, 48px) clamp(14px, 3.6vw, 40px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 940px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 62ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--sas-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--sas-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--sas-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--sas-card); cursor: pointer;
+  font: 500 12px/1 var(--sas-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--sas-tint); border: 1px solid var(--line); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--sas-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard" aria-current="page"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 23</span></div>
+    <h1>SEO Audit Scorecard</h1>
+    <p>A site audit as a report card: one letter grade, four category scores and every issue grouped by how serious it is. Open an issue to see why it matters and how to fix it. Mark it fixed and the scores update.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <seo-audit-scorecard id="demo" severity="all">
+      <script type="application/json">
+        {
+          "eyebrow": "SEO audit report",
+          "title": "Harbor & Pine Realty",
+          "site": "harborandpine.example",
+          "pages": 48,
+          "lastRun": "2 Oct 2026, 09:14",
+          "categories": [
+            { "id": "performance", "label": "Performance", "score": 46 },
+            { "id": "accessibility", "label": "Accessibility", "score": 78 },
+            { "id": "best", "label": "Best practices", "score": 91 },
+            { "id": "seo", "label": "On-page SEO", "score": 71 }
+          ],
+          "issues": [
+            { "id": "img-weight", "severity": "critical", "category": "performance", "pages": 6, "impact": 18,
+              "title": "Hero photos are not compressed",
+              "why": "The home and listing pages load 2 to 3 MB photos before anything else. On mobile data that adds seconds before the page is usable, and slow pages rank lower.",
+              "fix": "Export photos as WebP or AVIF at the size they are shown, and set width and height so the layout doesn't jump.",
+              "urls": ["/", "/listings", "/listings/12-cove-road", "/about"] },
+            { "id": "render-block", "severity": "critical", "category": "performance", "pages": 48, "impact": 14,
+              "title": "Scripts block the first paint",
+              "why": "Three scripts in the page head must download and run before the browser can draw anything.",
+              "fix": "Add defer to the chat widget and analytics scripts, and inline only the CSS needed for the top of the page.",
+              "urls": ["/", "/listings", "/contact"] },
+            { "id": "alt-text", "severity": "critical", "category": "accessibility", "pages": 23, "impact": 9,
+              "title": "Images are missing alt text",
+              "why": "Screen readers read these images out as file names, and search engines can't tell what the photos show.",
+              "fix": "Write a short description for each listing photo, such as \"Kitchen with island and sea view\". Give purely decorative images an empty alt.",
+              "urls": ["/listings/12-cove-road", "/listings/4-pine-lane", "/team"] },
+            { "id": "broken-links", "severity": "critical", "category": "seo", "pages": 6, "impact": 8,
+              "title": "Internal links point to missing pages",
+              "why": "Six pages link to listings that were taken down. Visitors hit a 404 and crawlers waste time on dead ends.",
+              "fix": "Redirect sold listings to their area page, or remove the links from the \"Similar homes\" blocks.",
+              "urls": ["/listings/8-harbor-view", "/areas/bayside", "/blog/spring-market"] },
+            { "id": "meta-desc", "severity": "warning", "category": "seo", "pages": 14, "impact": 6,
+              "title": "Meta descriptions are missing",
+              "why": "Without one, search results show a random snippet from the page, which usually gets fewer clicks.",
+              "fix": "Write a 140 to 160 character summary for each page that says what is on it and who it is for.",
+              "urls": ["/areas/bayside", "/areas/old-town", "/sell", "/blog"] },
+            { "id": "contrast", "severity": "warning", "category": "accessibility", "pages": 48, "impact": 7,
+              "title": "Buttons have low colour contrast",
+              "why": "The pale grey \"Book a viewing\" text is hard to read for many visitors, especially on a phone outdoors.",
+              "fix": "Darken the button text or background until the contrast ratio is at least 4.5 to 1.",
+              "urls": ["/", "/listings", "/contact"] },
+            { "id": "dup-titles", "severity": "warning", "category": "seo", "pages": 8, "impact": 5,
+              "title": "Several pages share the same title",
+              "why": "Eight listing pages are all titled \"Home for sale\", so search engines can't tell them apart.",
+              "fix": "Put the street and area in each title, for example \"12 Cove Road, Bayside · 3 bed home\".",
+              "urls": ["/listings/12-cove-road", "/listings/4-pine-lane", "/listings/31-dune-street"] },
+            { "id": "caching", "severity": "warning", "category": "performance", "pages": 48, "impact": 8,
+              "title": "Static files are not cached",
+              "why": "Returning visitors download the same fonts, styles and logo again on every visit.",
+              "fix": "Set a long cache lifetime, such as one year, on versioned static files.",
+              "urls": ["/assets/site.css", "/assets/logo.svg", "/assets/fonts"] },
+            { "id": "insecure", "severity": "warning", "category": "best", "pages": 3, "impact": 4,
+              "title": "Some images load over an insecure connection",
+              "why": "Three pages pull photos from a non-HTTPS address, so browsers mark the page as not fully secure.",
+              "fix": "Serve those images over HTTPS, or move them onto the main site.",
+              "urls": ["/listings/2-quay-road", "/press", "/blog/open-house"] },
+            { "id": "console", "severity": "notice", "category": "best", "pages": 1, "impact": 3,
+              "title": "Console errors on the contact page",
+              "why": "The map script throws an error when it loads. Nothing breaks yet, but errors like this often hide real problems.",
+              "fix": "Update the map embed and remove the old key from the page.",
+              "urls": ["/contact"] },
+            { "id": "headings", "severity": "notice", "category": "accessibility", "pages": 11, "impact": 3,
+              "title": "Heading levels skip",
+              "why": "Pages jump from H2 straight to H4, which makes the outline confusing for screen-reader users.",
+              "fix": "Use headings in order and style them with CSS, rather than picking a level for its size.",
+              "urls": ["/sell", "/about", "/blog/spring-market"] },
+            { "id": "sitemap", "severity": "notice", "category": "seo", "pages": 3, "impact": 2,
+              "title": "Sitemap lists redirected URLs",
+              "why": "Crawlers read the sitemap first. Redirects there slow down how quickly the real pages are found.",
+              "fix": "Regenerate the sitemap so it only lists final URLs that load directly.",
+              "urls": ["/sitemap.xml"] },
+            { "id": "deprecated", "severity": "notice", "category": "best", "pages": 2, "impact": 2,
+              "title": "Uses a browser feature that is being removed",
+              "why": "An old photo gallery plugin relies on a feature browsers plan to drop.",
+              "fix": "Update the gallery plugin to its latest version.",
+              "urls": ["/listings/12-cove-road", "/listings/4-pine-lane"] }
+          ],
+          "source": "Overall score is the average of the four categories. Fixing an issue adds its points to its category, up to 100."
+        }
+      </script>
+    </seo-audit-scorecard>
+
+    <div class="stage-bar">
+      <p class="note" id="event-note" aria-live="polite"><b>Example data.</b> Fictional site, not a real audit.</p>
+      <div class="controls">
+        <button type="button" class="btn" id="fix-critical">Fix all critical</button>
+        <button type="button" class="btn" id="reset">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>severity</td><td>Attribute. Issue filter: <code>all</code> (default), <code>critical</code>, <code>warning</code>, <code>notice</code> or <code>fixed</code>.</td></tr>
+          <tr><td>category</td><td>Attribute. Optional category <code>id</code> to show only that category's issues. Clicking a score card sets it.</td></tr>
+          <tr><td>eyebrow · title · site</td><td>Header text. <code>site</code> is the domain that was audited.</td></tr>
+          <tr><td>pages · lastRun</td><td>Pages crawled and when the audit last ran (any text).</td></tr>
+          <tr><td>categories[]</td><td><code>{ id, label, score, weight }</code>. Score is 0–100 with every listed issue still open. Weight defaults to 1.</td></tr>
+          <tr><td>issues[].id · title</td><td>Unique key and a short, plain description of the problem.</td></tr>
+          <tr><td>issues[].severity</td><td><code>critical</code>, <code>warning</code> or <code>notice</code>.</td></tr>
+          <tr><td>issues[].category · impact</td><td>Which category it belongs to, and the points fixing it adds back.</td></tr>
+          <tr><td>issues[].pages · urls</td><td>Pages affected, and a few example paths.</td></tr>
+          <tr><td>issues[].why · fix</td><td>"Why it matters" and "How to fix" text.</td></tr>
+          <tr><td>issues[].fixed</td><td>Optional. <code>true</code> to start the issue as fixed.</td></tr>
+          <tr><td>source · labels</td><td>Optional footer note, and overrides for any built-in text.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;seo-audit-scorecard</span> <span class="a">severity=</span>"all"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "site": "harborandpine.example",
+      "pages": 48,
+      "categories": [
+        { "id": "seo", "label": "On-page SEO", "score": 71 }
+      ],
+      "issues": [
+        { "id": "meta-desc", "severity": "warning",
+          "category": "seo", "impact": 6, "pages": 14,
+          "title": "Meta descriptions are missing",
+          "why": "…", "fix": "…" }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/seo-audit-scorecard&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { site, categories: [...], issues: [...] };
+el.setFixed("meta-desc", true);
+el.rerun();
+el.addEventListener("issuefix", e =&gt; e.detail);</pre></div>
+      <p>Ticking "Mark as fixed" fires <code>issuefix</code> with the issue, its new category score, the overall score and the grade. "Re-run audit" shows a short scanning state, marks fixed issues as verified and then fires <code>auditrun</code>. <code>setFixed(id, fixed)</code> and <code>rerun()</code> do the same from code.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/form-conversion-card"><small>← Previous · 22</small><strong>Form Conversion Card</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/integration-status-grid"><small>Next · 24 →</small><strong>Integration Status Grid</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 23 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <seo-audit-scorecard> — reusable custom element
+   ========================================================= */
+(() => {
+  const SEVS = ["critical", "warning", "notice"];
+  const FILTERS = ["all", "critical", "warning", "notice", "fixed"];
+  const LABELS = {
+    all: "All", critical: "Critical", warning: "Warning", notice: "Notice", fixed: "Fixed",
+    issues: "Issues", filter: "Filter issues by severity", categories: "Category scores",
+    overall: "Overall score", grade: "Grade", potential: "Fix everything to reach {score} · {grade}", maxed: "Every issue is fixed",
+    pages: "{n} pages crawled", lastRun: "Last run {when}", justNow: "just now",
+    open: "{n} open", openOne: "1 open", none: "No open issues", gain: "+{n} from fixes",
+    pagesAffected: "{n} pages", pageAffected: "1 page", pts: "+{n} pts",
+    why: "Why it matters", how: "How to fix", examples: "Example pages", more: "+{n} more",
+    markFixed: "Mark as fixed", fixHint: "Adds <b>+{n}</b> to {cat}", fixedHint: "Added <b>+{n}</b> to {cat}",
+    verified: "Verified on re-run",
+    empty: "Nothing in this view. Nice work.", clearScope: "Show all categories",
+    rerun: "Re-run audit", scanning: "Re-running audit", scanTitle: "Scanning {site}",
+    steps: ["Fetching {pages} pages", "Checking performance", "Checking accessibility", "Checking best practices", "Checking on-page SEO", "Working out scores"],
+    done: "Audit complete. {verified} fixes verified · overall {score} · grade {grade}.",
+    doneNone: "Audit complete. No changes since the last run · overall {score} · grade {grade}.",
+    fixedSr: "{title} marked as fixed. {cat} is now {score}. Overall {overall}, grade {grade}.",
+    unfixedSr: "{title} reopened. {cat} is now {score}. Overall {overall}, grade {grade}."
+  };
+  const GRADES = [[90, "A"], [80, "B"], [70, "C"], [60, "D"], [0, "F"]];
+  const ICON = {
+    critical: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 15 14H1z"/><path d="M8 6.4v3.4M8 11.9v.1"/></svg>',
+    warning: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 4.8v3.7M8 10.9v.1"/></svg>',
+    notice: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6.2"/><path d="M8 7.4v3.8M8 4.9v.1"/></svg>',
+    fixed: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.2 8.4 3 3 6.6-6.8"/></svg>',
+    chev: '<svg class="sas-chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>',
+    globe: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="M1.8 8h12.4M8 1.7c2 2 2 10.6 0 12.6M8 1.7c-2 2-2 10.6 0 12.6"/></svg>',
+    rerun: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8a5.5 5.5 0 1 1-1.7-4"/><path d="M13.6 2.2v3.4h-3.4"/></svg>',
+    x: '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m3 3 6 6M9 3 3 9"/></svg>',
+    ok: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6.3"/><path d="m5.2 8.2 2 2 3.8-4"/></svg>'
+  };
+  const RING = '<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle class="sas-trk" cx="50" cy="50" r="42" stroke-width="{w}"/><circle class="sas-arc" cx="50" cy="50" r="42" stroke-width="{w}" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>';
+
+  const TEMPLATE = `
+    <article class="sas">
+      <header class="sas-band">
+        <div class="sas-site">
+          <span class="sas-eyebrow"></span>
+          <h2 class="sas-title"></h2>
+          <span class="sas-url"></span>
+          <ul class="sas-meta"><li class="sas-m-pages"></li><li class="sas-m-run"></li></ul>
+          <button type="button" class="sas-rerun"></button>
+        </div>
+        <div class="sas-grade">
+          <div class="sas-seal">${RING.replace(/\{w\}/g, "7")}<div class="sas-letter"><b></b><small></small></div></div>
+          <div class="sas-overall">
+            <span class="sas-overall-k"></span>
+            <span class="sas-overall-v"></span>
+            <span class="sas-potential"></span>
+          </div>
+        </div>
+      </header>
+      <div class="sas-body">
+        <div class="sas-done" hidden></div>
+        <div class="sas-cats" role="group"></div>
+        <div class="sas-toolbar">
+          <h3 class="sas-h"><span class="sas-h-t"></span></h3>
+          <div class="sas-sevs" role="group"></div>
+        </div>
+        <div class="sas-groups"></div>
+        <p class="sas-empty" hidden></p>
+        <p class="sas-foot"></p>
+        <div class="sas-scan" aria-hidden="true">
+          <div class="sas-scan-card">
+            <div class="sas-scan-top"><span class="sas-scan-t"></span><span class="sas-scan-p"></span></div>
+            <div class="sas-pulse"></div>
+            <div class="sas-bar"><i></i></div>
+            <p class="sas-scan-s"></p>
+          </div>
+        </div>
+      </div>
+      <p class="sas-sr" aria-live="polite"></p>
+    </article>`;
+
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const clamp = v => Math.max(0, Math.min(100, v));
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const gradeOf = s => GRADES.find(g => s >= g[0])[1];
+  const toneOf = s => (s >= 90 ? "good" : s >= 50 ? "warn" : "bad");
+  /* fills a template that contains <b> markers without using innerHTML on data */
+  const rich = (el, tpl, vars) => {
+    el.replaceChildren();
+    String(tpl).split(/(<b>.*?<\/b>)/).forEach(part => {
+      const m = /^<b>(.*)<\/b>$/.exec(part);
+      if (m) el.append(make("b", null, fill(m[1], vars))); else if (part) el.append(fill(part, vars));
+    });
+  };
+  let uid = 0;
+
+  class SeoAuditScorecard extends HTMLElement {
+    static get observedAttributes() { return ["severity", "category"]; }
+
+    connectedCallback() {
+      if (this._built) return;
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<seo-audit-scorecard>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this._uid = "sas" + (++uid);
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".sas"), eyebrow: q(".sas-eyebrow"), title: q(".sas-title"), url: q(".sas-url"),
+        mPages: q(".sas-m-pages"), mRun: q(".sas-m-run"), rerun: q(".sas-rerun"),
+        seal: q(".sas-seal"), sealArc: q(".sas-seal .sas-arc"), letter: q(".sas-letter b"), letterK: q(".sas-letter small"),
+        overallK: q(".sas-overall-k"), overallV: q(".sas-overall-v"), potential: q(".sas-potential"),
+        cats: q(".sas-cats"), h: q(".sas-h"), hT: q(".sas-h-t"), sevs: q(".sas-sevs"), groups: q(".sas-groups"),
+        empty: q(".sas-empty"), done: q(".sas-done"), foot: q(".sas-foot"),
+        scan: q(".sas-scan"), scanT: q(".sas-scan-t"), scanP: q(".sas-scan-p"), scanS: q(".sas-scan-s"), scanBar: q(".sas-bar"),
+        sr: q(".sas-sr")
+      };
+      this._timers = [];
+      this._wire();
+      this._built = true;
+      this._render();
+    }
+
+    disconnectedCallback() { this._clearTimers(); }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      this._renderIssues(true);
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) { this._clearTimers(); this._scanning(false); this._render(); } }
+    get severity() { const v = (this.getAttribute("severity") || "all").toLowerCase(); return FILTERS.includes(v) ? v : "all"; }
+    set severity(v) { this.setAttribute("severity", FILTERS.includes(v) ? v : "all"); }
+    get category() { const v = this.getAttribute("category"); return v && this._cats && this._cats.some(c => c.id === v) ? v : null; }
+    set category(v) { if (v) this.setAttribute("category", v); else this.removeAttribute("category"); }
+    get scores() { return this._built ? this._score() : null; }
+    setFixed(id, fixed) { const it = this._issues && this._issues.find(i => i.id === id); if (it) this._setFixed(it, !!fixed, false); }
+    rerun() { if (this._built) this._rerun(); }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _clearTimers() { (this._timers || []).forEach(t => clearTimeout(t)); this._timers = []; }
+    _later(fn, ms) { const t = setTimeout(() => { this._timers = this._timers.filter(x => x !== t); fn(); }, ms); this._timers.push(t); }
+
+    _render() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.url.replaceChildren();
+      if (d.site) { $.url.innerHTML = ICON.globe; $.url.append(d.site); }
+      $.mPages.replaceChildren();
+      if (num(d.pages) != null) rich($.mPages, fill(L.pages, { n: "<b>" + num(d.pages).toLocaleString("en-US") + "</b>" }), {});
+      $.mPages.hidden = num(d.pages) == null;
+      this._lastRun = d.lastRun || "";
+      this._paintRun();
+      $.rerun.innerHTML = ICON.rerun;
+      $.rerun.append(L.rerun);
+      $.overallK.textContent = L.overall;
+      $.letterK.textContent = L.grade;
+      $.cats.setAttribute("aria-label", L.categories);
+      $.sevs.setAttribute("aria-label", L.filter);
+      $.hT.textContent = L.issues;
+      $.empty.textContent = L.empty;
+      $.foot.textContent = d.source || "";
+      $.done.hidden = true;
+
+      const seen = new Set();
+      this._cats = (Array.isArray(d.categories) ? d.categories : []).filter(Boolean).map((c, i) => {
+        let id = String(c.id || `cat-${i + 1}`);
+        while (seen.has(id)) id += "-" + i;
+        seen.add(id);
+        return { id, label: c.label || id, base: clamp(num(c.score) ?? 0), weight: Math.max(0, num(c.weight) ?? 1) };
+      });
+      const iseen = new Set();
+      this._issues = (Array.isArray(d.issues) ? d.issues : []).filter(Boolean).map((x, i) => {
+        let id = String(x.id || `issue-${i + 1}`);
+        while (iseen.has(id)) id += "-" + i;
+        iseen.add(id);
+        return {
+          id, raw: x, title: x.title || "Issue", severity: SEVS.includes(x.severity) ? x.severity : "notice",
+          category: seen.has(x.category) ? x.category : (this._cats[0] || {}).id, impact: Math.max(0, num(x.impact) ?? 0),
+          pages: num(x.pages), why: x.why || "", fix: x.fix || "", urls: Array.isArray(x.urls) ? x.urls.map(String) : [],
+          fixed: !!x.fixed, verified: !!x.fixed
+        };
+      });
+      // the base score in the data assumes listed issues are open; issues that start fixed already count
+      this._nodes = new Map();
+      this._open = null;
+
+      $.cats.replaceChildren(...this._cats.map(c => {
+        const b = make("button", "sas-cat");
+        b.type = "button"; b.dataset.id = c.id;
+        const ring = make("span", "sas-ring");
+        ring.setAttribute("aria-hidden", "true");
+        ring.innerHTML = RING.replace(/\{w\}/g, "9");
+        ring.append(make("span", "sas-ring-v"));
+        const sub = make("span", "sas-cat-sub");
+        sub.append(make("span", "sas-cat-open"), make("span", "sas-gain"));
+        b.append(ring, make("span", "sas-cat-name", c.label), sub, make("span", "sas-sr sas-cat-sr"));
+        return b;
+      }));
+      $.sevs.replaceChildren(...FILTERS.map(f => {
+        const b = make("button", "sas-sev");
+        b.type = "button"; b.dataset.filter = f;
+        if (f !== "all") b.dataset.sev = f;
+        if (f !== "all") b.append(make("i"));
+        b.append(L[f], make("b"));
+        return b;
+      }));
+      this._prev = null;
+      this._paintScores(false);
+      this._renderIssues(false);
+    }
+
+    _paintRun() {
+      const L = this._labels(), $ = this.$;
+      $.mRun.replaceChildren();
+      if (this._lastRun) rich($.mRun, fill(L.lastRun, { when: "<b>" + this._lastRun + "</b>" }), {});
+      $.mRun.hidden = !this._lastRun;
+    }
+
+    _score() {
+      const cats = this._cats.map(c => {
+        const gained = this._issues.filter(i => i.fixed && i.category === c.id).reduce((s, i) => s + i.impact, 0);
+        const left = this._issues.filter(i => !i.fixed && i.category === c.id).reduce((s, i) => s + i.impact, 0);
+        return Object.assign({}, c, {
+          score: Math.round(clamp(c.base + gained)), gained: Math.round(Math.min(gained, 100 - c.base)),
+          max: Math.round(clamp(c.base + gained + left)),
+          open: this._issues.filter(i => !i.fixed && i.category === c.id).length
+        });
+      });
+      const w = cats.reduce((s, c) => s + c.weight, 0) || 1;
+      const overall = Math.round(cats.reduce((s, c) => s + c.score * c.weight, 0) / w);
+      const potential = Math.round(cats.reduce((s, c) => s + c.max * c.weight, 0) / w);
+      return { cats, overall, potential, grade: gradeOf(overall), potentialGrade: gradeOf(potential) };
+    }
+
+    _paintScores(animate) {
+      const L = this._labels(), $ = this.$, S = this._score(), prev = this._prev;
+      const motion = animate && !reduceMotion() && !document.hidden;
+
+      $.seal.dataset.tone = toneOf(S.overall);
+      $.sealArc.style.strokeDashoffset = String(100 - S.overall);
+      if ($.letter.textContent !== S.grade) {
+        $.letter.textContent = S.grade;
+        if (motion && prev) { $.letter.classList.remove("is-swap"); void $.letter.offsetWidth; $.letter.classList.add("is-swap"); }
+      }
+      this._tween($.overallV, prev ? prev.overall : S.overall, S.overall, motion, v => {
+        $.overallV.replaceChildren(String(v), make("small", null, "/ 100"));
+      });
+      $.seal.setAttribute("role", "img");
+      $.seal.setAttribute("aria-label", `${L.grade} ${S.grade}, ${L.overall.toLowerCase()} ${S.overall} / 100`);
+      if (S.potential > S.overall) rich($.potential, L.potential.replace("{score} · {grade}", "<b>{score} · {grade}</b>"), { score: S.potential, grade: S.potentialGrade });
+      else $.potential.textContent = L.maxed;
+
+      S.cats.forEach((c, i) => {
+        const b = $.cats.querySelector(`.sas-cat[data-id="${CSS.escape(c.id)}"]`);
+        if (!b) return;
+        const ring = b.querySelector(".sas-ring");
+        ring.dataset.tone = toneOf(c.score);
+        b.querySelector(".sas-arc").style.strokeDashoffset = String(100 - c.score);
+        const v = b.querySelector(".sas-ring-v");
+        this._tween(v, prev ? prev.cats[i].score : c.score, c.score, motion, n => (v.textContent = String(n)));
+        b.querySelector(".sas-cat-open").textContent = c.open === 0 ? L.none : c.open === 1 ? L.openOne : fill(L.open, { n: c.open });
+        const g = b.querySelector(".sas-gain"), gt = c.gained > 0 ? fill(L.gain, { n: c.gained }) : "";
+        if (g.textContent !== gt) {
+          g.textContent = gt;
+          if (motion && gt) { g.classList.remove("is-swap"); void g.offsetWidth; g.classList.add("is-swap"); }
+        }
+        b.querySelector(".sas-cat-sr").textContent = `, score ${c.score} out of 100`;
+      });
+      this._prev = S;
+      return S;
+    }
+
+    _tween(el, from, to, motion, paint) {
+      el._to = to;
+      if (!motion || from === to) { paint(to); return; }
+      const t0 = performance.now(), dur = 650;
+      const step = now => {
+        if (el._to !== to) return;
+        const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        paint(Math.round(from + (to - from) * e));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    _renderIssues(animate) {
+      const L = this._labels(), $ = this.$, sev = this.severity, cat = this.category;
+      $.sevs.querySelectorAll(".sas-sev").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.filter === sev)));
+      $.cats.querySelectorAll(".sas-cat").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.id === cat)));
+
+      // scope chip next to the heading
+      const old = $.h.querySelector(".sas-scope");
+      if (old) old.remove();
+      if (cat) {
+        const c = this._cats.find(x => x.id === cat);
+        const chip = make("span", "sas-scope", c.label);
+        const x = make("button");
+        x.type = "button";
+        x.setAttribute("aria-label", L.clearScope);
+        x.innerHTML = ICON.x;
+        x.addEventListener("click", () => { this.category = null; const f = $.cats.querySelector(".sas-cat"); if (f) f.focus(); });
+        chip.append(x);
+        $.h.append(chip);
+      }
+
+      const inCat = this._issues.filter(i => !cat || i.category === cat);
+      const count = f => f === "all" ? inCat.length : f === "fixed" ? inCat.filter(i => i.fixed).length : inCat.filter(i => !i.fixed && i.severity === f).length;
+      $.sevs.querySelectorAll(".sas-sev").forEach(b => (b.querySelector("b").textContent = String(count(b.dataset.filter))));
+
+      const groupKeys = sev === "all" ? [...SEVS, "fixed"] : [sev];
+      const groups = groupKeys.map(k => {
+        const items = inCat.filter(i => (k === "fixed" ? i.fixed : !i.fixed && i.severity === k))
+          .sort((a, b) => b.impact - a.impact || a.title.localeCompare(b.title));
+        if (!items.length) return null;
+        const g = make("section", "sas-group");
+        g.dataset.sev = k;
+        const hid = `${this._uid}-g-${k}`;
+        const h = make("h4", "sas-group-h", L[k]);
+        h.id = hid;
+        h.append(make("span", null, String(items.length)));
+        g.setAttribute("aria-labelledby", hid);
+        const ul = make("ul", "sas-list");
+        items.forEach(it => ul.append(this._issue(it, L)));
+        g.append(h, ul);
+        return g;
+      }).filter(Boolean);
+      $.groups.replaceChildren(...groups);
+      $.empty.hidden = groups.length > 0;
+    }
+
+    _issue(it, L) {
+      let li = this._nodes.get(it.id);
+      if (!li) {
+        li = make("li", "sas-issue");
+        li.dataset.id = it.id;
+        const detId = `${this._uid}-d-${it.id.replace(/[^\w-]/g, "")}`;
+        const btn = make("button", "sas-issue-btn");
+        btn.type = "button";
+        btn.setAttribute("aria-controls", detId);
+        const ico = make("span", "sas-ico");
+        const t = make("span", "sas-it");
+        const meta = make("span", "sas-it-m");
+        const cat = this._cats.find(c => c.id === it.category);
+        meta.append(make("span", "sas-chip", cat ? cat.label : ""));
+        if (it.pages != null) meta.append(make("span", null, it.pages === 1 ? L.pageAffected : fill(L.pagesAffected, { n: it.pages })));
+        meta.append(make("span", "sas-verified"));
+        t.append(make("span", "sas-sr sas-sev-sr"), make("span", "sas-it-t", it.title), meta);
+        btn.append(ico, t, make("span", "sas-pts", fill(L.pts, { n: it.impact })));
+        btn.insertAdjacentHTML("beforeend", ICON.chev);
+
+        const det = make("div", "sas-det");
+        det.id = detId;
+        const inner = make("div", "sas-det-in"), body = make("div", "sas-det-body");
+        const sec = (k, v) => { const s = make("div", "sas-dsec"); s.append(make("h5", null, k), make("p", null, v)); return s; };
+        if (it.why) body.append(sec(L.why, it.why));
+        if (it.fix) body.append(sec(L.how, it.fix));
+        if (it.urls.length) {
+          const ul = make("ul", "sas-urls");
+          ul.setAttribute("aria-label", L.examples);
+          const shown = it.urls.slice(0, 4);
+          shown.forEach(u => ul.append(make("li", null, u)));
+          const rest = (it.pages != null ? it.pages : it.urls.length) - shown.length;
+          if (rest > 0) ul.append(make("li", "sas-more", fill(L.more, { n: rest })));
+          body.append(ul);
+        }
+        const fix = make("div", "sas-fix");
+        const lab = make("label", "sas-check");
+        const cb = make("input");
+        cb.type = "checkbox";
+        cb.addEventListener("change", () => this._setFixed(it, cb.checked, true));
+        lab.append(cb, make("span", null, L.markFixed));
+        fix.append(lab, make("span", "sas-fix-hint"));
+        body.append(fix);
+        inner.append(body);
+        det.append(inner);
+
+        btn.addEventListener("click", () => this._toggle(it.id));
+        li.append(btn, det);
+        li._it = it;
+        this._nodes.set(it.id, li);
+      }
+      this._paintIssue(li, L);
+      return li;
+    }
+
+    _paintIssue(li, L) {
+      const it = li._it, open = this._open === it.id, sev = it.fixed ? "fixed" : it.severity;
+      const cat = this._cats.find(c => c.id === it.category);
+      li.dataset.sev = sev;
+      li.classList.toggle("is-open", open);
+      li.querySelector(".sas-issue-btn").setAttribute("aria-expanded", String(open));
+      li.querySelector(".sas-det-in").inert = !open;
+      li.querySelector(".sas-ico").innerHTML = ICON[sev];
+      li.querySelector(".sas-sev-sr").textContent = L[sev] + ": ";
+      li.querySelector(".sas-verified").textContent = it.fixed && it.verified ? L.verified : "";
+      li.querySelector("input").checked = it.fixed;
+      rich(li.querySelector(".sas-fix-hint"), it.fixed ? L.fixedHint : L.fixHint, { n: it.impact, cat: cat ? cat.label : "" });
+    }
+
+    _toggle(id) {
+      const prev = this._open, L = this._labels();
+      this._open = prev === id ? null : id;
+      [prev, this._open].forEach(x => { const li = x && this._nodes.get(x); if (li) this._paintIssue(li, L); });
+    }
+
+    _setFixed(it, fixed, fromUi) {
+      if (it.fixed === fixed) return;
+      const L = this._labels(), li = this._nodes.get(it.id);
+      const hadFocus = li && li.contains(document.activeElement);
+      const before = li && li.isConnected ? li.getBoundingClientRect() : null;
+      it.fixed = fixed;
+      if (!fixed) it.verified = false;
+      const S = this._paintScores(true);
+      this._renderIssues(true);
+
+      if (li && li.isConnected) {
+        if (hadFocus) li.querySelector("input").focus({ preventScroll: true });
+        if (before && !reduceMotion() && "animate" in Element.prototype) {
+          const after = li.getBoundingClientRect();
+          li.animate([{ transform: `translateY(${before.top - after.top}px)`, opacity: .6 }, { transform: "none", opacity: 1 }],
+            { duration: 450, easing: "cubic-bezier(.2,.7,.2,1)" });
+        }
+        if (fromUi) { const r = li.getBoundingClientRect(); if (r.top < 0 || r.bottom > window.innerHeight) li.scrollIntoView({ block: "nearest", behavior: reduceMotion() ? "auto" : "smooth" }); }
+      } else if (hadFocus) {
+        // the issue left the current view: hand focus to the filter that now holds it
+        const target = this.$.sevs.querySelector(`.sas-sev[data-filter="${fixed ? "fixed" : it.severity}"]`) || this.$.sevs.querySelector(".sas-sev");
+        if (target) target.focus();
+      }
+      const c = S.cats.find(x => x.id === it.category) || {};
+      this._say(fill(fixed ? L.fixedSr : L.unfixedSr, { title: it.title, cat: c.label, score: c.score, overall: S.overall, grade: S.grade }));
+      this.dispatchEvent(new CustomEvent("issuefix", {
+        bubbles: true,
+        detail: {
+          id: it.id, fixed, issue: Object.assign({}, it.raw, { fixed }),
+          category: it.category, categoryScore: c.score, overall: S.overall, grade: S.grade
+        }
+      }));
+    }
+
+    _rerun() {
+      const L = this._labels(), $ = this.$, d = this._data || {};
+      if ($.card.classList.contains("is-scanning")) return;
+      this._clearTimers();
+      const steps = (Array.isArray(L.steps) ? L.steps : LABELS.steps).map(s => fill(s, { pages: num(d.pages) ?? "" }).replace(/\s+/g, " ").trim());
+      const quick = reduceMotion();
+      const stepMs = quick ? 160 : 340;
+      $.done.hidden = true;
+      this._scanning(true);
+      $.scanT.textContent = fill(L.scanTitle, { site: d.site || "" }).trim();
+      this._say(L.scanning);
+      const show = i => {
+        const p = Math.round((i / steps.length) * 100);
+        $.scanBar.style.setProperty("--sas-p", p);
+        $.scanP.textContent = p + "%";
+        $.scanS.textContent = steps[Math.min(i, steps.length - 1)] + (i < steps.length ? "…" : "");
+      };
+      show(0);
+      steps.forEach((_, i) => this._later(() => show(i + 1), stepMs * (i + 1)));
+      this._later(() => {
+        const verified = this._issues.filter(i => i.fixed && !i.verified);
+        verified.forEach(i => (i.verified = true));
+        this._lastRun = L.justNow;
+        this._paintRun();
+        this._scanning(false);
+        $.rerun.focus({ preventScroll: true });
+        const S = this._paintScores(true);
+        this._renderIssues(true);
+        const msg = fill(verified.length ? L.done : L.doneNone, { verified: verified.length, score: S.overall, grade: S.grade });
+        $.done.innerHTML = ICON.ok;
+        $.done.append(msg);
+        $.done.hidden = false;
+        if (!quick) { $.done.classList.remove("is-in"); void $.done.offsetWidth; $.done.classList.add("is-in"); }
+        this._say(msg);
+        this.dispatchEvent(new CustomEvent("auditrun", {
+          bubbles: true,
+          detail: { overall: S.overall, grade: S.grade, verified: verified.map(i => i.id), categories: S.cats.map(c => ({ id: c.id, score: c.score })) }
+        }));
+      }, stepMs * (steps.length + 1) + (quick ? 0 : 200));
+    }
+
+    _scanning(on) {
+      const $ = this.$;
+      $.card.classList.toggle("is-scanning", on);
+      if (on) $.card.setAttribute("aria-busy", "true"); else $.card.removeAttribute("aria-busy");
+      $.scan.setAttribute("aria-hidden", String(!on));
+      $.rerun.disabled = on;
+      [$.cats, $.sevs, $.groups, $.h].forEach(n => (n.inert = on));
+    }
+
+    _say(t) {
+      this.$.sr.textContent = "";
+      this._later(() => { this.$.sr.textContent = t; }, 60);
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.rerun.addEventListener("click", () => this._rerun());
+      $.sevs.addEventListener("click", e => {
+        const b = e.target.closest(".sas-sev");
+        if (!b || b.dataset.filter === this.severity) return;
+        this.severity = b.dataset.filter;
+      });
+      $.cats.addEventListener("click", e => {
+        const b = e.target.closest(".sas-cat");
+        if (!b) return;
+        this.category = this.category === b.dataset.id ? null : b.dataset.id;
+      });
+      $.groups.addEventListener("keydown", e => {
+        if (e.key !== "Escape" || !this._open) return;
+        const li = this._nodes.get(this._open);
+        this._toggle(this._open);
+        if (li && li.isConnected) li.querySelector(".sas-issue-btn").focus();
+      });
+    }
+  }
+
+  if (!customElements.get("seo-audit-scorecard")) customElements.define("seo-audit-scorecard", SeoAuditScorecard);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("event-note");
+  const original = JSON.parse(JSON.stringify(el.data || {}));
+  const say = (strong, rest) => { const b = document.createElement("b"); b.textContent = strong; note.replaceChildren(b, " " + rest); };
+
+  el.addEventListener("issuefix", e => {
+    const d = e.detail;
+    say("issuefix", `fired: ${d.fixed ? "fixed" : "reopened"} "${d.issue.title}". Overall ${d.overall}, grade ${d.grade}. Example data.`);
+  });
+  el.addEventListener("auditrun", e => say("auditrun", `fired: overall ${e.detail.overall}, grade ${e.detail.grade}. Example data, not a real audit.`));
+
+  document.getElementById("fix-critical").addEventListener("click", () => {
+    (el.data.issues || []).filter(i => i.severity === "critical").forEach(i => el.setFixed(i.id, true));
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    el.removeAttribute("category");
+    el.setAttribute("severity", "all");
+    el.data = JSON.parse(JSON.stringify(original));
+    say("Example data.", "Fictional site, not a real audit.");
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

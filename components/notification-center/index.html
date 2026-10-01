@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable notification center: a bell with an unread badge that opens a panel of mentions and system alerts, with tabs, mark as read, dismiss and an empty state.">
+<meta property="og:title" content="Notification Center · LofiStack Components">
+<meta property="og:description" content="A reusable notification center: a bell with an unread badge that opens a panel of mentions and system alerts, with tabs, mark as read, dismiss and an empty state.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Notification Center · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #F0EBED;
+  --stage: #F7F3F4;
+  --ink: #1C1417;
+  --muted: #5F5459;
+  --faint: #74686D;
+  --line: #E3D9DC;
+  --panel: #FAF7F8;
+  --accent: #BE123C;
+
+  /* ---- Notification Center tokens (override these to re-theme the component) ---- */
+  --ntc-panel: #FFFFFF;
+  --ntc-raise: #FFFFFF;
+  --ntc-ink: #1C1417;
+  --ntc-muted: #5F5459;
+  --ntc-faint: #75686E;
+  --ntc-line: #F0E6E9;
+  --ntc-tint: #FBF5F7;
+  --ntc-unread: #FFF6F8;
+  --ntc-accent: #E11D48;
+  --ntc-accent-ink: #BE123C;
+  --ntc-accent-soft: rgba(225, 29, 72, 0.10);
+  --ntc-on-accent: #FFFFFF;
+  --ntc-bell: #FFFFFF;
+  --ntc-ok: #15803D;
+  --ntc-warn: #B45309;
+  --ntc-info: #4F46E5;
+  --ntc-shadow: rgba(60, 20, 34, 0.22);
+  --ntc-width: 400px;
+  --ntc-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --ntc-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --ntc-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0F0B0D; --stage: #151012; --ink: #F5EEF0; --muted: #B7A9AE; --faint: #95878C;
+    --line: #2B2226; --panel: #181315; --accent: #FB7185;
+    --ntc-panel: #1C1619; --ntc-raise: #241D20; --ntc-ink: #F5EEF0; --ntc-muted: #BBADB2; --ntc-faint: #9A8C91;
+    --ntc-line: #2F2629; --ntc-tint: #241D20; --ntc-unread: #251A1E;
+    --ntc-accent: #FB7185; --ntc-accent-ink: #FDA4AF; --ntc-accent-soft: rgba(251, 113, 133, 0.13); --ntc-on-accent: #2A0710;
+    --ntc-bell: #1E181B; --ntc-ok: #4ADE80; --ntc-warn: #FBBF24; --ntc-info: #A5B4FC;
+    --ntc-shadow: rgba(0, 0, 0, 0.66);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0F0B0D; --stage: #151012; --ink: #F5EEF0; --muted: #B7A9AE; --faint: #95878C;
+  --line: #2B2226; --panel: #181315; --accent: #FB7185;
+  --ntc-panel: #1C1619; --ntc-raise: #241D20; --ntc-ink: #F5EEF0; --ntc-muted: #BBADB2; --ntc-faint: #9A8C91;
+  --ntc-line: #2F2629; --ntc-tint: #241D20; --ntc-unread: #251A1E;
+  --ntc-accent: #FB7185; --ntc-accent-ink: #FDA4AF; --ntc-accent-soft: rgba(251, 113, 133, 0.13); --ntc-on-accent: #2A0710;
+  --ntc-bell: #1E181B; --ntc-ok: #4ADE80; --ntc-warn: #FBBF24; --ntc-info: #A5B4FC;
+  --ntc-shadow: rgba(0, 0, 0, 0.66);
+}
+
+/* =========================================================
+   Notification Center component  (copy this block + the script)
+   ========================================================= */
+notification-center {
+  position: relative;
+  display: inline-block;
+  font-family: var(--ntc-sans);
+  color: var(--ntc-ink);
+  line-height: 1.4;
+}
+.ntc { position: relative; }
+.ntc button { font-family: inherit; }
+.ntc button:focus-visible { outline: 2px solid var(--ntc-accent); outline-offset: 2px; }
+
+/* bell */
+.ntc-bell {
+  appearance: none; position: relative; cursor: pointer;
+  width: 42px; height: 42px; border-radius: 12px;
+  display: grid; place-items: center;
+  border: 1px solid var(--ntc-line); background: var(--ntc-bell); color: var(--ntc-ink);
+  box-shadow: 0 1px 2px -1px var(--ntc-shadow);
+  transition: background .2s, border-color .2s, box-shadow .25s;
+}
+.ntc-bell:hover { border-color: color-mix(in oklab, var(--ntc-accent) 40%, var(--ntc-line)); }
+.ntc-bell[aria-expanded="true"] { background: var(--ntc-accent-soft); border-color: color-mix(in oklab, var(--ntc-accent) 45%, var(--ntc-line)); color: var(--ntc-accent-ink); }
+.ntc-bell svg { width: 20px; height: 20px; transform-origin: 50% 8%; }
+.ntc-bell.ntc-is-ringing svg { animation: ntc-ring .7s cubic-bezier(.36,.07,.19,.97); }
+@keyframes ntc-ring {
+  0%, 100% { transform: rotate(0); } 15% { transform: rotate(14deg); } 30% { transform: rotate(-12deg); }
+  45% { transform: rotate(8deg); } 60% { transform: rotate(-5deg); } 75% { transform: rotate(2deg); }
+}
+.ntc-badge {
+  position: absolute; top: -6px; right: -6px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box;
+  display: grid; place-items: center; border-radius: 999px;
+  background: var(--ntc-accent); color: var(--ntc-on-accent);
+  font: 700 11px/1 var(--ntc-sans); font-variant-numeric: tabular-nums;
+  box-shadow: 0 0 0 2.5px var(--ntc-bell-ring, var(--ntc-panel));
+  transition: transform .25s cubic-bezier(.2,.7,.2,1), opacity .2s;
+}
+.ntc-badge[hidden] { display: grid !important; transform: scale(0); opacity: 0; }
+.ntc-badge.ntc-is-bump { animation: ntc-bump .38s cubic-bezier(.2,.7,.2,1); }
+@keyframes ntc-bump { 0% { transform: scale(1); } 40% { transform: scale(1.28); } 100% { transform: scale(1); } }
+
+/* panel */
+.ntc-panel {
+  container: ntc / inline-size;
+  position: absolute; top: calc(100% + 12px); right: -8px; z-index: 40;
+  width: var(--ntc-width); max-width: calc(100vw - 24px);
+  background: var(--ntc-panel);
+  border: 1px solid var(--ntc-line);
+  border-radius: 18px;
+  box-shadow: 0 30px 70px -28px var(--ntc-shadow), 0 8px 18px -12px var(--ntc-shadow);
+  transform-origin: var(--ntc-ox, calc(100% - 28px)) -10px;
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.97);
+  transition: opacity .2s ease, transform .24s cubic-bezier(.2,.7,.2,1), visibility 0s linear .24s;
+  text-align: left;
+}
+.ntc-panel::before {
+  content: ""; position: absolute; top: -7px; left: var(--ntc-ox, calc(100% - 28px)); width: 12px; height: 12px; margin-left: -6px;
+  background: var(--ntc-panel); border-left: 1px solid var(--ntc-line); border-top: 1px solid var(--ntc-line);
+  transform: rotate(45deg); border-top-left-radius: 3px;
+}
+.ntc.ntc-is-open .ntc-panel { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+
+.ntc-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 16px 10px 18px; }
+.ntc-title { margin: 0; font: 650 16px/1.2 var(--ntc-display); letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.ntc-title-n { font: 650 11px/1 var(--ntc-sans); padding: 4px 7px; border-radius: 999px; background: var(--ntc-accent-soft); color: var(--ntc-accent-ink); font-variant-numeric: tabular-nums; }
+.ntc-title-n:empty { display: none; }
+.ntc-markall {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 8px; border-radius: 8px;
+  font: 600 12.5px/1 var(--ntc-sans); color: var(--ntc-accent-ink);
+  transition: background .2s, color .2s;
+}
+.ntc-markall svg { width: 14px; height: 14px; }
+.ntc-markall:hover:not(:disabled) { background: var(--ntc-accent-soft); }
+.ntc-markall:disabled { color: var(--ntc-faint); cursor: default; opacity: .7; }
+
+.ntc-tabs { position: relative; display: flex; gap: 2px; padding: 0 12px; border-bottom: 1px solid var(--ntc-line); }
+.ntc-tab {
+  appearance: none; border: 0; background: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 8px 12px; margin-bottom: -1px;
+  font: 600 13px/1 var(--ntc-sans); color: var(--ntc-muted);
+  border-bottom: 2px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.ntc-tab:hover { color: var(--ntc-ink); }
+.ntc-tab[aria-selected="true"] { color: var(--ntc-ink); border-bottom-color: var(--ntc-accent); }
+.ntc-tab:focus-visible { outline-offset: -2px; border-radius: 6px; }
+.ntc-tab-n {
+  min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px;
+  display: inline-grid; place-items: center;
+  font: 650 10.5px/1 var(--ntc-sans); font-variant-numeric: tabular-nums;
+  background: var(--ntc-tint); color: var(--ntc-muted);
+  transition: background .2s, color .2s;
+}
+.ntc-tab[aria-selected="true"] .ntc-tab-n { background: var(--ntc-accent); color: var(--ntc-on-accent); }
+.ntc-tab-n:empty { display: none; }
+
+.ntc-list { max-height: var(--ntc-max-h, 430px); overflow-y: auto; overscroll-behavior: contain; padding: 4px 0 8px; scrollbar-width: thin; }
+.ntc-list:focus-visible { outline: 2px solid var(--ntc-accent); outline-offset: -2px; }
+.ntc-group { margin: 0; padding: 12px 18px 6px; font: 600 10.5px/1 var(--ntc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ntc-faint); }
+.ntc-items { list-style: none; margin: 0; padding: 0 8px; display: grid; gap: 2px; }
+.ntc-item {
+  position: relative; display: grid; grid-template-columns: 38px minmax(0, 1fr) 26px; gap: 12px; align-items: start;
+  padding: 10px 10px 10px 10px; border-radius: 12px;
+  transition: background .25s ease;
+}
+.ntc-item:hover { background: var(--ntc-tint); }
+.ntc-item.ntc-is-unread { background: var(--ntc-unread); }
+.ntc-item.ntc-is-unread:hover { background: color-mix(in oklab, var(--ntc-unread), var(--ntc-accent) 5%); }
+.ntc-item.ntc-is-new { animation: ntc-new .5s cubic-bezier(.2,.7,.2,1); }
+@keyframes ntc-new { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+.ntc-av {
+  position: relative; width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  font: 650 12.5px/1 var(--ntc-sans); letter-spacing: .02em; color: var(--ntc-ink);
+  background: color-mix(in oklab, var(--ntc-hue, var(--ntc-accent)) 16%, var(--ntc-panel));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ntc-hue, var(--ntc-accent)) 28%, transparent);
+}
+.ntc-av svg { width: 18px; height: 18px; color: var(--ntc-hue, var(--ntc-accent)); }
+.ntc-av--sys { border-radius: 11px; }
+.ntc-av-kind {
+  position: absolute; right: -5px; bottom: -4px; width: 16px; height: 16px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--ntc-accent); color: var(--ntc-on-accent);
+  box-shadow: 0 0 0 2px var(--ntc-panel);
+}
+.ntc-av-kind svg { width: 9px; height: 9px; color: currentColor; }
+
+.ntc-body { min-width: 0; display: grid; gap: 4px; }
+.ntc-open {
+  appearance: none; border: 0; background: none; padding: 0; margin: 0; cursor: pointer; color: inherit; text-align: left;
+  font: 400 13.5px/1.42 var(--ntc-sans); overflow-wrap: anywhere;
+}
+.ntc-open::after { content: ""; position: absolute; inset: 0; border-radius: 12px; }
+.ntc-open:focus-visible { outline: none; }
+.ntc-open:focus-visible::after { outline: 2px solid var(--ntc-accent); outline-offset: -2px; }
+.ntc-open b { font-weight: 650; }
+.ntc-item:not(.ntc-is-unread) .ntc-open { color: var(--ntc-muted); }
+.ntc-item:not(.ntc-is-unread) .ntc-open b { color: var(--ntc-ink); font-weight: 600; }
+.ntc-quote { font-size: 13px; line-height: 1.45; color: var(--ntc-muted); overflow-wrap: anywhere; }
+.ntc-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12px; color: var(--ntc-faint); font-variant-numeric: tabular-nums; }
+.ntc-meta > * + *::before { content: "·"; margin-right: 6px; }
+.ntc-action {
+  position: relative; z-index: 1; justify-self: start; margin-top: 4px;
+  appearance: none; cursor: pointer;
+  padding: 6px 11px; border-radius: 8px;
+  border: 1px solid color-mix(in oklab, var(--ntc-accent) 40%, var(--ntc-line)); background: var(--ntc-raise); color: var(--ntc-accent-ink);
+  font: 600 12px/1 var(--ntc-sans);
+  transition: background .2s, color .2s;
+}
+.ntc-action:hover { background: var(--ntc-accent); color: var(--ntc-on-accent); border-color: var(--ntc-accent); }
+.ntc-action.ntc-is-done { color: var(--ntc-ok); border-color: color-mix(in oklab, var(--ntc-ok) 40%, var(--ntc-line)); background: transparent; cursor: default; }
+
+.ntc-side { position: relative; display: grid; justify-items: center; gap: 8px; padding-top: 2px; height: 100%; }
+.ntc-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ntc-accent); box-shadow: 0 0 0 3px var(--ntc-accent-soft); transition: transform .25s ease, opacity .25s ease; margin-top: 5px; }
+.ntc-item:not(.ntc-is-unread) .ntc-dot { transform: scale(0); opacity: 0; }
+.ntc-x {
+  position: relative; z-index: 1;
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center;
+  color: var(--ntc-faint); opacity: 0;
+  transition: opacity .2s, background .2s, color .2s;
+}
+.ntc-x svg { width: 12px; height: 12px; }
+.ntc-item:hover .ntc-x, .ntc-x:focus-visible, .ntc-item:focus-within .ntc-x { opacity: 1; }
+.ntc-x:hover { background: var(--ntc-panel); color: var(--ntc-ink); box-shadow: 0 0 0 1px var(--ntc-line); }
+@media (hover: none) { .ntc-x { opacity: 1; } }
+
+.ntc-empty { padding: 34px 24px 30px; display: grid; justify-items: center; gap: 6px; text-align: center; }
+.ntc-empty svg { width: 76px; height: 76px; margin-bottom: 6px; }
+.ntc-empty b { font: 650 15px/1.3 var(--ntc-display); }
+.ntc-empty span { font-size: 13px; color: var(--ntc-muted); max-width: 28ch; }
+
+.ntc-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 16px 12px 18px; border-top: 1px solid var(--ntc-line); font-size: 12px; color: var(--ntc-faint); }
+.ntc-foot a, .ntc-foot button {
+  appearance: none; border: 0; background: none; cursor: pointer; padding: 6px 4px; border-radius: 6px;
+  font: 600 12.5px/1 var(--ntc-sans); color: var(--ntc-ink); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.ntc-foot a:hover, .ntc-foot button:hover { color: var(--ntc-accent-ink); }
+.ntc-foot svg { width: 13px; height: 13px; }
+.ntc-foot a:focus-visible { outline: 2px solid var(--ntc-accent); outline-offset: 2px; }
+.ntc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* narrow panels (phones): tighter rows */
+@container ntc (max-width: 380px) {
+  .ntc-head { padding: 14px 12px 8px 14px; }
+  .ntc-tabs { padding: 0 8px; }
+  .ntc-tab { padding: 10px 6px 11px; font-size: 12.5px; }
+  .ntc-group { padding: 10px 14px 6px; }
+  .ntc-items { padding: 0 6px; }
+  .ntc-item { grid-template-columns: 32px minmax(0, 1fr) 24px; gap: 10px; padding: 9px 8px; }
+  .ntc-av { width: 32px; height: 32px; font-size: 11px; }
+  .ntc-av svg { width: 16px; height: 16px; }
+  .ntc-open { font-size: 13px; }
+  .ntc-x { opacity: 1; width: 24px; height: 24px; }
+  .ntc-foot { padding: 10px 12px 12px 14px; }
+}
+@container ntc (max-width: 320px) {
+  .ntc-markall span { display: none; }
+  .ntc-tab-n { display: none; }
+  .ntc-item { grid-template-columns: minmax(0, 1fr) 24px; }
+  .ntc-av { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ntc-bell, .ntc-badge, .ntc-panel, .ntc-markall, .ntc-tab, .ntc-tab-n, .ntc-item, .ntc-dot, .ntc-x, .ntc-action { transition: none; }
+  .ntc-bell.ntc-is-ringing svg, .ntc-badge.ntc-is-bump, .ntc-item.ntc-is-new { animation: none; }
+  .ntc-panel { transform: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--ntc-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--ntc-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--ntc-display); letter-spacing: -0.03em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    radial-gradient(70% 60% at 85% 0%, color-mix(in oklab, var(--accent) 8%, transparent), transparent 70%),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: clamp(14px, 3.4vw, 34px) clamp(10px, 3vw, 32px);
+  display: grid; justify-items: center; gap: 20px;
+}
+/* a mock app window the component sits in */
+.mock {
+  width: 100%; max-width: 960px; min-height: 640px; box-sizing: border-box;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+  display: grid; grid-template-rows: auto 1fr;
+  box-shadow: 0 30px 60px -50px var(--ntc-shadow);
+}
+.mock-bar {
+  display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+  border-bottom: 1px solid var(--line); background: var(--ntc-panel); border-radius: 18px 18px 0 0;
+}
+.mock-ws { display: flex; align-items: center; gap: 10px; min-width: 0; font: 600 14px/1.2 var(--ntc-sans); }
+.mock-ws i { width: 28px; height: 28px; border-radius: 8px; flex: none; background: linear-gradient(135deg, var(--accent), color-mix(in oklab, var(--accent), #000 30%)); }
+.mock-ws span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mock-search { flex: 1; max-width: 360px; margin-left: auto; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--faint); font-size: 13px; }
+.mock-search svg { width: 14px; height: 14px; flex: none; }
+#demo { --ntc-max-h: 392px; }
+.mock-me { width: 34px; height: 34px; border-radius: 50%; flex: none; display: grid; place-items: center; font: 650 12px/1 var(--ntc-sans); background: color-mix(in oklab, var(--accent) 14%, var(--ntc-panel)); color: var(--ink); }
+.mock-body { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 20px; padding: 22px; opacity: .9; }
+.mock-nav { display: grid; gap: 10px; align-content: start; }
+.mock-nav i, .mock-card i { display: block; height: 10px; border-radius: 6px; background: var(--line); }
+.mock-nav i:nth-child(1) { width: 70%; height: 12px; background: color-mix(in oklab, var(--accent) 22%, var(--line)); }
+.mock-nav i:nth-child(2n) { width: 85%; } .mock-nav i:nth-child(3n) { width: 60%; }
+.mock-main { display: grid; gap: 14px; align-content: start; }
+.mock-hello { font: 650 22px/1.2 var(--ntc-display); letter-spacing: -0.02em; color: var(--ink); }
+.mock-sub { font-size: 13.5px; color: var(--muted); margin-top: -8px; }
+.mock-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.mock-card { background: var(--ntc-panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: grid; gap: 10px; min-height: 92px; align-content: start; }
+.mock-card b { font: 650 22px/1 var(--ntc-display); color: var(--ink); }
+.mock-card small { font-size: 12px; color: var(--muted); }
+.mock-card i:nth-child(odd) { width: 80%; }
+.mock-wide { grid-column: 1 / -1; min-height: 170px; }
+@media (max-width: 760px) { .mock-body { grid-template-columns: 1fr; } .mock-nav { display: none; } .mock-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .mock-search { display: none; } .mock-ws { margin-right: auto; } .mock-cards { grid-template-columns: 1fr; } .mock-body { padding: 16px; } .mock-bar { padding: 10px 12px; gap: 10px; } }
+
+.stage-bar { width: 100%; max-width: 960px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--ntc-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--ntc-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--ntc-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--ntc-raise); cursor: pointer;
+  font: 500 12px/1 var(--ntc-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--ntc-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--ntc-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center" aria-current="page"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 19</span></div>
+    <h1>Notification Center</h1>
+    <p>A bell with an unread count that opens a panel of mentions and system alerts. Switch tabs, open an item to mark it read, dismiss what you don't need, or clear everything at once.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <div class="mock">
+      <div class="mock-bar">
+        <div class="mock-ws" aria-hidden="true"><i></i><span>Agency workspace</span></div>
+        <div class="mock-search" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>Search clients, campaigns…</div>
+
+        <notification-center id="demo" open>
+          <script type="application/json">
+            {
+              "title": "Notifications",
+              "now": "2026-10-02T16:30:00",
+              "footer": { "label": "Notification settings" },
+              "items": [
+                { "id": "m1", "type": "mention", "time": "2026-10-02T16:18:00", "read": false,
+                  "actor": "Maya Chen", "text": "mentioned you in", "target": "Brightside Dental · Q4 plan",
+                  "body": "“Can you check the cost-per-lead target before Friday’s call?”" },
+                { "id": "s1", "type": "system", "icon": "payment", "time": "2026-10-02T15:52:00", "read": false,
+                  "title": "Payment received", "body": "Cedar Fitness Co. paid invoice #1043 · $1,850" },
+                { "id": "m2", "type": "mention", "time": "2026-10-02T14:40:00", "read": false,
+                  "actor": "Luis Ortega", "text": "assigned you", "target": "Proposal review",
+                  "body": "Due Mon, Oct 5" },
+                { "id": "s2", "type": "system", "icon": "warning", "time": "2026-10-02T13:05:00", "read": false,
+                  "title": "Calendar sync needs attention", "body": "Reconnect it to keep booked calls flowing into the CRM.",
+                  "action": { "label": "Reconnect", "done": "Reconnected" } },
+                { "id": "m3", "type": "mention", "time": "2026-10-02T11:20:00", "read": true,
+                  "actor": "Priya Shah", "text": "replied to your comment on", "target": "October search campaign",
+                  "body": "“Budget moved. The new ad groups are live.”" },
+                { "id": "s3", "type": "system", "icon": "report", "time": "2026-10-01T18:00:00", "read": false,
+                  "title": "Weekly report is ready", "body": "Harbor & Pine Realty · Week 39" },
+                { "id": "m4", "type": "mention", "time": "2026-10-01T15:30:00", "read": true,
+                  "actor": "Maya Chen", "text": "mentioned you in", "target": "Team chat · #client-wins",
+                  "body": "“Brightside renewed for another six months.”" },
+                { "id": "s4", "type": "system", "icon": "automation", "time": "2026-10-01T09:00:00", "read": true,
+                  "title": "Workflow paused", "body": "“Missed-call text back” reached its daily limit of 200 messages." },
+                { "id": "m5", "type": "mention", "time": "2026-09-29T16:10:00", "read": true,
+                  "actor": "Luis Ortega", "text": "shared a file with you:", "target": "Q4-proposal.pdf" },
+                { "id": "s5", "type": "system", "icon": "integration", "time": "2026-09-28T08:00:00", "read": true,
+                  "title": "Integration connected", "body": "Spreadsheets sync is now on for Cedar Fitness Co." }
+              ]
+            }
+          </script>
+        </notification-center>
+
+        <div class="mock-me" aria-hidden="true">JC</div>
+      </div>
+      <div class="mock-body" aria-hidden="true">
+        <div class="mock-nav"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="mock-main">
+          <div class="mock-hello">Good afternoon</div>
+          <div class="mock-sub">Here is what changed across your clients today.</div>
+          <div class="mock-cards">
+            <div class="mock-card"><small>Open tasks</small><b>12</b><i></i></div>
+            <div class="mock-card"><small>Booked calls</small><b>8</b><i></i></div>
+            <div class="mock-card"><small>Unpaid invoices</small><b>3</b><i></i></div>
+            <div class="mock-card mock-wide"><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage-bar">
+      <p class="note" id="ntc-note" aria-live="polite"><b>Example data.</b> Fictional clients and teammates.</p>
+      <div class="controls">
+        <button type="button" class="btn" id="simulate">Simulate new notification</button>
+        <button type="button" class="btn" id="reset">Reset demo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>open</td><td>Attribute. When present the panel is open. The bell, Esc and clicking outside update it.</td></tr>
+          <tr><td>tab</td><td>Attribute. <code>all</code> (default), <code>mention</code> or <code>system</code>.</td></tr>
+          <tr><td>title · now</td><td>Panel heading, and an optional ISO date-time used for “Today” and “min ago”.</td></tr>
+          <tr><td>footer</td><td>Optional <code>{ label, href }</code> link at the bottom. Without <code>href</code> it is a button that fires <code>notificationfooter</code>.</td></tr>
+          <tr><td>items[].id · type</td><td>Unique key, and <code>mention</code> or <code>system</code> (sets the tab).</td></tr>
+          <tr><td>items[].time · read</td><td>ISO date-time, and whether it has been read.</td></tr>
+          <tr><td>items[].actor · text · target</td><td>Mentions: “<b>Maya Chen</b> mentioned you in <b>Q4 plan</b>”.</td></tr>
+          <tr><td>items[].title · icon</td><td>System alerts: heading and icon (<code>payment</code>, <code>warning</code>, <code>report</code>, <code>automation</code>, <code>integration</code>).</td></tr>
+          <tr><td>items[].body</td><td>Optional second line or quote.</td></tr>
+          <tr><td>items[].action</td><td>Optional <code>{ label, done }</code> button. Fires <code>notificationaction</code>.</td></tr>
+          <tr><td>labels · locale</td><td>Override any built-in text; date formatting locale.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;notification-center</span> <span class="a">tab=</span>"all"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "items": [
+        { "id": "m1", "type": "mention", "read": false,
+          "time": "2026-10-02T16:18:00",
+          "actor": "Maya Chen", "text": "mentioned you in",
+          "target": "Q4 plan" },
+        { "id": "s1", "type": "system", "icon": "payment",
+          "time": "2026-10-02T15:52:00",
+          "title": "Payment received", "body": "Invoice #1043" }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/notification-center&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { items: [...] };
+el.add({ type: "system", icon: "report", title: "Report ready" });
+el.addEventListener("notificationread", e =&gt; e.detail.ids);</pre></div>
+      <p>Opening an item marks it read and fires <code>notificationread</code> with its id; “Mark all as read” fires it once with every id in the current tab. Dismissing fires <code>notificationdismiss</code>. Use <code>el.show()</code>, <code>el.hide()</code>, <code>el.toggle()</code> and <code>el.unread</code> from code.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/ai-agent-status-panel"><small>← Previous · 18</small><strong>AI Agent Status Panel</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/client-health-score"><small>Next · 20 →</small><strong>Client Health Score</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 19 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <notification-center> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    title: "Notifications", bell: "Notifications", bellUnread: "Notifications, {n} unread",
+    markAll: "Mark all as read", tabs: "Notification type", all: "All", mention: "Mentions", system: "System",
+    today: "Today", yesterday: "Yesterday", earlier: "Earlier",
+    justNow: "just now", minAgo: "{n} min ago", hAgo: "{n} h ago",
+    dismiss: "Dismiss", unread: "Unread", newItem: "New notification: {text}",
+    readAll: "{n} notifications marked as read", dismissed: "Notification dismissed",
+    emptyAll: "You're all caught up", emptyAllSub: "New mentions and alerts will show up here.",
+    emptyMention: "No mentions", emptyMentionSub: "When a teammate mentions you, you'll see it here.",
+    emptySystem: "No system alerts", emptySystemSub: "Payments, reports and sync issues will appear here."
+  };
+  const ICON_BELL = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8.2a5 5 0 0 1 10 0c0 3.6 1.4 5.1 2 5.8H3c.6-.7 2-2.2 2-5.8z"/><path d="M8.2 16.6a2 2 0 0 0 3.6 0"/></svg>';
+  const ICON_CHECKS = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m1.5 8.6 2.8 2.8L10 5.6"/><path d="m7.8 11 .4.4L14 5.6"/></svg>';
+  const ICON_X = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m3 3 6 6M9 3 3 9"/></svg>';
+  const ICON_AT = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="2"/><path d="M8 6v.8a1.4 1.4 0 0 0 2.8 0V6A4.8 4.8 0 1 0 8.6 10"/></svg>';
+  const ICON_GEAR = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.6M8 12.6v1.6M14.2 8h-1.6M3.4 8H1.8M12.4 3.6l-1.1 1.1M4.7 11.3l-1.1 1.1M12.4 12.4l-1.1-1.1M4.7 4.7 3.6 3.6"/></svg>';
+  const SYS = {
+    payment: { hue: "var(--ntc-ok)", svg: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="14" height="10" rx="2"/><path d="M2 7.5h14M5 11h3"/></svg>' },
+    warning: { hue: "var(--ntc-warn)", svg: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2.5 16 15H2z"/><path d="M9 7.5v3.2M9 12.9v.1"/></svg>' },
+    report: { hue: "var(--ntc-info)", svg: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 15V3M3 15h12"/><path d="M6.5 12V9M10 12V6M13.5 12V8"/></svg>' },
+    automation: { hue: "var(--ntc-accent)", svg: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2 4 10h5l-1 6 6-8H9z"/></svg>' },
+    integration: { hue: "var(--ntc-info)", svg: '<svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5V2.5M11 4.5V2.5M5.5 4.5h7v3a3.5 3.5 0 0 1-7 0z"/><path d="M9 11v4.5"/></svg>' }
+  };
+  const EMPTY_ART = '<svg viewBox="0 0 80 80" fill="none" aria-hidden="true"><circle cx="40" cy="40" r="34" fill="var(--ntc-tint)"/><path d="M27 37a13 13 0 0 1 26 0c0 9 3.4 12.7 5 14.5H22c1.6-1.8 5-5.5 5-14.5z" fill="var(--ntc-panel)" stroke="var(--ntc-faint)" stroke-width="2" stroke-linejoin="round"/><path d="M35.5 57a5 5 0 0 0 9 0" stroke="var(--ntc-faint)" stroke-width="2" stroke-linecap="round"/><circle cx="55" cy="25" r="9" fill="var(--ntc-accent)"/><path d="m51 25 2.8 2.8L59 22.6" stroke="var(--ntc-on-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const HUES = ["#E11D48", "#7C3AED", "#0891B2", "#D97706", "#059669", "#2563EB"];
+  const TABS = ["all", "mention", "system"];
+
+  const TEMPLATE = `
+    <div class="ntc">
+      <button type="button" class="ntc-bell" aria-haspopup="dialog" aria-expanded="false">${ICON_BELL}<span class="ntc-badge" aria-hidden="true" hidden></span></button>
+      <section class="ntc-panel" role="dialog" aria-modal="false">
+        <header class="ntc-head">
+          <h2 class="ntc-title"><span class="ntc-title-t"></span><span class="ntc-title-n" aria-hidden="true"></span></h2>
+          <button type="button" class="ntc-markall">${ICON_CHECKS}<span></span></button>
+        </header>
+        <div class="ntc-tabs" role="tablist"></div>
+        <div class="ntc-list" role="tabpanel" tabindex="-1"></div>
+        <footer class="ntc-foot"></footer>
+      </section>
+      <p class="ntc-sr" aria-live="polite"></p>
+    </div>`;
+
+  let uid = 0;
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const initials = s => String(s || "?").trim().split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join("") || "?";
+  const hueFor = s => { let h = 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return HUES[h % HUES.length]; };
+  const dayKey = d => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+
+  class NotificationCenter extends HTMLElement {
+    static get observedAttributes() { return ["open", "tab"]; }
+    constructor() { super(); this._uid = ++uid; this._seq = 0; }
+
+    connectedCallback() {
+      if (!this._built) {
+        if (!this._data) {
+          const src = this.querySelector(':scope > script[type="application/json"]');
+          try { this._data = src ? JSON.parse(src.textContent) : {}; }
+          catch (e) { console.warn("<notification-center>: the JSON data could not be read.", e); this._data = {}; }
+        }
+        this._items = this._normalise(this._data.items);
+        this.innerHTML = TEMPLATE;
+        const q = s => this.querySelector(s);
+        this.$ = {
+          root: q(".ntc"), bell: q(".ntc-bell"), badge: q(".ntc-badge"), panel: q(".ntc-panel"),
+          title: q(".ntc-title-t"), titleN: q(".ntc-title-n"), markAll: q(".ntc-markall"),
+          tabs: q(".ntc-tabs"), list: q(".ntc-list"), foot: q(".ntc-foot"), sr: q(".ntc-sr")
+        };
+        const pid = `ntc-${this._uid}-panel`;
+        this.$.panel.id = pid;
+        this.$.bell.setAttribute("aria-controls", pid);
+        this._wire();
+        this._built = true;
+        this._render();
+        this._applyOpen(false);
+      }
+      this._onDoc = e => { if (this.open && !this.contains(e.target)) this.hide(false); };
+      this._onResize = () => { if (this.open) this._place(); };
+      document.addEventListener("pointerdown", this._onDoc);
+      window.addEventListener("resize", this._onResize);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("pointerdown", this._onDoc);
+      window.removeEventListener("resize", this._onResize);
+      clearTimeout(this._ringT);
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "open") this._applyOpen(false);
+      else this._renderList();
+    }
+
+    /* ---------- public API ---------- */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; this._items = this._normalise(this._data.items); if (this._built) this._render(); }
+    get open() { return this.hasAttribute("open"); }
+    set open(v) { this.toggleAttribute("open", !!v); }
+    get tab() { const t = this.getAttribute("tab"); return TABS.includes(t) ? t : "all"; }
+    set tab(v) { this.setAttribute("tab", TABS.includes(v) ? v : "all"); }
+    get unread() { return (this._items || []).filter(i => !i.read).length; }
+    show(focus = true) { this._focusOnOpen = focus; this.open = true; }
+    hide(returnFocus = true) {
+      if (!this.open) return;
+      const inside = this.contains(document.activeElement);
+      this.open = false;
+      if (returnFocus || inside) this.$.bell.focus();
+    }
+    toggle() { this.open ? this.hide() : this.show(); }
+    add(item) {
+      const [it] = this._normalise([Object.assign({ time: this._now().toISOString(), read: false }, item)]);
+      if (!it) return;
+      this._items.unshift(it);
+      this._fresh = it.id;
+      this._render();
+      this._fresh = null;
+      this.$.sr.textContent = fill(this._labels().newItem, { text: this._plain(it) });
+      this._bump(true);
+    }
+
+    /* ---------- internals ---------- */
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _locale() { return (this._data && this._data.locale) || "en-US"; }
+    _now() { const d = this._data && this._data.now ? new Date(this._data.now) : new Date(); return isNaN(d) ? new Date() : d; }
+    _normalise(list) {
+      return (Array.isArray(list) ? list : []).filter(Boolean).map(i => Object.assign({}, i, {
+        id: i.id != null ? String(i.id) : `ntc-auto-${++this._seq}`,
+        type: i.type === "system" ? "system" : "mention",
+        read: !!i.read,
+        _d: i.time && !isNaN(new Date(i.time)) ? new Date(i.time) : this._now()
+      }));
+    }
+    _plain(i) { return i.type === "system" ? `${i.title || ""}. ${i.body || ""}` : `${i.actor || ""} ${i.text || ""} ${i.target || ""}. ${i.body || ""}`; }
+    _visible() { const t = this.tab; return this._items.filter(i => t === "all" || i.type === t).sort((a, b) => b._d - a._d); }
+
+    _wire() {
+      const $ = this.$;
+      $.bell.addEventListener("click", () => this.toggle());
+      $.markAll.addEventListener("click", () => this._markAll());
+      this.addEventListener("keydown", e => {
+        if (e.key === "Escape" && this.open) { e.preventDefault(); this.hide(true); }
+      });
+      $.tabs.addEventListener("keydown", e => {
+        const tabs = [...$.tabs.querySelectorAll(".ntc-tab")], i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        const map = { ArrowRight: (i + 1) % tabs.length, ArrowLeft: (i - 1 + tabs.length) % tabs.length, Home: 0, End: tabs.length - 1 };
+        if (e.key in map) { e.preventDefault(); tabs[map[e.key]].focus(); tabs[map[e.key]].click(); }
+      });
+    }
+
+    _render() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.title.textContent = d.title || L.title;
+      $.panel.setAttribute("aria-label", d.title || L.title);
+      $.markAll.querySelector("span").textContent = L.markAll;
+      $.tabs.setAttribute("aria-label", L.tabs);
+      $.tabs.replaceChildren(...TABS.map(t => {
+        const b = make("button", "ntc-tab");
+        b.type = "button"; b.dataset.tab = t;
+        b.id = `ntc-${this._uid}-tab-${t}`;
+        b.setAttribute("role", "tab");
+        b.setAttribute("aria-controls", $.list.id = `ntc-${this._uid}-list`);
+        b.append(make("span", null, L[t]), make("span", "ntc-tab-n"));
+        b.addEventListener("click", () => { if (this.tab !== t) this.tab = t; });
+        return b;
+      }));
+      $.foot.replaceChildren();
+      const f = d.footer;
+      if (f && f.label) {
+        const a = make(f.href ? "a" : "button");
+        if (f.href) a.href = f.href; else {
+          a.type = "button";
+          a.addEventListener("click", () => this.dispatchEvent(new CustomEvent("notificationfooter", { bubbles: true })));
+        }
+        a.innerHTML = ICON_GEAR; a.append(f.label);
+        $.foot.append(a);
+      }
+      $.foot.append(make("span", "ntc-foot-n"));
+      $.foot.hidden = false;
+      this._renderList();
+    }
+
+    _relative(d) {
+      const L = this._labels(), now = this._now(), mins = Math.round((now - d) / 60000);
+      if (mins < 1) return L.justNow;
+      if (mins < 60) return fill(L.minAgo, { n: mins });
+      if (mins < 24 * 60 && dayKey(now) === dayKey(d)) return fill(L.hAgo, { n: Math.floor(mins / 60) });
+      const y = new Date(now); y.setDate(y.getDate() - 1);
+      const time = d.toLocaleTimeString(this._locale(), { hour: "numeric", minute: "2-digit" });
+      if (dayKey(y) === dayKey(d)) return time;
+      return d.toLocaleDateString(this._locale(), { weekday: "short", month: "short", day: "numeric" });
+    }
+    _group(d) {
+      const L = this._labels(), now = this._now(), y = new Date(now); y.setDate(y.getDate() - 1);
+      if (dayKey(d) === dayKey(now)) return L.today;
+      if (dayKey(d) === dayKey(y)) return L.yesterday;
+      return L.earlier;
+    }
+
+    _renderList(focusId) {
+      const L = this._labels(), $ = this.$, tab = this.tab;
+      // tabs
+      $.tabs.querySelectorAll(".ntc-tab").forEach(b => {
+        const on = b.dataset.tab === tab;
+        b.setAttribute("aria-selected", String(on));
+        b.tabIndex = on ? 0 : -1;
+        const n = this._items.filter(i => !i.read && (b.dataset.tab === "all" || i.type === b.dataset.tab)).length;
+        b.querySelector(".ntc-tab-n").textContent = n ? String(n) : "";
+        b.setAttribute("aria-label", n ? `${L[b.dataset.tab]}, ${n} ${L.unread.toLowerCase()}` : L[b.dataset.tab]);
+      });
+      $.list.setAttribute("aria-labelledby", `ntc-${this._uid}-tab-${tab}`);
+
+      const items = this._visible();
+      if (!items.length) {
+        const key = tab === "all" ? "All" : tab === "mention" ? "Mention" : "System";
+        const e = make("div", "ntc-empty");
+        e.insertAdjacentHTML("afterbegin", EMPTY_ART);
+        e.append(make("b", null, L["empty" + key]), make("span", null, L["empty" + key + "Sub"]));
+        $.list.replaceChildren(e);
+      } else {
+        const groups = [];
+        items.forEach(i => {
+          const g = this._group(i._d), last = groups[groups.length - 1];
+          if (last && last.label === g) last.items.push(i); else groups.push({ label: g, items: [i] });
+        });
+        const nodes = [];
+        groups.forEach((g, gi) => {
+          const hid = `ntc-${this._uid}-g-${gi}`;
+          const h = make("h3", "ntc-group", g.label); h.id = hid;
+          const ul = make("ul", "ntc-items");
+          ul.setAttribute("aria-labelledby", hid);
+          g.items.forEach(i => ul.append(this._item(i, L)));
+          nodes.push(h, ul);
+        });
+        $.list.replaceChildren(...nodes);
+      }
+      this._paintCounts();
+      if (focusId) {
+        const target = focusId === "_tabs" ? null : $.list.querySelector(`.ntc-item[data-id="${CSS.escape(focusId)}"] .ntc-open`);
+        (target || $.tabs.querySelector('[aria-selected="true"]')).focus();
+      }
+    }
+
+    _item(i, L) {
+      const li = make("li", "ntc-item");
+      li.dataset.id = i.id;
+      li.classList.toggle("ntc-is-unread", !i.read);
+      if (this._fresh === i.id && !reduceMotion()) li.classList.add("ntc-is-new");
+
+      let av;
+      if (i.type === "system") {
+        const s = SYS[i.icon] || SYS.report;
+        av = make("span", "ntc-av ntc-av--sys");
+        av.style.setProperty("--ntc-hue", s.hue);
+        av.innerHTML = s.svg;
+      } else {
+        av = make("span", "ntc-av", initials(i.actor));
+        av.style.setProperty("--ntc-hue", hueFor(i.actor || ""));
+        const k = make("span", "ntc-av-kind"); k.innerHTML = ICON_AT;
+        av.append(k);
+      }
+      av.setAttribute("aria-hidden", "true");
+
+      const body = make("div", "ntc-body");
+      const open = make("button", "ntc-open");
+      open.type = "button";
+      if (i.type === "system") open.append(make("b", null, i.title || ""));
+      else {
+        open.append(make("b", null, i.actor || ""), ` ${i.text || ""} `);
+        if (i.target) open.append(make("b", null, i.target));
+      }
+      open.setAttribute("aria-label", `${i.read ? "" : L.unread + ": "}${this._plain(i)} ${this._relative(i._d)}`);
+      open.addEventListener("click", () => this._markRead([i.id], "click"));
+      body.append(open);
+      if (i.body) body.append(make("span", "ntc-quote", i.body));
+      const meta = make("span", "ntc-meta");
+      const t = make("time", null, this._relative(i._d));
+      t.dateTime = i._d.toISOString();
+      t.title = i._d.toLocaleString(this._locale(), { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+      meta.append(t, make("span", null, L[i.type]));
+      meta.setAttribute("aria-hidden", "true");
+      body.append(meta);
+      if (i.action && i.action.label) {
+        const a = make("button", "ntc-action" + (i._done ? " ntc-is-done" : ""), i._done ? (i.action.done || i.action.label) : i.action.label);
+        a.type = "button";
+        a.disabled = !!i._done;
+        a.addEventListener("click", () => {
+          i._done = true;
+          this.dispatchEvent(new CustomEvent("notificationaction", { bubbles: true, detail: { id: i.id, action: i.action.label } }));
+          this._markRead([i.id], "action", i.id);
+        });
+        body.append(a);
+      }
+
+      const side = make("div", "ntc-side");
+      const x = make("button", "ntc-x");
+      x.type = "button";
+      x.innerHTML = ICON_X;
+      x.setAttribute("aria-label", `${L.dismiss}: ${i.type === "system" ? i.title || "" : `${i.actor || ""} ${i.text || ""} ${i.target || ""}`}`.trim());
+      x.addEventListener("click", () => this._dismiss(i.id, li));
+      const dot = make("span", "ntc-dot"); dot.setAttribute("aria-hidden", "true");
+      side.append(x, dot);
+
+      li.append(av, body, side);
+      return li;
+    }
+
+    _paintCounts() {
+      const L = this._labels(), $ = this.$, n = this.unread;
+      $.badge.textContent = n > 9 ? "9+" : String(n);
+      $.badge.hidden = n === 0;
+      $.titleN.textContent = n ? `${n} new` : "";
+      $.bell.setAttribute("aria-label", n ? fill(L.bellUnread, { n }) : L.bell);
+      $.markAll.disabled = !this._visible().some(i => !i.read);
+      const fn = $.foot.querySelector(".ntc-foot-n");
+      if (fn) fn.textContent = `${this._items.length} total`;
+    }
+
+    _bump(ring) {
+      const $ = this.$;
+      if (reduceMotion()) return;
+      $.badge.classList.remove("ntc-is-bump"); void $.badge.offsetWidth; $.badge.classList.add("ntc-is-bump");
+      if (ring) {
+        $.bell.classList.remove("ntc-is-ringing"); void $.bell.offsetWidth; $.bell.classList.add("ntc-is-ringing");
+        clearTimeout(this._ringT);
+        this._ringT = setTimeout(() => $.bell.classList.remove("ntc-is-ringing"), 800);
+      }
+    }
+
+    _markRead(ids, source, focusId) {
+      const changed = this._items.filter(i => ids.includes(i.id) && !i.read);
+      changed.forEach(i => (i.read = true));
+      if (focusId) { this._renderList(focusId); }
+      else {
+        // update in place so the clicked row keeps focus
+        changed.forEach(i => {
+          const li = this.$.list.querySelector(`.ntc-item[data-id="${CSS.escape(i.id)}"]`);
+          if (li) {
+            li.classList.remove("ntc-is-unread");
+            li.querySelector(".ntc-open").setAttribute("aria-label", `${this._plain(i)} ${this._relative(i._d)}`);
+          }
+        });
+        this._renderTabsOnly();
+      }
+      if (changed.length) {
+        this._bump(false);
+        this.dispatchEvent(new CustomEvent("notificationread", { bubbles: true, detail: { ids: changed.map(i => i.id), source } }));
+      }
+    }
+
+    _renderTabsOnly() {
+      const L = this._labels();
+      this.$.tabs.querySelectorAll(".ntc-tab").forEach(b => {
+        const n = this._items.filter(i => !i.read && (b.dataset.tab === "all" || i.type === b.dataset.tab)).length;
+        b.querySelector(".ntc-tab-n").textContent = n ? String(n) : "";
+        b.setAttribute("aria-label", n ? `${L[b.dataset.tab]}, ${n} ${L.unread.toLowerCase()}` : L[b.dataset.tab]);
+      });
+      this._paintCounts();
+    }
+
+    _markAll() {
+      const ids = this._visible().filter(i => !i.read).map(i => i.id);
+      if (!ids.length) return;
+      this._markRead(ids, "all");
+      this.$.sr.textContent = fill(this._labels().readAll, { n: ids.length });
+      if (document.activeElement === this.$.markAll || !this.contains(document.activeElement)) this.$.tabs.querySelector('[aria-selected="true"]').focus();
+    }
+
+    _dismiss(id, li) {
+      const vis = this._visible(), idx = vis.findIndex(i => i.id === id);
+      const next = vis[idx + 1] || vis[idx - 1];
+      const finish = () => {
+        this._items = this._items.filter(i => i.id !== id);
+        this._renderList(next ? next.id : "_tabs");
+        this.$.sr.textContent = this._labels().dismissed;
+        this.dispatchEvent(new CustomEvent("notificationdismiss", { bubbles: true, detail: { id } }));
+      };
+      if (reduceMotion() || !li || !("animate" in li)) return finish();
+      const h = li.getBoundingClientRect().height;
+      li.style.overflow = "hidden";
+      li.querySelectorAll("button").forEach(b => (b.disabled = true));
+      li.animate([
+        { height: h + "px", opacity: 1, transform: "none", paddingTop: "10px", paddingBottom: "10px" },
+        { height: h + "px", opacity: 0, transform: "translateX(24px)", offset: .45 },
+        { height: "0px", opacity: 0, transform: "translateX(24px)", paddingTop: "0px", paddingBottom: "0px" }
+      ], { duration: 340, easing: "cubic-bezier(.2,.7,.2,1)", fill: "forwards" }).finished.then(finish, finish);
+    }
+
+    _applyOpen(fromUser) {
+      const on = this.open, $ = this.$;
+      $.root.classList.toggle("ntc-is-open", on);
+      $.bell.setAttribute("aria-expanded", String(on));
+      $.panel.inert = !on;
+      $.panel.setAttribute("aria-hidden", String(!on));
+      if (on) {
+        this._place();
+        if (this._focusOnOpen) {
+          this._focusOnOpen = false;
+          requestAnimationFrame(() => { const t = $.tabs.querySelector('[aria-selected="true"]'); if (t) t.focus(); });
+        }
+      }
+      if (this._wasOpen !== undefined && this._wasOpen !== on) {
+        this.dispatchEvent(new CustomEvent("openchange", { bubbles: true, detail: { open: on } }));
+      }
+      this._wasOpen = on;
+      void fromUser;
+    }
+
+    /* keep the panel inside the viewport and point the caret at the bell */
+    _place() {
+      const $ = this.$, p = $.panel;
+      p.style.left = ""; p.style.right = "";
+      const vw = document.documentElement.clientWidth, host = $.bell.getBoundingClientRect();
+      const want = parseFloat(getComputedStyle(this).getPropertyValue("--ntc-width")) || 400;
+      const w = Math.min(want, vw - 24);
+      p.style.width = w + "px";
+      let left = host.right + 8 - w;
+      left = Math.max(12, Math.min(left, vw - 12 - w));
+      p.style.left = (left - host.left) + "px";
+      p.style.right = "auto";
+      p.style.setProperty("--ntc-ox", Math.max(18, Math.min(w - 18, host.left + host.width / 2 - left)) + "px");
+    }
+  }
+
+  if (!customElements.get("notification-center")) customElements.define("notification-center", NotificationCenter);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("ntc-note");
+  const original = JSON.parse(JSON.stringify(el.data));
+  const say = (strong, rest) => { note.replaceChildren(); const b = document.createElement("b"); b.textContent = strong; note.append(b, rest); };
+  el.addEventListener("notificationread", e => say(`${e.detail.ids.length} marked read.`, " The panel sent a notificationread event. Example data."));
+  el.addEventListener("notificationdismiss", () => say("Dismissed.", " The panel sent a notificationdismiss event. Example data."));
+  el.addEventListener("notificationaction", e => say(`${e.detail.action} clicked.`, " The panel sent a notificationaction event. Example data."));
+
+  const samples = [
+    { type: "mention", actor: "Priya Shah", text: "mentioned you in", target: "Cedar Fitness Co. · Ad review", body: "“Two new creatives are ready for your sign-off.”" },
+    { type: "system", icon: "payment", title: "Payment received", body: "Harbor & Pine Realty paid invoice #1044 · $2,400" },
+    { type: "system", icon: "report", title: "Monthly report is ready", body: "Brightside Dental · September" },
+    { type: "mention", actor: "Maya Chen", text: "replied to", target: "Q4 plan", body: "“Target confirmed: under $28 per lead.”" }
+  ];
+  let n = 0;
+  document.getElementById("simulate").addEventListener("click", () => {
+    el.add(samples[n++ % samples.length]);
+    el.show(false);
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    el.data = JSON.parse(JSON.stringify(original));
+    el.tab = "all";
+    el.show(false);
+    say("Demo reset.", " Example data, fictional clients and teammates.");
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable KPI dashboard: one large hero metric and five smaller tiles, each with its value, change versus the previous period and a sparkline you can read point by point.">
+<meta property="og:title" content="KPI Metrics Dashboard · LofiStack Components">
+<meta property="og:description" content="A reusable KPI dashboard: one large hero metric and five smaller tiles, each with its value, change versus the previous period and a sparkline you can read point by point.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>KPI Metrics Dashboard · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #E6E7EA;
+  --stage: #F1F2F4;
+  --ink: #18181B;
+  --muted: #52525B;
+  --faint: #6B6B75;
+  --line: #D8D9DE;
+  --panel: #F7F7F8;
+  --accent: #0E7490;
+
+  /* ---- KPI Dashboard tokens (override these to re-theme the component) ---- */
+  --kpi-well: #E9EAED;
+  --kpi-tile: #FFFFFF;
+  --kpi-raise: #F6F6F8;
+  --kpi-ink: #18181B;
+  --kpi-muted: #52525B;
+  --kpi-faint: #66666F;
+  --kpi-line: #DEDFE4;
+  --kpi-grid: #ECEDF0;
+  --kpi-accent: #0891B2;
+  --kpi-accent-ink: #0E7490;
+  --kpi-accent-soft: rgba(8, 145, 178, 0.12);
+  --kpi-good: #15803D;
+  --kpi-bad: #B91C1C;
+  --kpi-tip-bg: #18181B;
+  --kpi-tip-ink: #FAFAFA;
+  --kpi-shadow: rgba(24, 24, 27, 0.18);
+  --kpi-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --kpi-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --kpi-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #08090B; --stage: #0F1013; --ink: #F4F4F5; --muted: #A1A1AA; --faint: #85858F;
+    --line: #25262C; --panel: #121317; --accent: #22D3EE;
+    --kpi-well: #0C0D10; --kpi-tile: #17181C; --kpi-raise: #1D1E23; --kpi-ink: #F4F4F5; --kpi-muted: #A1A1AA;
+    --kpi-faint: #8D8D97; --kpi-line: #27282E; --kpi-grid: #222328;
+    --kpi-accent: #22D3EE; --kpi-accent-ink: #67E8F9; --kpi-accent-soft: rgba(34, 211, 238, 0.13);
+    --kpi-good: #4ADE80; --kpi-bad: #F87171; --kpi-tip-bg: #F4F4F5; --kpi-tip-ink: #18181B;
+    --kpi-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #08090B; --stage: #0F1013; --ink: #F4F4F5; --muted: #A1A1AA; --faint: #85858F;
+  --line: #25262C; --panel: #121317; --accent: #22D3EE;
+  --kpi-well: #0C0D10; --kpi-tile: #17181C; --kpi-raise: #1D1E23; --kpi-ink: #F4F4F5; --kpi-muted: #A1A1AA;
+  --kpi-faint: #8D8D97; --kpi-line: #27282E; --kpi-grid: #222328;
+  --kpi-accent: #22D3EE; --kpi-accent-ink: #67E8F9; --kpi-accent-soft: rgba(34, 211, 238, 0.13);
+  --kpi-good: #4ADE80; --kpi-bad: #F87171; --kpi-tip-bg: #F4F4F5; --kpi-tip-ink: #18181B;
+  --kpi-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   KPI Dashboard component  (copy this block + the script)
+   ========================================================= */
+kpi-dashboard {
+  display: block;
+  container: kpi / inline-size;
+  width: 100%;
+  max-width: 980px;
+  font-family: var(--kpi-sans);
+  color: var(--kpi-ink);
+}
+.kpi {
+  position: relative;
+  background: var(--kpi-well);
+  border: 1px solid var(--kpi-line);
+  border-radius: 20px;
+  padding: 22px 22px 16px;
+  box-shadow: 0 30px 60px -48px var(--kpi-shadow);
+}
+
+/* header */
+.kpi-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 14px 24px; flex-wrap: wrap; padding: 2px 4px 18px; }
+.kpi-intro { display: grid; gap: 6px; min-width: 0; }
+.kpi-eyebrow { display: inline-flex; align-items: center; gap: 8px; font: 600 10.5px/1 var(--kpi-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--kpi-accent-ink); }
+.kpi-eyebrow::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--kpi-accent); box-shadow: 0 0 0 3px var(--kpi-accent-soft); }
+.kpi-title { margin: 0; font: 650 clamp(19px, 3cqi, 24px)/1.15 var(--kpi-display); letter-spacing: -0.02em; }
+.kpi-sub { margin: 0; font-size: 13.5px; color: var(--kpi-muted); }
+.kpi-eyebrow:empty, .kpi-title:empty, .kpi-sub:empty, .kpi-source:empty { display: none; }
+.kpi-tools { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.kpi-range { font: 500 12.5px/1 var(--kpi-sans); color: var(--kpi-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.kpi-seg {
+  position: relative; display: inline-flex; padding: 3px; border-radius: 10px;
+  background: var(--kpi-tile); border: 1px solid var(--kpi-line);
+}
+.kpi-seg-thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; border-radius: 7px;
+  background: var(--kpi-ink);
+}
+.kpi-seg.kpi-is-ready .kpi-seg-thumb { transition: transform .35s cubic-bezier(.3,.8,.25,1), width .35s cubic-bezier(.3,.8,.25,1); }
+.kpi-seg button {
+  appearance: none; position: relative; border: 0; background: transparent; cursor: pointer;
+  min-width: 46px; padding: 8px 12px; border-radius: 7px;
+  font: 600 12.5px/1 var(--kpi-mono); letter-spacing: .02em; color: var(--kpi-muted);
+  transition: color .25s;
+}
+.kpi-seg button:hover { color: var(--kpi-ink); }
+.kpi-seg button[aria-pressed="true"] { color: var(--kpi-tile); }
+.kpi-seg button:focus-visible { outline: 2px solid var(--kpi-accent); outline-offset: 2px; }
+
+/* bento grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: minmax(148px, auto);
+  gap: 12px;
+}
+.kpi-tile {
+  position: relative; min-width: 0;
+  display: flex; flex-direction: column;
+  background: var(--kpi-tile);
+  border: 1px solid var(--kpi-line);
+  border-radius: 14px;
+  padding: 16px 16px 12px;
+  box-shadow: 0 1px 2px -1px var(--kpi-shadow);
+  transition: border-color .25s ease, box-shadow .3s ease;
+}
+.kpi-tile:not(.kpi-is-hero):hover { border-color: color-mix(in oklab, var(--kpi-accent) 45%, var(--kpi-line)); box-shadow: 0 14px 28px -22px var(--kpi-shadow); }
+.kpi-tile.kpi-is-hero {
+  grid-column: span 2; grid-row: span 2;
+  padding: 22px 22px 16px;
+  border-color: color-mix(in oklab, var(--kpi-accent) 30%, var(--kpi-line));
+  background:
+    radial-gradient(120% 70% at 100% 0%, var(--kpi-accent-soft), transparent 60%),
+    var(--kpi-tile);
+}
+.kpi-in { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+.kpi-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.kpi-pick {
+  appearance: none; border: 0; background: none; padding: 0; margin: 0; cursor: pointer;
+  font: 600 13px/1.2 var(--kpi-sans); color: var(--kpi-muted); text-align: left;
+  display: inline-flex; align-items: center; gap: 7px; min-width: 0;
+}
+.kpi-pick::after { content: ""; position: absolute; inset: 0; border-radius: 14px; }
+.kpi-pick:focus-visible { outline: none; }
+.kpi-pick:focus-visible::after { outline: 2px solid var(--kpi-accent); outline-offset: 2px; }
+.kpi-tile.kpi-is-hero .kpi-pick { cursor: default; color: var(--kpi-ink); font-size: 14px; }
+.kpi-swatch { width: 8px; height: 8px; border-radius: 50%; background: var(--kpi-faint); flex: none; transition: background .25s; }
+.kpi-tile.kpi-is-hero .kpi-swatch { background: var(--kpi-accent); box-shadow: 0 0 0 3px var(--kpi-accent-soft); }
+.kpi-pin {
+  display: inline-flex; align-items: center; gap: 5px; flex: none;
+  font: 600 10px/1 var(--kpi-mono); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--kpi-faint); padding: 5px 7px; border-radius: 6px;
+  background: var(--kpi-raise); opacity: 0; transform: translateY(-2px);
+  transition: opacity .2s ease, transform .2s ease;
+  pointer-events: none;
+}
+.kpi-pin svg { width: 10px; height: 10px; }
+.kpi-tile:not(.kpi-is-hero):hover .kpi-pin, .kpi-tile:not(.kpi-is-hero):focus-within .kpi-pin { opacity: 1; transform: none; }
+.kpi-tile.kpi-is-hero .kpi-pin { opacity: 1; transform: none; color: var(--kpi-accent-ink); background: var(--kpi-accent-soft); }
+
+.kpi-figure { display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap; margin-top: 10px; }
+.kpi-value {
+  font: 650 clamp(24px, 3.4cqi, 30px)/1 var(--kpi-display);
+  letter-spacing: -0.03em; font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kpi-tile.kpi-is-hero .kpi-value { font-size: clamp(40px, 6.2cqi, 56px); letter-spacing: -0.04em; }
+.kpi-delta {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 6px; border-radius: 6px;
+  font: 650 11.5px/1 var(--kpi-sans); font-variant-numeric: tabular-nums; white-space: nowrap;
+  color: var(--kpi-muted); background: var(--kpi-raise);
+}
+.kpi-delta svg { width: 9px; height: 9px; }
+.kpi-delta[data-tone="good"] { color: var(--kpi-good); background: color-mix(in oklab, var(--kpi-good) 12%, transparent); }
+.kpi-delta[data-tone="bad"]  { color: var(--kpi-bad);  background: color-mix(in oklab, var(--kpi-bad) 12%, transparent); }
+.kpi-tile.kpi-is-hero .kpi-delta { font-size: 13px; padding: 5px 8px; }
+.kpi-note { margin: 6px 0 0; font-size: 12px; line-height: 1.35; color: var(--kpi-faint); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi-tile.kpi-is-hero .kpi-note { font-size: 13px; color: var(--kpi-muted); }
+
+/* sparkline */
+.kpi-chart {
+  position: relative; z-index: 1; margin-top: auto; padding-top: 10px;
+  height: 48px; flex: none; outline: none; cursor: crosshair; touch-action: pan-y;
+}
+.kpi-tile.kpi-is-hero .kpi-chart { grid-area: chart; margin-top: 0; height: auto; min-height: 118px; padding-top: 16px; }
+.kpi-plot { position: relative; height: 100%; }
+.kpi-chart:focus-visible .kpi-plot { outline: 2px solid var(--kpi-accent); outline-offset: 4px; border-radius: 6px; }
+.kpi-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.kpi-area { fill: var(--kpi-accent-soft); }
+.kpi-line { fill: none; stroke: var(--kpi-faint); stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; vector-effect: non-scaling-stroke; transition: stroke .25s; }
+.kpi-tile:not(.kpi-is-hero) .kpi-area { fill: color-mix(in oklab, var(--kpi-faint) 10%, transparent); }
+.kpi-tile:hover .kpi-line, .kpi-chart:focus-visible .kpi-line { stroke: var(--kpi-accent); }
+.kpi-tile.kpi-is-hero .kpi-line { stroke: var(--kpi-accent); stroke-width: 2.25; }
+.kpi-gridline { position: absolute; left: 0; right: 0; height: 0; border-top: 1px dashed var(--kpi-grid); display: none; }
+.kpi-tile.kpi-is-hero .kpi-gridline { display: block; }
+.kpi-prev {
+  position: absolute; left: 0; right: 0; height: 0; display: none;
+  border-top: 1.5px dashed color-mix(in oklab, var(--kpi-faint) 70%, transparent);
+  transition: top .45s cubic-bezier(.2,.7,.2,1);
+}
+.kpi-prev span {
+  position: absolute; right: 0; bottom: 3px;
+  font: 500 10.5px/1 var(--kpi-mono); color: var(--kpi-faint); background: var(--kpi-tile); padding: 2px 4px; border-radius: 4px;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kpi-tile.kpi-is-hero .kpi-prev { display: block; }
+.kpi-cross { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px solid color-mix(in oklab, var(--kpi-ink) 35%, transparent); opacity: 0; pointer-events: none; transition: opacity .15s; }
+.kpi-dot {
+  position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%;
+  background: var(--kpi-tile); border: 2px solid var(--kpi-accent); box-sizing: border-box;
+  opacity: 0; pointer-events: none; transition: opacity .15s;
+}
+.kpi-tile.kpi-is-hero .kpi-dot { width: 12px; height: 12px; margin: -6px 0 0 -6px; border-width: 2.5px; box-shadow: 0 0 0 4px var(--kpi-accent-soft); }
+.kpi-tip {
+  position: absolute; bottom: calc(100% + 6px); left: 0; z-index: 3;
+  padding: 6px 8px; border-radius: 7px;
+  background: var(--kpi-tip-bg); color: var(--kpi-tip-ink);
+  font: 500 11.5px/1.25 var(--kpi-sans); white-space: nowrap; font-variant-numeric: tabular-nums;
+  box-shadow: 0 10px 24px -12px var(--kpi-shadow);
+  opacity: 0; pointer-events: none; transform: translate(var(--kpi-tx, -50%), 3px);
+  transition: opacity .15s, transform .15s;
+}
+.kpi-tip b { display: block; font-weight: 650; font-size: 13px; }
+.kpi-tip small { font-size: 10.5px; opacity: .78; }
+.kpi-chart.kpi-is-reading .kpi-cross, .kpi-chart.kpi-is-reading .kpi-dot { opacity: 1; }
+.kpi-chart.kpi-is-reading .kpi-tip { opacity: 1; transform: translate(var(--kpi-tx, -50%), 0); }
+.kpi-axis { display: none; justify-content: space-between; gap: 8px; margin-top: 8px; font: 500 10.5px/1 var(--kpi-mono); color: var(--kpi-faint); font-variant-numeric: tabular-nums; }
+.kpi-tile.kpi-is-hero .kpi-axis { display: flex; }
+
+/* hero stats */
+/* hero layout: figures left, high / low right, chart full width beneath */
+.kpi-tile.kpi-is-hero .kpi-in {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-areas: "top top" "fig stats" "note stats" "chart chart" "axis axis";
+  column-gap: 24px;
+}
+.kpi-tile.kpi-is-hero .kpi-top { grid-area: top; }
+.kpi-tile.kpi-is-hero .kpi-figure { grid-area: fig; }
+.kpi-tile.kpi-is-hero .kpi-note { grid-area: note; }
+.kpi-tile.kpi-is-hero .kpi-axis { grid-area: axis; }
+.kpi-stats { display: none; grid-area: stats; align-self: end; margin: 0; padding: 4px 0 2px 18px; border-left: 1px solid var(--kpi-line); gap: 12px; min-width: 128px; }
+.kpi-tile.kpi-is-hero .kpi-stats { display: grid; }
+.kpi-stat { min-width: 0; display: grid; gap: 4px; }
+.kpi-stat dt { font: 500 10px/1.2 var(--kpi-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--kpi-faint); }
+.kpi-stat dd { margin: 0; font: 600 14px/1.25 var(--kpi-sans); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi-stat dd small { display: block; font: 400 11.5px/1.3 var(--kpi-sans); color: var(--kpi-faint); }
+
+.kpi-foot { display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; padding: 14px 4px 0; font-size: 12px; color: var(--kpi-faint); }
+.kpi-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* tablet: two columns, hero spans the full width */
+@container kpi (max-width: 760px) {
+  .kpi { padding: 18px 16px 14px; border-radius: 18px; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(150px, auto); }
+  .kpi-tile.kpi-is-hero { grid-column: 1 / -1; grid-row: auto; }
+  .kpi-tile.kpi-is-hero .kpi-chart { height: 170px; }
+  .kpi-tile:not(.kpi-is-hero):last-child:nth-child(even) { grid-column: 1 / -1; }
+}
+/* phone: one column; small tiles become compact rows */
+@container kpi (max-width: 480px) {
+  .kpi { padding: 14px 12px 12px; border-radius: 16px; }
+  .kpi-head { padding: 2px 2px 14px; }
+  .kpi-tools { width: 100%; justify-content: space-between; }
+  .kpi-grid { grid-template-columns: minmax(0, 1fr); grid-auto-rows: auto; gap: 10px; }
+  .kpi-tile:not(.kpi-is-hero):last-child:nth-child(even) { grid-column: auto; }
+  .kpi-tile.kpi-is-hero { padding: 18px 16px 14px; }
+  .kpi-tile.kpi-is-hero .kpi-value { font-size: 40px; }
+  .kpi-tile.kpi-is-hero .kpi-chart { height: 140px; }
+  .kpi-tile.kpi-is-hero .kpi-in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "fig" "note" "chart" "axis" "stats"; grid-template-rows: none; }
+  .kpi-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 14px; padding: 12px 0 0; border-left: 0; border-top: 1px solid var(--kpi-line); min-width: 0; }
+  .kpi-tile:not(.kpi-is-hero) { padding: 12px 14px; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-in {
+    display: grid; grid-template-columns: minmax(0, 1fr) 42%; grid-template-areas: "top chart" "fig chart" "note chart";
+    column-gap: 12px; align-items: center;
+  }
+  .kpi-tile:not(.kpi-is-hero) .kpi-top { grid-area: top; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-figure { grid-area: fig; margin-top: 6px; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-note { grid-area: note; margin-top: 4px; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-chart { grid-area: chart; height: 52px; padding-top: 0; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-value { font-size: 22px; }
+  .kpi-tile:not(.kpi-is-hero) .kpi-pin { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kpi-tile, .kpi-seg.kpi-is-ready .kpi-seg-thumb, .kpi-seg button, .kpi-pin, .kpi-line, .kpi-prev,
+  .kpi-cross, .kpi-dot, .kpi-tip, .kpi-swatch { transition: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--kpi-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--kpi-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--kpi-display); letter-spacing: -0.03em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--faint) 32%, transparent) 1px, transparent 1.5px) 0 0 / 18px 18px,
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: clamp(18px, 3.4vw, 34px) clamp(10px, 3vw, 30px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 60ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--kpi-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--kpi-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--kpi-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--kpi-tile); cursor: pointer;
+  font: 500 12px/1 var(--kpi-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--kpi-well); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--kpi-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard" aria-current="page"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 05</span></div>
+    <h1>KPI Metrics Dashboard</h1>
+    <p>Six headline numbers in one bento grid. Switch between 7, 30 and 90 days, read any sparkline point by point, and click a tile to move it into the large slot.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <kpi-dashboard id="demo" period="30d" hero="revenue">
+      <script type="application/json">
+        {
+          "eyebrow": "Performance",
+          "title": "Growth dashboard",
+          "subtitle": "Brightside Dental · all channels",
+          "end": "2026-09-30",
+          "currency": "USD",
+          "periods": [
+            { "id": "7d",  "label": "7D",  "days": 7,  "bucket": 1 },
+            { "id": "30d", "label": "30D", "days": 30, "bucket": 1 },
+            { "id": "90d", "label": "90D", "days": 90, "bucket": 6 }
+          ],
+          "metrics": [
+            { "id": "revenue", "label": "Revenue", "format": "currency",
+              "series": {
+                "7d": [3940,5280,4030,3660,4230,5120,7050],
+                "30d": [3790,3660,3880,5560,2840,3820,5260,3690,3600,6140,7020,3690,3870,5450,3850,5410,4190,5730,3640,4230,5320,3860,4790,3940,5280,4030,3660,4230,5120,7050],
+                "90d": [22980,22530,22870,21600,23600,22580,27320,23400,26650,26150,23550,29400,28500,25780,29370]
+              },
+              "previous": { "7d": 31760, "30d": 126100, "90d": 293820 } },
+            { "id": "sessions", "label": "Sessions", "format": "int",
+              "series": {
+                "7d": [726,691,535,525,752,742,701],
+                "30d": [644,670,665,703,451,463,708,660,636,748,735,507,471,686,637,753,708,682,516,558,706,665,660,726,691,535,525,752,742,701],
+                "90d": [3546,3515,3647,3552,3896,3710,3888,3754,3709,3814,3596,3994,3937,3831,3946]
+              },
+              "previous": { "7d": 4495, "30d": 18875, "90d": 49186 } },
+            { "id": "leads", "label": "Leads", "format": "int",
+              "series": {
+                "7d": [27,25,18,19,27,28,29],
+                "30d": [26,24,21,26,16,18,23,23,22,30,31,20,18,27,20,27,24,25,21,22,27,21,27,27,25,18,19,27,28,29],
+                "90d": [123,119,116,122,137,126,142,124,138,141,131,149,141,145,146]
+              },
+              "previous": { "7d": 167, "30d": 671, "90d": 1588 } },
+            { "id": "booked", "label": "Booked calls", "format": "int",
+              "series": {
+                "7d": [11,12,8,8,11,13,13],
+                "30d": [11,11,9,12,7,8,10,10,10,13,14,9,8,11,10,13,10,10,9,10,11,10,11,11,12,8,8,11,13,13],
+                "90d": [56,51,51,56,60,56,62,54,60,62,58,66,62,62,65]
+              },
+              "previous": { "7d": 71, "30d": 294, "90d": 701 } },
+            { "id": "cpl", "label": "Cost per lead", "format": "currency2", "better": "down",
+              "ratio": { "of": "spend", "per": "leads" } },
+            { "id": "close", "label": "Close rate", "format": "percent",
+              "ratio": { "of": "won", "per": "booked" } },
+            { "id": "spend", "label": "Ad spend", "format": "currency", "hidden": true,
+              "series": {
+                "7d": [604,710,632,675,633,650,638],
+                "30d": [684,659,624,631,695,709,674,692,701,588,614,638,713,666,637,662,617,628,671,604,635,669,722,604,710,632,675,633,650,638],
+                "90d": [3661,3850,3716,3916,3746,3947,3978,3943,3879,3945,4002,3907,3923,3905,3938]
+              },
+              "previous": { "7d": 4546, "30d": 19692, "90d": 55436 } },
+            { "id": "won", "label": "Deals won", "format": "int", "hidden": true,
+              "series": {
+                "7d": [3,4,3,3,3,4,5],
+                "30d": [3,3,3,4,2,3,4,3,3,5,5,3,3,4,3,4,3,4,3,3,4,3,4,3,4,3,3,3,4,5],
+                "90d": [18,18,17,17,18,18,21,18,20,19,18,23,21,20,22]
+              },
+              "previous": { "7d": 24, "30d": 96, "90d": 227 } }
+          ],
+          "source": "Source: CRM, ad accounts and website analytics"
+        }
+      </script>
+    </kpi-dashboard>
+
+    <div class="stage-bar">
+      <p class="note" id="kpi-note" aria-live="polite"><b>Example data.</b> Not real client results.</p>
+      <div class="controls">
+        <button type="button" class="btn" id="reset-hero">Reset layout</button>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>period</td><td>Attribute or JSON. The <code>id</code> of the selected period (default: the first one).</td></tr>
+          <tr><td>hero</td><td>Attribute or JSON. The <code>id</code> of the metric in the large slot. Clicking a tile updates it.</td></tr>
+          <tr><td>eyebrow · title · subtitle</td><td>Optional header text.</td></tr>
+          <tr><td>end</td><td>Last day of the data, <code>YYYY-MM-DD</code>. Used for the date range and point labels.</td></tr>
+          <tr><td>periods[]</td><td><code>{ id, label, days, bucket }</code>. <code>bucket</code> is the number of days in each sparkline point (1 = daily).</td></tr>
+          <tr><td>metrics[].id · label</td><td>Metric key and display name.</td></tr>
+          <tr><td>metrics[].format</td><td><code>int</code>, <code>currency</code>, <code>currency2</code> (two decimals) or <code>percent</code>.</td></tr>
+          <tr><td>metrics[].series</td><td>Per period, the value of each point. The tile value is their sum.</td></tr>
+          <tr><td>metrics[].previous</td><td>Per period, the total for the period before. Drives the change badge.</td></tr>
+          <tr><td>metrics[].ratio</td><td><code>{ of, per }</code>: two other metric ids. The value is worked out as <code>of ÷ per</code> for every point and for the total.</td></tr>
+          <tr><td>metrics[].better</td><td><code>up</code> (default) or <code>down</code>. Sets whether a rise is shown as good or bad.</td></tr>
+          <tr><td>metrics[].hidden</td><td>Keeps a metric out of the grid (e.g. spend, only used by a ratio).</td></tr>
+          <tr><td>currency · locale · source</td><td>Number formatting and an optional footer note.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;kpi-dashboard</span> <span class="a">period=</span>"30d" <span class="a">hero=</span>"revenue"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "end": "2026-09-30",
+      "periods": [{ "id": "7d", "label": "7D", "days": 7, "bucket": 1 }],
+      "metrics": [
+        { "id": "leads", "label": "Leads", "format": "int",
+          "series": { "7d": [27, 25, 18, 19, 27, 28, 29] },
+          "previous": { "7d": 167 } },
+        { "id": "cpl", "label": "Cost per lead", "format": "currency2",
+          "better": "down", "ratio": { "of": "spend", "per": "leads" } }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/kpi-dashboard&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { end, periods: [...], metrics: [...] };
+el.pin("leads");
+el.addEventListener("kpiselect", e =&gt; e.detail);</pre></div>
+      <p>Clicking a tile (or <code>el.pin(id)</code>) moves it into the large slot and fires <code>kpiselect</code> with the metric, period, value and previous value. The period buttons fire <code>periodchange</code>. Focus a sparkline and use the arrow keys, Home and End to read each point.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/lead-funnel-analytics"><small>← Previous · 04</small><strong>Lead Funnel Analytics</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/ai-prompt-card"><small>Next · 06 →</small><strong>AI Prompt Card</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 05 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <kpi-dashboard> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    period: "Period", periodBtn: "Last {n} days", vs: "vs {prev} previous {n} days", ratioNote: "{of} ÷ {per}",
+    ratioPct: "{of} of {per}", prevAvg: "Prev. avg {v}", pinned: "Pinned", pin: "Pin",
+    high: "High", low: "Low",
+    pinHint: "Move {label} into the main tile", isHero: "{label} is in the main tile",
+    chart: "{label} by {unit}, {n} points. Use the arrow keys to read values.",
+    day: "day", block: "{n}-day block", pts: "pts", hint: "Click a tile to pin it · arrow keys read a chart",
+    announcePin: "{label} moved to the main tile", announcePeriod: "Showing the last {n} days"
+  };
+  const ICON_UP = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1.5 9 8H1z" fill="currentColor"/></svg>';
+  const ICON_DOWN = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 8.5 1 2h8z" fill="currentColor"/></svg>';
+  const ICON_PIN = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M4.2 1.5h3.6L7.3 4.6l2 1.9H2.7l2-1.9zM6 6.5v4"/></svg>';
+  const SAMPLES = 72;
+
+  const TEMPLATE = `
+    <section class="kpi">
+      <header class="kpi-head">
+        <div class="kpi-intro">
+          <span class="kpi-eyebrow"></span>
+          <h2 class="kpi-title"></h2>
+          <p class="kpi-sub"></p>
+        </div>
+        <div class="kpi-tools">
+          <span class="kpi-range"></span>
+          <div class="kpi-seg" role="group"><span class="kpi-seg-thumb" aria-hidden="true"></span></div>
+        </div>
+      </header>
+      <div class="kpi-grid"></div>
+      <footer class="kpi-foot"><span class="kpi-hint"></span><span class="kpi-source"></span></footer>
+      <p class="kpi-sr" aria-live="polite"></p>
+    </section>`;
+
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const sum = a => a.reduce((s, v) => s + (num(v) ?? 0), 0);
+  const ease = t => 1 - Math.pow(1 - t, 3);
+  const resample = (ys, n) => {
+    if (!ys.length) return new Array(n).fill(36);
+    if (ys.length === 1) return new Array(n).fill(ys[0]);
+    return Array.from({ length: n }, (_, j) => {
+      const t = j / (n - 1) * (ys.length - 1), i = Math.floor(t), f = t - i;
+      return i >= ys.length - 1 ? ys[ys.length - 1] : ys[i] + (ys[i + 1] - ys[i]) * f;
+    });
+  };
+  const pathOf = ys => {
+    const n = ys.length;
+    if (!n) return { line: "", area: "" };
+    const pts = n === 1 ? [[0, ys[0]], [100, ys[0]]] : ys.map((y, i) => [i / (n - 1) * 100, y]);
+    const line = pts.map((p, i) => (i ? "L" : "M") + p[0].toFixed(2) + " " + p[1].toFixed(2)).join(" ");
+    return { line, area: line + " L100 40 L0 40 Z" };
+  };
+
+  class KpiDashboard extends HTMLElement {
+    static get observedAttributes() { return ["period", "hero"]; }
+
+    connectedCallback() {
+      if (this._built) return;
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<kpi-dashboard>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        eyebrow: q(".kpi-eyebrow"), title: q(".kpi-title"), sub: q(".kpi-sub"), range: q(".kpi-range"),
+        seg: q(".kpi-seg"), thumb: q(".kpi-seg-thumb"), grid: q(".kpi-grid"),
+        hint: q(".kpi-hint"), source: q(".kpi-source"), sr: q(".kpi-sr")
+      };
+      this._shown = new Map();
+      this._built = true;
+      this._render();
+      const place = () => this._placeThumb();
+      if ("ResizeObserver" in window) { this._ro = new ResizeObserver(place); this._ro.observe(this.$.seg); }
+      requestAnimationFrame(() => requestAnimationFrame(() => this.$.seg.classList.add("kpi-is-ready")));
+    }
+
+    disconnectedCallback() {
+      if (this._raf) cancelAnimationFrame(this._raf);
+      this._raf = 0;
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      if (name === "period") this._update(true);
+      else this._applyHero(true);
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) { this._shown = new Map(); this._order = null; this._render(); } }
+    get period() { return this._periodId(); }
+    set period(v) { this.setAttribute("period", v); }
+    get hero() { return this._heroId(); }
+    set hero(v) { this.setAttribute("hero", v); }
+    pin(id) { if (this._metric(id) && !this._metric(id).hidden) this.setAttribute("hero", id); }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _periods() {
+      const p = Array.isArray(this._data.periods) ? this._data.periods.filter(x => x && x.id) : [];
+      return p.length ? p : [{ id: "30d", label: "30D", days: 30, bucket: 1 }];
+    }
+    _periodId() {
+      const ps = this._periods(), want = this.getAttribute("period") || this._data.period;
+      return (ps.find(p => p.id === want) || ps[0]).id;
+    }
+    _periodObj() { return this._periods().find(p => p.id === this._periodId()); }
+    _metrics() { return (Array.isArray(this._data.metrics) ? this._data.metrics : []).filter(m => m && m.id); }
+    _metric(id) { return this._metrics().find(m => m.id === id); }
+    _visible() { return this._metrics().filter(m => !m.hidden); }
+    _heroId() {
+      const vis = this._visible(), want = this.getAttribute("hero") || this._data.hero;
+      return (vis.find(m => m.id === want) || vis[0] || {}).id;
+    }
+
+    /* ---------- numbers ---------- */
+    _locale() { return this._data.locale || "en-US"; }
+    _fmt(m, v) {
+      if (v == null || !Number.isFinite(v)) return "—";
+      const f = m.format || "int", loc = this._locale(), cur = this._data.currency || "USD";
+      try {
+        if (f === "currency") return new Intl.NumberFormat(loc, { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(v);
+        if (f === "currency2") return new Intl.NumberFormat(loc, { style: "currency", currency: cur, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
+      } catch (e) { return cur + " " + v.toFixed(f === "currency2" ? 2 : 0); }
+      if (f === "percent") return (v * 100).toLocaleString(loc, { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+      return Math.round(v).toLocaleString(loc);
+    }
+    _calc(m, pid) {
+      if (m.ratio) {
+        const a = this._metric(m.ratio.of), b = this._metric(m.ratio.per);
+        if (!a || !b || a.ratio || b.ratio) return { points: [], value: null, previous: null };
+        const A = this._calc(a, pid), B = this._calc(b, pid);
+        const points = A.points.map((v, i) => (B.points[i] > 0 ? v / B.points[i] : null)).filter(v => v != null);
+        return {
+          points, value: B.value > 0 ? A.value / B.value : null,
+          previous: A.previous != null && B.previous > 0 ? A.previous / B.previous : null,
+          parts: { of: a, per: b, ofValue: A.value, perValue: B.value }
+        };
+      }
+      const raw = m.series && Array.isArray(m.series[pid]) ? m.series[pid] : [];
+      const points = raw.map(num).map(v => v ?? 0);
+      return { points, value: points.length ? sum(points) : null, previous: num(m.previous && m.previous[pid]) };
+    }
+    _delta(m, c) {
+      if (c.value == null || c.previous == null) return null;
+      const better = m.better === "down" ? -1 : 1;
+      if (m.format === "percent") {
+        const pts = (c.value - c.previous) * 100, r = Math.round(pts * 10) / 10;
+        return { r, text: `${Math.abs(r).toFixed(1)} ${this._labels().pts}`, tone: r === 0 ? "flat" : (r * better > 0 ? "good" : "bad") };
+      }
+      if (!(c.previous > 0)) return null;
+      const pct = (c.value / c.previous - 1) * 100, r = Math.round(pct * 10) / 10;
+      return { r, text: `${Math.abs(r).toFixed(1)}%`, tone: r === 0 ? "flat" : (r * better > 0 ? "good" : "bad") };
+    }
+
+    /* ---------- dates ---------- */
+    _end() {
+      const s = this._data.end;
+      const d = s && /^\d{4}-\d{2}-\d{2}$/.test(s) ? new Date(s + "T12:00:00") : new Date();
+      return isNaN(d) ? new Date() : d;
+    }
+    _day(offset) { const d = new Date(this._end()); d.setDate(d.getDate() - offset); return d; }
+    _dfmt(d, opts) { return d.toLocaleDateString(this._locale(), opts); }
+    _span(a, b, year) {
+      const opts = { month: "short", day: "numeric" };
+      if (year) opts.year = "numeric";
+      try {
+        const f = new Intl.DateTimeFormat(this._locale(), opts);
+        return f.formatRange ? f.formatRange(a, b) : `${f.format(a)} – ${f.format(b)}`;
+      } catch (e) { return `${a.toDateString()} – ${b.toDateString()}`; }
+    }
+    _pointLabel(i, n, p) {
+      const bucket = Math.max(1, num(p.bucket) || 1);
+      const endOff = (n - 1 - i) * bucket, startOff = endOff + bucket - 1;
+      if (bucket === 1) return this._dfmt(this._day(endOff), { weekday: "short", day: "numeric", month: "short" });
+      return this._span(this._day(startOff), this._day(endOff));
+    }
+
+    /* ---------- render ---------- */
+    _render() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      $.source.textContent = d.source || "";
+      $.hint.textContent = L.hint;
+      $.seg.setAttribute("aria-label", L.period);
+
+      $.seg.querySelectorAll("button").forEach(b => b.remove());
+      this._periods().forEach(p => {
+        const b = make("button", null, p.label || p.id);
+        b.type = "button"; b.dataset.period = p.id;
+        if (p.days) b.setAttribute("aria-label", fill(L.periodBtn, { n: p.days }));
+        b.addEventListener("click", () => {
+          if (p.id === this._periodId()) return;
+          this.setAttribute("period", p.id);
+          this.dispatchEvent(new CustomEvent("periodchange", { bubbles: true, detail: { period: p.id } }));
+        });
+        $.seg.append(b);
+      });
+
+      const vis = this._visible();
+      if (!this._order || this._order.length !== vis.length || this._order.some(id => !this._metric(id))) {
+        const hero = this._heroId();
+        this._order = [hero, ...vis.map(m => m.id).filter(id => id !== hero)].filter(Boolean);
+      }
+      $.grid.replaceChildren(...this._order.map(id => this._tile(this._metric(id), L)));
+      this._applyHero(false);
+      this._update(false);
+    }
+
+    _tile(m, L) {
+      const art = make("article", "kpi-tile");
+      art.dataset.id = m.id;
+      const inner = make("div", "kpi-in");
+
+      const top = make("div", "kpi-top");
+      const pick = make("button", "kpi-pick");
+      pick.type = "button";
+      pick.append(make("span", "kpi-swatch"), make("span", null, m.label || m.id));
+      pick.addEventListener("click", () => this._select(m.id));
+      const pin = make("span", "kpi-pin");
+      pin.innerHTML = ICON_PIN;
+      pin.append(make("span", "kpi-pin-t"));
+      pin.setAttribute("aria-hidden", "true");
+      top.append(pick, pin);
+
+      const fig = make("div", "kpi-figure");
+      fig.append(make("span", "kpi-value"), make("span", "kpi-delta"));
+      fig.setAttribute("aria-hidden", "true");
+      const note = make("p", "kpi-note");
+      note.setAttribute("aria-hidden", "true");
+
+      const chart = make("div", "kpi-chart");
+      chart.tabIndex = 0;
+      chart.setAttribute("role", "group");
+      chart.setAttribute("aria-roledescription", "sparkline");
+      const plot = make("div", "kpi-plot");
+      [0, 1, 2].forEach(i => { const g = make("span", "kpi-gridline"); g.style.top = (10 + i * 40) + "%"; plot.append(g); });
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.createElementNS(NS, "svg");
+      svg.setAttribute("class", "kpi-svg"); svg.setAttribute("viewBox", "0 0 100 40");
+      svg.setAttribute("preserveAspectRatio", "none"); svg.setAttribute("aria-hidden", "true");
+      const area = document.createElementNS(NS, "path"); area.setAttribute("class", "kpi-area");
+      const line = document.createElementNS(NS, "path"); line.setAttribute("class", "kpi-line");
+      svg.append(area, line);
+      const prev = make("span", "kpi-prev"); prev.append(make("span"));
+      prev.setAttribute("aria-hidden", "true");
+      const cross = make("span", "kpi-cross"), dot = make("span", "kpi-dot");
+      const tip = make("span", "kpi-tip");
+      tip.setAttribute("aria-hidden", "true");
+      plot.append(svg, prev, cross, dot, tip);
+      chart.append(plot);
+      const axis = make("div", "kpi-axis");
+      axis.append(make("span"), make("span"));
+      axis.setAttribute("aria-hidden", "true");
+
+      const stats = make("dl", "kpi-stats");
+      ["high", "low"].forEach(k => {
+        const s = make("div", "kpi-stat"); s.dataset.k = k;
+        s.append(make("dt"), make("dd"));
+        stats.append(s);
+      });
+
+      inner.append(top, fig, note, chart, axis, stats);
+      art.append(inner);
+      art._m = m;
+      art.$ = { pick, pin: pin.querySelector(".kpi-pin-t"), value: fig.firstChild, delta: fig.lastChild, note, chart, area, line, prev, cross, dot, tip, axis, stats };
+      this._wireChart(art);
+      return art;
+    }
+
+    _wireChart(art) {
+      const c = art.$.chart;
+      const read = i => {
+        const pts = art._calc ? art._calc.points : [];
+        if (!pts.length) return;
+        art._idx = Math.max(0, Math.min(pts.length - 1, i));
+        this._showPoint(art);
+      };
+      const fromX = e => {
+        const r = art.$.chart.querySelector(".kpi-plot").getBoundingClientRect();
+        const n = art._calc ? art._calc.points.length : 0;
+        if (!n || !r.width) return 0;
+        return Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * (n - 1));
+      };
+      c.addEventListener("pointermove", e => read(fromX(e)));
+      c.addEventListener("pointerdown", e => read(fromX(e)));
+      c.addEventListener("pointerleave", () => { if (document.activeElement !== c) c.classList.remove("kpi-is-reading"); });
+      c.addEventListener("focus", () => read(art._idx ?? (art._calc ? art._calc.points.length - 1 : 0)));
+      c.addEventListener("blur", () => c.classList.remove("kpi-is-reading"));
+      c.addEventListener("click", () => { if (!art.classList.contains("kpi-is-hero")) this._select(art.dataset.id); });
+      c.addEventListener("keydown", e => {
+        const n = art._calc ? art._calc.points.length : 0, i = art._idx ?? n - 1;
+        const map = { ArrowLeft: i - 1, ArrowDown: i - 1, ArrowRight: i + 1, ArrowUp: i + 1, Home: 0, End: n - 1 };
+        if (e.key in map) { e.preventDefault(); read(map[e.key]); this.$.sr.textContent = [...art.$.tip.children].map(x => x.textContent).join(", "); }
+        else if ((e.key === "Enter" || e.key === " ") && !art.classList.contains("kpi-is-hero")) { e.preventDefault(); this._select(art.dataset.id); }
+      });
+    }
+
+    _showPoint(art) {
+      const calc = art._calc, i = art._idx, m = art._m;
+      if (!calc || i == null || !calc.points.length) return;
+      const n = calc.points.length, x = n === 1 ? 50 : i / (n - 1) * 100, y = art._ys[i];
+      const $ = art.$;
+      $.cross.style.left = x + "%";
+      $.dot.style.left = x + "%"; $.dot.style.top = (y / 40 * 100) + "%";
+      $.tip.replaceChildren(make("b", null, this._fmt(m, calc.points[i])), make("small", null, this._pointLabel(i, n, this._periodObj())));
+      $.tip.style.left = x + "%";
+      $.tip.style.setProperty("--kpi-tx", x < 18 ? "-12%" : x > 82 ? "-88%" : "-50%");
+      $.chart.classList.add("kpi-is-reading");
+    }
+
+    _select(id) {
+      if (id === this._heroId()) return;
+      this.setAttribute("hero", id);
+      const m = this._metric(id), c = this._calc(m, this._periodId());
+      this.dispatchEvent(new CustomEvent("kpiselect", {
+        bubbles: true,
+        detail: { id, label: m.label || id, period: this._periodId(), value: c.value, previous: c.previous }
+      }));
+    }
+
+    _applyHero(animate) {
+      const L = this._labels(), hero = this._heroId(), grid = this.$.grid;
+      if (!hero) return;
+      if (this._order[0] !== hero) {
+        const i = this._order.indexOf(hero);
+        if (i > 0) { this._order[i] = this._order[0]; this._order[0] = hero; }
+      }
+      const tiles = [...grid.children];
+      const motion = animate && !reduceMotion() && "animate" in Element.prototype;
+      const first = motion ? new Map(tiles.map(t => [t, t.getBoundingClientRect()])) : null;
+
+      const byId = new Map(tiles.map(t => [t.dataset.id, t]));
+      this._order.forEach(id => { const t = byId.get(id); if (t) grid.append(t); });
+      tiles.forEach(t => {
+        const on = t.dataset.id === hero, label = t._m.label || t.dataset.id;
+        t.classList.toggle("kpi-is-hero", on);
+        t.$.pick.setAttribute("aria-pressed", String(on));
+        t.$.pin.textContent = on ? L.pinned : L.pin;
+        t.$.pick.setAttribute("aria-label", fill(on ? L.isHero : L.pinHint, { label }) + ". " + (t._summary || ""));
+      });
+      if (animate) this.$.sr.textContent = fill(L.announcePin, { label: this._metric(hero).label || hero });
+
+      if (!motion) return;
+      tiles.forEach(t => {
+        const a = first.get(t), b = t.getBoundingClientRect();
+        if (!a || !b.width || !b.height) return;
+        const dx = a.left - b.left, dy = a.top - b.top, sx = a.width / b.width, sy = a.height / b.height;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1 && Math.abs(sx - 1) < .01 && Math.abs(sy - 1) < .01) return;
+        t.animate([
+          { transformOrigin: "0 0", transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})` },
+          { transformOrigin: "0 0", transform: "none" }
+        ], { duration: 420, easing: "cubic-bezier(.2,.75,.2,1)" });
+        if (Math.abs(sx - 1) > .05 || Math.abs(sy - 1) > .05) {
+          t.querySelector(".kpi-in").animate([{ opacity: 0 }, { opacity: 0, offset: .35 }, { opacity: 1 }], { duration: 420, easing: "ease-out" });
+        }
+      });
+    }
+
+    _update(animate) {
+      const L = this._labels(), p = this._periodObj(), pid = p.id, $ = this.$;
+      $.seg.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.period === pid)));
+      this._placeThumb();
+      const days = num(p.days) || 0;
+      $.range.textContent = days ? this._span(this._day(days - 1), this._day(0), true) : "";
+      if (animate) $.sr.textContent = fill(L.announcePeriod, { n: days });
+
+      const jobs = [];
+      [...$.grid.children].forEach(t => {
+        const m = t._m, c = this._calc(m, pid), pts = c.points;
+        t._calc = c;
+        // y scale (include the previous-period average so the reference line always fits)
+        const prevAvg = c.previous == null ? null : (m.ratio ? c.previous : (pts.length ? c.previous / pts.length : null));
+        const vals = pts.concat(prevAvg != null ? [prevAvg] : []);
+        let lo = vals.length ? Math.min(...vals) : 0, hi = vals.length ? Math.max(...vals) : 1;
+        if (hi === lo) { hi += 1; lo -= 1; }
+        const pad = (hi - lo) * 0.08;
+        lo -= pad; hi += pad;
+        const Y = v => 36 - (v - lo) / (hi - lo) * 32;
+        t._ys = pts.map(Y);
+        if (t._idx != null && t._idx >= pts.length) t._idx = pts.length - 1;
+
+        // text
+        const dl = this._delta(m, c);
+        t.$.delta.replaceChildren();
+        if (dl) {
+          t.$.delta.dataset.tone = dl.tone;
+          if (dl.r) t.$.delta.insertAdjacentHTML("afterbegin", dl.r > 0 ? ICON_UP : ICON_DOWN);
+          t.$.delta.append(dl.text);
+          t.$.delta.hidden = false;
+        } else t.$.delta.hidden = true;
+        if (c.parts) {
+          const tpl = m.format === "percent" ? L.ratioPct : L.ratioNote;
+          t.$.note.textContent = fill(tpl, {
+            of: `${this._fmt(c.parts.of, c.parts.ofValue)} ${(c.parts.of.label || "").toLowerCase()}`,
+            per: `${this._fmt(c.parts.per, c.parts.perValue)} ${(c.parts.per.label || "").toLowerCase()}`
+          });
+        } else t.$.note.textContent = c.previous != null ? fill(L.vs, { prev: this._fmt(m, c.previous), n: days }) : "";
+
+        // hero extras
+        if (prevAvg != null) {
+          t.$.prev.hidden = false;
+          t.$.prev.style.top = (Y(prevAvg) / 40 * 100) + "%";
+          t.$.prev.firstChild.textContent = fill(L.prevAvg, { v: this._fmt(m, prevAvg) });
+        } else t.$.prev.hidden = true;
+        const n = pts.length;
+        const [a0, a1] = t.$.axis.children;
+        a0.textContent = n ? this._pointLabel(0, n, p) : "";
+        a1.textContent = n > 1 ? this._pointLabel(n - 1, n, p) : "";
+        const hiI = n ? pts.indexOf(Math.max(...pts)) : -1, loI = n ? pts.indexOf(Math.min(...pts)) : -1;
+        const stat = (k, title, val, sub) => {
+          const s = t.$.stats.querySelector(`[data-k="${k}"]`);
+          s.querySelector("dt").textContent = title;
+          const dd = s.querySelector("dd"); dd.replaceChildren(val);
+          if (sub) dd.append(make("small", null, sub));
+        };
+        const unit = (num(p.bucket) || 1) === 1 ? L.day : fill(L.block, { n: p.bucket });
+        stat("high", `${L.high} · ${unit}`, this._fmt(m, hiI >= 0 ? pts[hiI] : null), hiI >= 0 ? this._pointLabel(hiI, n, p) : "");
+        stat("low", `${L.low} · ${unit}`, this._fmt(m, loI >= 0 ? pts[loI] : null), loI >= 0 ? this._pointLabel(loI, n, p) : "");
+
+        // accessible summary
+        const label = m.label || m.id;
+        t._summary = `${this._fmt(m, c.value)}${dl ? `, ${dl.r > 0 ? "up" : dl.r < 0 ? "down" : "unchanged"} ${dl.text}` : ""}. ${t.$.note.textContent}`;
+        const on = t.classList.contains("kpi-is-hero");
+        t.$.pick.setAttribute("aria-label", fill(on ? L.isHero : L.pinHint, { label }) + ". " + t._summary);
+        t.$.chart.setAttribute("aria-label", fill(L.chart, { label, unit, n }));
+
+        // tween
+        const from = this._shown.get(m.id);
+        const toSamples = resample(t._ys, SAMPLES);
+        jobs.push({ t, m, fromV: from ? from.v : c.value, toV: c.value, fromS: from ? from.s : toSamples, toS: toSamples });
+        this._shown.set(m.id, { v: c.value, s: toSamples });
+      });
+
+      const final = () => jobs.forEach(j => {
+        j.t.$.value.textContent = this._fmt(j.m, j.toV);
+        const p2 = pathOf(j.t._ys);
+        j.t.$.line.setAttribute("d", p2.line); j.t.$.area.setAttribute("d", p2.area);
+        if (j.t.$.chart.classList.contains("kpi-is-reading")) this._showPoint(j.t);
+      });
+      if (this._raf) cancelAnimationFrame(this._raf);
+      if (!animate || reduceMotion() || document.hidden) { final(); return; }
+      const t0 = performance.now(), dur = 460;
+      jobs.forEach(j => j.t.$.chart.classList.remove("kpi-is-reading"));
+      const tick = now => {
+        const k = ease(Math.min(1, (now - t0) / dur));
+        if (k >= 1) { this._raf = 0; final(); return; }
+        jobs.forEach(j => {
+          const v = j.fromV != null && j.toV != null ? j.fromV + (j.toV - j.fromV) * k : j.toV;
+          j.t.$.value.textContent = this._fmt(j.m, v);
+          const ys = j.toS.map((y, i) => j.fromS[i] + (y - j.fromS[i]) * k);
+          const p2 = pathOf(ys);
+          j.t.$.line.setAttribute("d", p2.line); j.t.$.area.setAttribute("d", p2.area);
+        });
+        this._raf = requestAnimationFrame(tick);
+      };
+      this._raf = requestAnimationFrame(tick);
+    }
+
+    _placeThumb() {
+      const b = this.$.seg.querySelector('button[aria-pressed="true"]');
+      if (!b || !b.offsetWidth) return;
+      this.$.thumb.style.width = b.offsetWidth + "px";
+      this.$.thumb.style.transform = `translateX(${b.offsetLeft}px)`;
+    }
+  }
+
+  if (!customElements.get("kpi-dashboard")) customElements.define("kpi-dashboard", KpiDashboard);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("kpi-note");
+  const initialHero = el.getAttribute("hero");
+  el.addEventListener("kpiselect", e => {
+    const d = e.detail;
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = `${d.label} · ${d.period.toUpperCase()}`;
+    note.append(b, " pinned. The dashboard sent a kpiselect event. Example data, not real client results.");
+  });
+  document.getElementById("reset-hero").addEventListener("click", () => el.pin(initialHero));
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>

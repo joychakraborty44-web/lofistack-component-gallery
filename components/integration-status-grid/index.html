@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable integration status grid: eight connected tools with a status light, last sync time and events today, plus status filters, Sync now, Reconnect and a details drawer.">
+<meta property="og:title" content="Integration Status Grid · LofiStack Components">
+<meta property="og:description" content="A reusable integration status grid: eight connected tools with a status light, last sync time and events today, plus status filters, Sync now, Reconnect and a details drawer.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Integration Status Grid · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #E9EBEE;
+  --stage: #F2F3F5;
+  --ink: #16191D;
+  --muted: #555C66;
+  --faint: #737A84;
+  --line: #D9DCE1;
+  --panel: #F7F8F9;
+  --accent: #1F2937;
+
+  /* ---- Integration Status Grid tokens (override these to re-theme the component) ---- */
+  --isg-canvas: #ECEEF1;
+  --isg-tile: #FFFFFF;
+  --isg-ink: #16191D;
+  --isg-muted: #545B65;
+  --isg-faint: #69707A;
+  --isg-line: #DFE2E6;
+  --isg-tint: #F4F5F7;
+  --isg-glyph: #2A2F36;
+  --isg-btn: #1C2026;
+  --isg-btn-ink: #FFFFFF;
+  --isg-ok: #15803D;
+  --isg-ok-soft: #E3F4E8;
+  --isg-warn: #B45309;
+  --isg-warn-soft: #FDF0DD;
+  --isg-bad: #B91C1C;
+  --isg-bad-soft: #FBE6E6;
+  --isg-fix-ink: #FFFFFF;
+  --isg-focus: #2563EB;
+  --isg-scrim: rgba(22, 25, 29, 0.32);
+  --isg-shadow: rgba(18, 22, 28, 0.16);
+  --isg-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --isg-display: "Segoe UI Variable Display", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --isg-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0C0D0F; --stage: #111316; --ink: #E8EAED; --muted: #A4AAB3; --faint: #7F8690;
+    --line: #23262B; --panel: #14161A; --accent: #E5E7EB;
+    --isg-canvas: #121418; --isg-tile: #1A1D22; --isg-ink: #E8EAED; --isg-muted: #A6ACB5; --isg-faint: #8A919B;
+    --isg-line: #2A2E35; --isg-tint: #20242A; --isg-glyph: #D9DCE1; --isg-btn: #E8EAED; --isg-btn-ink: #121418;
+    --isg-ok: #4ADE80; --isg-ok-soft: rgba(74, 222, 128, 0.13); --isg-warn: #FBBF24; --isg-warn-soft: rgba(251, 191, 36, 0.13);
+    --isg-bad: #F87171; --isg-bad-soft: rgba(248, 113, 113, 0.13); --isg-fix-ink: #2A0B0B; --isg-focus: #93C5FD;
+    --isg-scrim: rgba(0, 0, 0, 0.5); --isg-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0C0D0F; --stage: #111316; --ink: #E8EAED; --muted: #A4AAB3; --faint: #7F8690;
+  --line: #23262B; --panel: #14161A; --accent: #E5E7EB;
+  --isg-canvas: #121418; --isg-tile: #1A1D22; --isg-ink: #E8EAED; --isg-muted: #A6ACB5; --isg-faint: #8A919B;
+  --isg-line: #2A2E35; --isg-tint: #20242A; --isg-glyph: #D9DCE1; --isg-btn: #E8EAED; --isg-btn-ink: #121418;
+  --isg-ok: #4ADE80; --isg-ok-soft: rgba(74, 222, 128, 0.13); --isg-warn: #FBBF24; --isg-warn-soft: rgba(251, 191, 36, 0.13);
+  --isg-bad: #F87171; --isg-bad-soft: rgba(248, 113, 113, 0.13); --isg-fix-ink: #2A0B0B; --isg-focus: #93C5FD;
+  --isg-scrim: rgba(0, 0, 0, 0.5); --isg-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   Integration Status Grid component  (copy this block + the script)
+   ========================================================= */
+integration-status-grid {
+  display: block;
+  container: isg / inline-size;
+  width: 100%;
+  max-width: 980px;
+  font-family: var(--isg-sans);
+  color: var(--isg-ink);
+}
+.isg {
+  position: relative; overflow: hidden;
+  background: var(--isg-canvas);
+  border: 1px solid var(--isg-line);
+  border-radius: 18px;
+  padding: 24px 24px 20px;
+  box-shadow: 0 30px 60px -48px var(--isg-shadow);
+}
+.isg button { font-family: inherit; }
+.isg :focus-visible { outline: 2px solid var(--isg-focus); outline-offset: 2px; }
+
+/* header */
+.isg-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px 20px; flex-wrap: wrap; }
+.isg-intro { display: grid; gap: 6px; min-width: 0; }
+.isg-eyebrow { font: 600 11px/1 var(--isg-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--isg-faint); }
+.isg-title { margin: 0; font: 650 clamp(20px, 3.2cqi, 25px)/1.15 var(--isg-display); letter-spacing: -0.02em; text-wrap: balance; }
+.isg-sub { margin: 0; font-size: 13px; color: var(--isg-muted); }
+.isg-eyebrow:empty, .isg-sub:empty { display: none; }
+
+.isg-btn {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+  min-height: 34px; padding: 0 13px; border-radius: 9px; box-sizing: border-box;
+  border: 1px solid var(--isg-line); background: var(--isg-tile); color: var(--isg-ink);
+  font: 600 12.5px/1 var(--isg-sans); white-space: nowrap;
+  transition: background .2s, border-color .2s, color .2s, transform .15s, opacity .2s;
+}
+.isg-btn svg { width: 14px; height: 14px; flex: none; }
+.isg-btn:hover:not(:disabled) { border-color: var(--isg-faint); }
+.isg-btn:active:not(:disabled) { transform: scale(.98); }
+.isg-btn:disabled { cursor: default; opacity: .6; }
+.isg-btn--main { background: var(--isg-btn); border-color: var(--isg-btn); color: var(--isg-btn-ink); }
+.isg-btn--main:hover:not(:disabled) { border-color: var(--isg-btn); opacity: .9; }
+.isg-btn--fix { background: var(--isg-bad); border-color: var(--isg-bad); color: var(--isg-fix-ink); }
+.isg-btn--fix:hover:not(:disabled) { border-color: var(--isg-bad); opacity: .9; }
+.isg-btn--ghost { background: transparent; border-color: transparent; color: var(--isg-muted); }
+.isg-btn--ghost:hover:not(:disabled) { color: var(--isg-ink); background: var(--isg-tint); border-color: transparent; }
+.isg-btn[aria-busy="true"] svg { animation: isg-spin .8s linear infinite; }
+@keyframes isg-spin { to { transform: rotate(360deg); } }
+
+/* summary + filters */
+.isg-summary {
+  margin-top: 18px; padding: 14px 16px; border-radius: 14px; background: var(--isg-tile); border: 1px solid var(--isg-line);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 20px; align-items: center;
+}
+.isg-health { display: grid; gap: 9px; min-width: 0; }
+.isg-health-top { display: flex; align-items: baseline; gap: 6px 12px; flex-wrap: wrap; }
+.isg-health-big { font: 650 22px/1 var(--isg-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.isg-health-sub { font-size: 12.5px; color: var(--isg-muted); font-variant-numeric: tabular-nums; }
+.isg-meter { display: flex; gap: 3px; height: 6px; }
+.isg-meter span { flex: var(--n) 1 0; min-width: 0; border-radius: 99px; background: var(--c); transition: flex-grow .5s cubic-bezier(.2,.7,.2,1); }
+.isg-filters { display: flex; flex-wrap: wrap; gap: 4px; padding: 3px; border-radius: 11px; background: var(--isg-tint); border: 1px solid var(--isg-line); }
+.isg-filter {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 8px;
+  font: 600 12.5px/1 var(--isg-sans); color: var(--isg-muted); transition: background .2s, color .2s, box-shadow .2s;
+}
+.isg-filter:hover { color: var(--isg-ink); }
+.isg-filter[aria-pressed="true"] { background: var(--isg-tile); color: var(--isg-ink); box-shadow: 0 1px 3px -1px var(--isg-shadow), 0 0 0 1px var(--isg-line); }
+.isg-filter b { font: 600 11.5px/1 var(--isg-sans); font-variant-numeric: tabular-nums; color: var(--isg-faint); }
+.isg-filter[aria-pressed="true"] b { color: var(--isg-ink); }
+.isg-fdot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+
+/* tile grid */
+.isg-grid { list-style: none; margin: 16px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.isg-tile {
+  --c: var(--isg-ok);
+  position: relative; min-width: 0; box-sizing: border-box;
+  display: flex; flex-direction: column;
+  padding: 16px 16px 14px; border-radius: 14px;
+  background: var(--isg-tile); border: 1px solid var(--isg-line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset, 0 10px 24px -22px var(--isg-shadow);
+  transition: transform .35s cubic-bezier(.2,.7,.2,1), box-shadow .35s ease, border-color .3s;
+}
+.isg-tile:hover { transform: translateY(-2px); box-shadow: 0 18px 32px -24px var(--isg-shadow); }
+.isg-tile[data-status="warning"] { --c: var(--isg-warn); }
+.isg-tile[data-status="disconnected"] { --c: var(--isg-bad); border-style: dashed; border-color: color-mix(in oklab, var(--isg-bad) 45%, var(--isg-line)); }
+.isg-tile[data-status="warning"]::before, .isg-tile[data-status="disconnected"]::before {
+  content: ""; position: absolute; left: 16px; right: 16px; top: -1px; height: 2px; border-radius: 0 0 2px 2px; background: var(--c);
+}
+.isg-tile.isg-is-enter { animation: isg-in .35s cubic-bezier(.2,.7,.2,1) both; animation-delay: calc(var(--i, 0) * 30ms); }
+@keyframes isg-in { from { opacity: 0; transform: translateY(6px) scale(.985); } to { opacity: 1; transform: none; } }
+.isg-tile.isg-is-flash { animation: isg-flash .9s ease; }
+@keyframes isg-flash { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--isg-ok) 50%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+
+.isg-tile-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.isg-glyph {
+  width: 40px; height: 40px; border-radius: 11px; display: grid; place-items: center; flex: none;
+  background: var(--isg-tint); color: var(--isg-glyph); box-shadow: inset 0 0 0 1px var(--isg-line);
+}
+.isg-glyph svg { width: 21px; height: 21px; }
+.isg-tile[data-status="disconnected"] .isg-glyph { color: var(--isg-faint); }
+.isg-light {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px 5px 7px; border-radius: 99px;
+  background: color-mix(in oklab, var(--c) 11%, transparent); color: var(--c);
+  font: 600 11px/1 var(--isg-sans); white-space: nowrap;
+}
+.isg-light i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 22%, transparent); }
+.isg-tile[data-status="connected"] .isg-light i { animation: isg-glow 2.4s ease-in-out infinite; }
+@keyframes isg-glow { 50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--c) 8%, transparent); } }
+.isg-name { margin: 14px 0 0; font: 650 15.5px/1.25 var(--isg-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.isg-desc { margin: 3px 0 0; font-size: 12.5px; line-height: 1.4; color: var(--isg-muted); overflow-wrap: anywhere; }
+.isg-issue {
+  margin: 10px 0 0; padding: 7px 9px; border-radius: 8px; font-size: 12px; line-height: 1.4;
+  background: color-mix(in oklab, var(--c) 10%, transparent); color: var(--isg-ink);
+  border-left: 2px solid var(--c);
+}
+.isg-issue:empty { display: none; }
+.isg-bars { margin-top: auto; padding-top: 14px; height: 34px; display: flex; align-items: flex-end; gap: 2px; }
+.isg-bars[hidden] + .isg-meta { margin-top: auto; }
+.isg-bars span { flex: 1; min-width: 0; height: calc(max(var(--h), 4) * 1%); border-radius: 2px 2px 1px 1px; background: var(--isg-line); transition: height .4s cubic-bezier(.2,.7,.2,1), background .3s; }
+.isg-bars span:last-child { background: var(--isg-glyph); opacity: .75; }
+.isg-tile[data-status="disconnected"] .isg-bars span:last-child { background: var(--isg-line); opacity: 1; }
+.isg-meta { margin: 10px 0 0; padding-top: 10px; border-top: 1px solid var(--isg-line); display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 8px; }
+.isg-meta div { display: grid; gap: 4px; min-width: 0; }
+.isg-meta dt { font: 500 10.5px/1.2 var(--isg-sans); letter-spacing: .04em; color: var(--isg-faint); }
+.isg-meta dd { margin: 0; font: 600 13px/1.2 var(--isg-sans); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; transition: color .3s; }
+.isg-meta dd.isg-is-fresh { color: var(--isg-ok); }
+.isg-actions { margin-top: 12px; display: flex; gap: 6px; }
+.isg-actions .isg-btn:first-child { flex: 1; }
+
+.isg-empty { margin-top: 16px; padding: 34px 16px; border-radius: 14px; border: 1px dashed var(--isg-line); display: grid; justify-items: center; gap: 12px; text-align: center; font-size: 13.5px; color: var(--isg-muted); }
+.isg-foot { margin-top: 14px; display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; font-size: 12px; color: var(--isg-faint); }
+.isg-foot span:empty { display: none; }
+
+/* details drawer */
+.isg-scrim { position: absolute; inset: 0; z-index: 4; background: var(--isg-scrim); opacity: 0; transition: opacity .3s ease; }
+.isg-scrim.isg-is-open { opacity: 1; }
+.isg-drawer {
+  position: absolute; z-index: 5; top: 0; right: 0; bottom: 0; width: min(380px, 100%); box-sizing: border-box;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--isg-tile); border-left: 1px solid var(--isg-line);
+  box-shadow: -24px 0 48px -32px var(--isg-shadow);
+  transform: translateX(104%); transition: transform .38s cubic-bezier(.2,.7,.2,1);
+}
+.isg-drawer.isg-is-open { transform: none; }
+.isg-dr-head { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 18px 18px 16px; border-bottom: 1px solid var(--isg-line); }
+.isg-dr-head .isg-glyph { width: 44px; height: 44px; }
+.isg-dr-title { margin: 0; font: 650 17px/1.2 var(--isg-display); letter-spacing: -0.01em; overflow-wrap: anywhere; }
+.isg-dr-title:focus { outline: none; }
+.isg-dr-head .isg-light { justify-self: start; margin-top: 6px; }
+.isg-close { width: 34px; padding: 0; align-self: start; }
+.isg-dr-body { overflow-y: auto; padding: 16px 18px; display: grid; gap: 18px; align-content: start; }
+.isg-dr-sec { display: grid; gap: 10px; }
+.isg-dr-sec h4 { margin: 0; font: 600 10.5px/1 var(--isg-sans); letter-spacing: .12em; text-transform: uppercase; color: var(--isg-faint); }
+.isg-dr-facts { margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1px; border-radius: 10px; overflow: hidden; background: var(--isg-line); border: 1px solid var(--isg-line); }
+.isg-dr-facts div { display: grid; gap: 4px; padding: 10px 11px; background: var(--isg-tile); min-width: 0; }
+.isg-dr-facts .isg-wide { grid-column: 1 / -1; }
+.isg-dr-facts dt { font-size: 11px; color: var(--isg-faint); }
+.isg-dr-facts dd { margin: 0; font: 600 13px/1.3 var(--isg-sans); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.isg-scopes { margin: 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.isg-scopes li { display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; font-size: 13px; line-height: 1.4; }
+.isg-scopes svg { width: 14px; height: 14px; margin-top: 2px; color: var(--isg-ok); }
+.isg-hist { margin: 0; padding: 0; list-style: none; display: grid; }
+.isg-hist li { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 10px; align-items: start; padding: 0 0 12px; font-size: 12.5px; line-height: 1.35; }
+.isg-hist li::before { content: ""; position: absolute; left: 6px; top: 14px; bottom: 0; width: 1px; background: var(--isg-line); }
+.isg-hist li:last-child::before { display: none; }
+.isg-hist i { width: 9px; height: 9px; margin: 3px 0 0 2px; border-radius: 50%; background: var(--c); box-shadow: 0 0 0 3px color-mix(in oklab, var(--c) 18%, transparent); }
+.isg-hist b { display: block; font-weight: 600; }
+.isg-hist small { display: block; color: var(--isg-muted); font-size: 12px; overflow-wrap: anywhere; }
+.isg-hist em { font-style: normal; font-size: 12px; color: var(--isg-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.isg-hist li.isg-is-enter { animation: isg-in .35s cubic-bezier(.2,.7,.2,1) both; }
+.isg-dr-foot { display: flex; gap: 8px; padding: 14px 18px; border-top: 1px solid var(--isg-line); background: var(--isg-tint); flex-wrap: wrap; }
+.isg-dr-foot .isg-btn:first-child { flex: 1; }
+.isg-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; margin: 0; }
+
+/* tablet */
+@container isg (max-width: 759px) {
+  .isg { padding: 20px 18px 16px; }
+  .isg-summary { grid-template-columns: 1fr; }
+  .isg-filters { justify-self: start; }
+  .isg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* phone: one compact tile per row */
+@container isg (max-width: 479px) {
+  .isg { padding: 18px 12px 14px; border-radius: 16px; }
+  .isg-head .isg-btn { width: 100%; }
+  .isg-summary { padding: 12px; }
+  .isg-filters { width: 100%; box-sizing: border-box; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .isg-filter { justify-content: center; gap: 5px; padding: 8px 4px; font-size: 12px; }
+  .isg-grid { grid-template-columns: 1fr; gap: 10px; }
+  .isg-tile { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: 12px; padding: 14px 14px 12px; }
+  .isg-tile-top { display: contents; }
+  .isg-glyph { grid-column: 1; grid-row: 1 / span 2; }
+  .isg-light { grid-column: 2; grid-row: 1; justify-self: start; }
+  .isg-name { grid-column: 2; grid-row: 2; margin-top: 8px; }
+  .isg-desc, .isg-issue, .isg-meta, .isg-actions { grid-column: 1 / -1; }
+  .isg-bars { display: none; }
+  .isg-drawer { width: 100%; border-left: 0; }
+  .isg-dr-head { padding: 16px 14px 14px; }
+  .isg-dr-body { padding: 14px; }
+  .isg-dr-foot { padding: 12px 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .isg-btn, .isg-meter span, .isg-filter, .isg-tile, .isg-bars span, .isg-meta dd, .isg-scrim, .isg-drawer { transition: none; }
+  .isg-tile:hover { transform: none; }
+  .isg-btn[aria-busy="true"] svg, .isg-tile.isg-is-enter, .isg-tile.isg-is-flash, .isg-tile[data-status="connected"] .isg-light i, .isg-hist li.isg-is-enter { animation: none; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--isg-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--isg-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--isg-display); letter-spacing: -0.03em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  background:
+    radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 22px 22px,
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 44px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 980px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); max-width: 56ch; }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--isg-tile); cursor: pointer;
+  font: 500 12px/1 var(--isg-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.btn:focus-visible { outline: 2px solid var(--isg-focus); outline-offset: 2px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 650 17px/1.2 var(--isg-display); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--isg-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--isg-mono); }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--isg-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--isg-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); font-weight: 600; }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
+      <a href="/components/kpi-metrics-dashboard"><span>05</span>KPI Dashboard</a>
+      <a href="/components/ai-prompt-card"><span>06</span>AI Prompt</a>
+      <a href="/components/client-overview-card"><span>07</span>Client Overview</a>
+      <a href="/components/task-progress-board"><span>08</span>Task Board</a>
+      <a href="/components/ad-creative-performance"><span>09</span>Ad Creatives</a>
+      <a href="/components/seo-ranking-tracker"><span>10</span>SEO Rankings</a>
+      <a href="/components/conversion-rate-card"><span>11</span>Conversion Rate</a>
+      <a href="/components/activity-timeline"><span>12</span>Activity Timeline</a>
+      <a href="/components/campaign-status-card"><span>13</span>Campaign Status</a>
+      <a href="/components/lead-source-breakdown"><span>14</span>Lead Sources</a>
+      <a href="/components/revenue-growth-chart"><span>15</span>Revenue Growth</a>
+      <a href="/components/appointment-pipeline"><span>16</span>Appointments</a>
+      <a href="/components/workflow-automation-card"><span>17</span>Workflow Automation</a>
+      <a href="/components/ai-agent-status-panel"><span>18</span>AI Agents</a>
+      <a href="/components/notification-center"><span>19</span>Notifications</a>
+      <a href="/components/client-health-score"><span>20</span>Client Health</a>
+      <a href="/components/ad-spend-budget-tracker"><span>21</span>Ad Budget</a>
+      <a href="/components/form-conversion-card"><span>22</span>Form Conversion</a>
+      <a href="/components/seo-audit-scorecard"><span>23</span>SEO Audit</a>
+      <a href="/components/integration-status-grid" aria-current="page"><span>24</span>Integrations</a>
+      <a href="/components/team-member-performance"><span>25</span>Team Performance</a>
+      <a href="/components/revenue-goal-tracker"><span>26</span>Revenue Goal</a>
+      <a href="/components/webhook-event-monitor"><span>27</span>Webhooks</a>
+      <a href="/components/ai-usage-analytics"><span>28</span>AI Usage</a>
+      <a href="/components/customer-journey-map"><span>29</span>Customer Journey</a>
+      <a href="/components/weekly-marketing-report"><span>30</span>Weekly Report</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 24</span></div>
+    <h1>Integration Status Grid</h1>
+    <p>Every tool a workspace is connected to, in one grid: whether it is working, when it last synced and how many events it has handled today. Filter by status, sync a tool now, reconnect one that dropped, or open its details.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <integration-status-grid id="demo" filter="all">
+      <script type="application/json">
+        {
+          "eyebrow": "Integrations",
+          "title": "Connected tools",
+          "subtitle": "Harbor & Pine Realty workspace",
+          "footnote": "Events are counted since midnight, workspace time.",
+          "integrations": [
+            { "id": "crm", "name": "CRM", "icon": "crm", "description": "Contacts, deals and pipelines", "status": "connected",
+              "lastSyncMinutes": 4, "eventsToday": 1284, "interval": "Every 5 min", "account": "ops@harborpine.example", "connectedSince": "Mar 2025",
+              "scopes": ["Read and write contacts", "Read deals and pipelines", "Create notes and tasks"],
+              "activity": [62, 88, 104, 131, 97, 120, 142, 118, 96, 110, 121, 95] },
+            { "id": "payments", "name": "Payments", "icon": "card", "description": "Invoices and card payments", "status": "connected",
+              "lastSyncMinutes": 11, "eventsToday": 86, "interval": "Every 15 min", "account": "billing@harborpine.example", "connectedSince": "Jan 2025",
+              "scopes": ["Read invoices", "Read payments and refunds"],
+              "activity": [4, 6, 9, 7, 11, 8, 5, 9, 10, 6, 7, 4] },
+            { "id": "calendar", "name": "Calendar sync", "icon": "calendar", "description": "Showings and booked calls", "status": "warning",
+              "issue": "Sync delayed. The last attempt timed out.", "fix": "sync",
+              "lastSyncMinutes": 47, "eventsToday": 142, "interval": "Every 10 min", "account": "agents@harborpine.example", "connectedSince": "Feb 2025",
+              "scopes": ["Read and write calendar events", "Read free / busy"],
+              "activity": [9, 14, 12, 18, 16, 21, 15, 19, 11, 7, 0, 0],
+              "history": [
+                { "minutesAgo": 7, "result": "fail", "note": "Timed out after 30 s" },
+                { "minutesAgo": 27, "result": "fail", "note": "Timed out after 30 s" },
+                { "minutesAgo": 47, "result": "ok", "events": 11 }
+              ] },
+            { "id": "email", "name": "Email delivery", "icon": "mail", "description": "Campaign and one-to-one email", "status": "connected",
+              "lastSyncMinutes": 2, "eventsToday": 3410, "interval": "Live", "account": "mail.harborpine.example", "connectedSince": "Nov 2024",
+              "scopes": ["Send email", "Read opens, clicks and bounces"],
+              "activity": [210, 260, 340, 410, 380, 290, 330, 360, 300, 270, 250, 230] },
+            { "id": "sms", "name": "SMS gateway", "icon": "sms", "description": "Text messages and replies", "status": "disconnected",
+              "issue": "Sign-in expired. Reconnect to resume texts.", "fix": "reconnect",
+              "lastSyncMinutes": 1560, "eventsToday": 0, "interval": "Live", "account": "Main office number", "connectedSince": "Apr 2025",
+              "scopes": ["Send and receive SMS", "Read delivery receipts"],
+              "activity": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+              "history": [
+                { "minutesAgo": 1500, "result": "fail", "note": "Sign-in expired" },
+                { "minutesAgo": 1560, "result": "ok", "events": 23 }
+              ] },
+            { "id": "chat", "name": "Team chat", "icon": "chat", "description": "Alerts to team channels", "status": "connected",
+              "lastSyncMinutes": 6, "eventsToday": 412, "interval": "Live", "account": "Harbor & Pine team", "connectedSince": "Dec 2024",
+              "scopes": ["Post to selected channels"],
+              "activity": [18, 25, 31, 42, 37, 29, 40, 44, 36, 33, 41, 36] },
+            { "id": "sheets", "name": "Spreadsheets", "icon": "sheet", "description": "Weekly listing export", "status": "warning",
+              "issue": "Access expires in 3 days. Reconnect to renew it.", "fix": "reconnect",
+              "lastSyncMinutes": 112, "eventsToday": 38, "interval": "Every hour", "account": "listings@harborpine.example", "connectedSince": "May 2025",
+              "scopes": ["Read and write one spreadsheet"],
+              "activity": [3, 4, 2, 5, 3, 4, 6, 3, 4, 4, 0, 0] },
+            { "id": "hub", "name": "Automation hub", "icon": "hub", "description": "Workflows and webhooks", "status": "connected",
+              "lastSyncMinutes": 1, "eventsToday": 926, "interval": "Live", "account": "12 active workflows", "connectedSince": "Nov 2024",
+              "scopes": ["Run workflows", "Receive webhooks"],
+              "activity": [58, 71, 80, 92, 77, 69, 85, 90, 74, 81, 88, 61] }
+          ]
+        }
+      </script>
+    </integration-status-grid>
+
+    <div class="stage-bar">
+      <p class="note" id="isg-note" aria-live="polite"><b>Example data.</b> Generic tools and a fictional client. Syncs are simulated.</p>
+      <div class="controls">
+        <button type="button" class="btn" id="outage">Simulate a payments outage</button>
+        <button type="button" class="btn" id="reset">Reset demo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>integrations[].id · name</td><td>Key and display name.</td></tr>
+          <tr><td>integrations[].icon</td><td>Built-in glyph: <code>crm</code>, <code>card</code>, <code>calendar</code>, <code>mail</code>, <code>sms</code>, <code>chat</code>, <code>sheet</code>, <code>hub</code> (or <code>plug</code>).</td></tr>
+          <tr><td>integrations[].status</td><td><code>connected</code>, <code>warning</code> or <code>disconnected</code>.</td></tr>
+          <tr><td>integrations[].issue · fix</td><td>What is wrong, and whether <code>sync</code> or <code>reconnect</code> clears it.</td></tr>
+          <tr><td>integrations[].lastSyncMinutes</td><td>Minutes since the last good sync. Shown as relative time and kept up to date.</td></tr>
+          <tr><td>integrations[].eventsToday</td><td>Events handled since midnight.</td></tr>
+          <tr><td>integrations[].activity</td><td>Optional. Events per hour for the last 12 hours, oldest first.</td></tr>
+          <tr><td>integrations[].account · connectedSince · interval · scopes[]</td><td>Optional. Shown in the details drawer.</td></tr>
+          <tr><td>integrations[].history[]</td><td>Optional. <code>{ minutesAgo, result, events, note }</code>, with result <code>ok</code> or <code>fail</code>.</td></tr>
+          <tr><td>eyebrow · title · subtitle · footnote</td><td>Optional header and footer text.</td></tr>
+          <tr><td>filter</td><td>Attribute. <code>all</code>, <code>connected</code>, <code>warning</code> or <code>disconnected</code>.</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;integration-status-grid</span> <span class="a">filter=</span>"all"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "title": "Connected tools",
+      "integrations": [
+        { "id": "crm", "name": "CRM", "icon": "crm",
+          "status": "connected", "lastSyncMinutes": 4,
+          "eventsToday": 1284 },
+        { "id": "sms", "name": "SMS gateway", "icon": "sms",
+          "status": "disconnected", "fix": "reconnect",
+          "issue": "Sign-in expired." }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/integration-status-grid&gt;</span>
+
+<span class="a">// methods:</span>
+el.sync("crm");  el.reconnect("sms");  el.syncAll();
+el.setStatus("payments", "warning", "Webhook failing");</pre></div>
+      <p>Sync now and Reconnect are simulated with a short delay. Each finished sync or reconnect fires <code>integrationsync</code> with the integration, the action, its new status and the events added. Opening details fires <code>integrationopen</code>, and the status filter fires <code>filterchange</code>.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/seo-audit-scorecard"><small>← Previous · 23</small><strong>SEO Audit Scorecard</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/components/team-member-performance"><small>Next · 25 →</small><strong>Team Member Performance</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 24 of 30</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <integration-status-grid> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    connected: "Connected", warning: "Warning", disconnected: "Disconnected", all: "All",
+    filterGroup: "Filter by status", healthy: "{ok} of {n} healthy", needs: "{n} need attention", allGood: "All integrations are working",
+    eventsTotal: "{n} events today", lastSync: "Last sync", events: "Events today", never: "Never",
+    syncNow: "Sync now", syncing: "Syncing…", reconnect: "Reconnect", reconnecting: "Reconnecting…", details: "Details",
+    syncAll: "Sync all", syncingAll: "Syncing…", disconnect: "Disconnect", close: "Close details",
+    justNow: "just now", minAgo: "{n} min ago", hAgo: "{n} h ago", dAgo: "{n} days ago", dAgo1: "1 day ago",
+    connection: "Connection", account: "Account", since: "Connected since", interval: "Sync schedule", scopes: "Permissions",
+    recent: "Recent syncs", syncOk: "Synced", syncFail: "Sync failed", reconnected: "Reconnected", disconnectedNote: "Disconnected",
+    added: "{n} new events", noEvents: "No new events",
+    empty: "No integrations with this status.", showAll: "Show all", bars: "Events per hour, last 12 hours: {v}",
+    announceSync: "{name} synced. {n} new events.", announceReconnect: "{name} reconnected.", announceFilter: "{n} integrations shown",
+    detailsOf: "Details for {name}"
+  };
+  const STATUSES = ["connected", "warning", "disconnected"];
+  const FILTERS = ["all", ...STATUSES];
+  const GLYPHS = {
+    crm: '<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16c.6-1.6 1.8-2.4 3.2-2.4s2.6.8 3.2 2.4M14.5 10h3.5M14.5 13h2.5"/>',
+    card: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="M3 9.5h18M6.5 15h4"/>',
+    calendar: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M14.6 13.2a2.9 2.9 0 1 0 .3 2.6M14.9 11.6v1.8h-1.8"/>',
+    mail: '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m3.5 7 8.5 6.2L20.5 7"/>',
+    sms: '<rect x="6" y="2.5" width="12" height="19" rx="2.6"/><path d="M10.5 18.5h3"/><path d="M9 7.5h6a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-3.5L9.5 14v-1.5H9a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1z"/>',
+    chat: '<path d="M3.5 6.5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H9l-3.5 3v-3a2 2 0 0 1-2-2z"/><path d="M19 9.5a1.6 1.6 0 0 1 1.5 1.6v4.4a1.6 1.6 0 0 1-1.6 1.6H18v2.4l-3-2.4h-3.5"/>',
+    sheet: '<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M3.5 14h17M9.5 9v11"/>',
+    hub: '<circle cx="12" cy="12" r="3"/><circle cx="5" cy="5.5" r="1.8"/><circle cx="19" cy="5.5" r="1.8"/><circle cx="5" cy="18.5" r="1.8"/><circle cx="19" cy="18.5" r="1.8"/><path d="m6.4 6.8 3.4 3.1M17.6 6.8l-3.4 3.1M6.4 17.2l3.4-3.1M17.6 17.2l-3.4-3.1"/>',
+    plug: '<path d="M9 3v4M15 3v4M7 7h10v4a5 5 0 0 1-10 0zM12 16v5"/>'
+  };
+  const glyph = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GLYPHS[k] || GLYPHS.plug}</svg>`;
+  const ICON_SYNC = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.2 6.2A5.3 5.3 0 0 0 3.4 5M2.8 9.8A5.3 5.3 0 0 0 12.6 11"/><path d="M13.5 2.8v3.5H10M2.5 13.2V9.7H6"/></svg>';
+  const ICON_PLUG = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v3M10 2v3M4.5 5h7v2.5a3.5 3.5 0 0 1-7 0zM8 11v3"/></svg>';
+  const ICON_SPIN = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 2a6 6 0 1 1-6 6" /></svg>';
+  const ICON_INFO = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.3v3.7M8 5h.01"/></svg>';
+  const ICON_X = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8"/></svg>';
+  const ICON_CHECK = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3.5 8.4 2.8 2.8 6.2-6.6"/></svg>';
+
+  const TEMPLATE = `
+    <section class="isg">
+      <div class="isg-main">
+        <header class="isg-head">
+          <div class="isg-intro">
+            <span class="isg-eyebrow"></span>
+            <h2 class="isg-title"></h2>
+            <p class="isg-sub"></p>
+          </div>
+          <button type="button" class="isg-btn isg-syncall"></button>
+        </header>
+        <div class="isg-summary">
+          <div class="isg-health">
+            <div class="isg-health-top"><span class="isg-health-big"></span><span class="isg-health-sub"></span></div>
+            <div class="isg-meter" aria-hidden="true"></div>
+          </div>
+          <div class="isg-filters" role="group"></div>
+        </div>
+        <ul class="isg-grid"></ul>
+        <div class="isg-empty" hidden><span class="isg-empty-msg"></span><button type="button" class="isg-btn isg-showall"></button></div>
+        <footer class="isg-foot"><span class="isg-foot-l"></span><span class="isg-foot-r"></span></footer>
+      </div>
+      <div class="isg-scrim" hidden></div>
+      <div class="isg-drawer" role="dialog" aria-modal="true" hidden>
+        <div class="isg-dr-head">
+          <span class="isg-glyph isg-dr-glyph"></span>
+          <div><h3 class="isg-dr-title" tabindex="-1"></h3><span class="isg-light isg-dr-light"><i></i><span></span></span></div>
+          <button type="button" class="isg-btn isg-btn--ghost isg-close"></button>
+        </div>
+        <div class="isg-dr-body"></div>
+        <div class="isg-dr-foot"></div>
+      </div>
+      <p class="isg-sr isg-live" aria-live="polite"></p>
+    </section>`;
+
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return Math.abs(h); };
+  const MIN = 60000;
+  let uid = 0;
+
+  class IntegrationStatusGrid extends HTMLElement {
+    static get observedAttributes() { return ["filter"]; }
+
+    constructor() { super(); this._uid = "isg" + (++uid); this._busy = new Map(); this._timers = new Set(); this._allIds = new Set(); }
+
+    connectedCallback() {
+      if (this._built) { this._startClock(); return; }
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<integration-status-grid>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        root: q(".isg"), main: q(".isg-main"), eyebrow: q(".isg-eyebrow"), title: q(".isg-title"), sub: q(".isg-sub"), syncAll: q(".isg-syncall"),
+        big: q(".isg-health-big"), healthSub: q(".isg-health-sub"), meter: q(".isg-meter"), filters: q(".isg-filters"),
+        grid: q(".isg-grid"), empty: q(".isg-empty"), emptyMsg: q(".isg-empty-msg"), showAll: q(".isg-showall"),
+        footL: q(".isg-foot-l"), footR: q(".isg-foot-r"),
+        scrim: q(".isg-scrim"), drawer: q(".isg-drawer"), drGlyph: q(".isg-dr-glyph"), drTitle: q(".isg-dr-title"), drLight: q(".isg-dr-light"),
+        close: q(".isg-close"), drBody: q(".isg-dr-body"), drFoot: q(".isg-dr-foot"), live: q(".isg-live")
+      };
+      this.$.drTitle.id = `${this._uid}-dt`;
+      this.$.drawer.setAttribute("aria-labelledby", this.$.drTitle.id);
+      this._wire();
+      this._built = true;
+      this._load();
+      this._render(false);
+      this._startClock();
+    }
+
+    disconnectedCallback() {
+      clearInterval(this._clock); this._clock = null;
+      this._timers.forEach(t => clearTimeout(t)); this._timers.clear();
+      this._busy.clear(); this._allIds.clear();
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+      if (!this._built || oldVal === newVal) return;
+      this._renderGrid(true);
+      this._syncFilters();
+    }
+
+    /* Programmatic API */
+    get data() { return this._data; }
+    set data(d) {
+      this._data = d || {};
+      if (!this._built) return;
+      this._timers.forEach(t => clearTimeout(t)); this._timers.clear(); this._busy.clear(); this._allIds.clear();
+      this._closeDrawer(false);
+      this._load();
+      this._render(true);
+    }
+    get filter() { const f = (this.getAttribute("filter") || "all").toLowerCase(); return FILTERS.includes(f) ? f : "all"; }
+    set filter(v) { this.setAttribute("filter", FILTERS.includes(v) ? v : "all"); }
+    sync(id) { const it = this._get(id); if (it && it.status !== "disconnected") this._act(it, "sync"); }
+    reconnect(id) { const it = this._get(id); if (it) this._act(it, "reconnect"); }
+    syncAll() {
+      const list = this._items.filter(it => it.status !== "disconnected" && !this._busy.has(it.id));
+      if (!list.length) return;
+      this._allIds = new Set(list.map(it => it.id));
+      this._summary();
+      list.forEach((it, i) => this._later(() => this._act(it, "sync"), i * 140));
+    }
+    setStatus(id, status, issue) {
+      const it = this._get(id);
+      if (!it || !STATUSES.includes(status)) return;
+      it.status = status;
+      it.issue = status === "connected" ? "" : (issue || it.issue || "");
+      it.fix = status === "disconnected" ? "reconnect" : (it.fix || "sync");
+      if (status !== "connected") it.history.unshift({ at: Date.now(), result: "fail", note: it.issue || LABELS.syncFail });
+      this._refresh(it);
+    }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _int(v) { return Math.round(v).toLocaleString((this._data && this._data.locale) || "en-US"); }
+    _get(id) { return (this._items || []).find(it => it.id === id); }
+    _later(fn, ms) { const t = setTimeout(() => { this._timers.delete(t); fn(); }, ms); this._timers.add(t); return t; }
+    _startClock() { if (!this._clock) this._clock = setInterval(() => this._tickTimes(), 30000); }
+
+    /* normalise data into a mutable model */
+    _load() {
+      const now = Date.now();
+      const list = Array.isArray(this._data.integrations) ? this._data.integrations : [];
+      this._items = list.map((x, i) => {
+        x = x || {};
+        const status = STATUSES.includes(x.status) ? x.status : "connected";
+        const lastMin = num(x.lastSyncMinutes);
+        const activity = (Array.isArray(x.activity) ? x.activity : []).map(v => Math.max(0, num(v) ?? 0)).slice(-12);
+        const id = String(x.id || `integration-${i + 1}`);
+        let history = Array.isArray(x.history) ? x.history.map(h => ({
+          at: now - (num(h && h.minutesAgo) ?? 0) * MIN, result: h && h.result === "fail" ? "fail" : "ok",
+          events: num(h && h.events), note: (h && h.note) ? String(h.note) : ""
+        })) : null;
+        if (!history && lastMin != null) {
+          const per = Math.max(5, hash(id) % 15 + 5);
+          history = [0, 1, 2].map(k => ({ at: now - (lastMin + k * per) * MIN, result: "ok", events: activity.length ? Math.max(1, Math.round(activity[activity.length - 1 - k] / 3 || 1)) : null, note: "" }));
+        }
+        return {
+          id, name: String(x.name || `Integration ${i + 1}`), icon: x.icon || "plug", description: String(x.description || ""),
+          status, issue: status === "connected" ? "" : String(x.issue || ""), fix: x.fix === "reconnect" || status === "disconnected" ? "reconnect" : "sync",
+          lastSync: lastMin == null ? null : now - lastMin * MIN, events: Math.max(0, num(x.eventsToday) ?? 0), activity,
+          account: x.account ? String(x.account) : "", since: x.connectedSince ? String(x.connectedSince) : "", interval: x.interval ? String(x.interval) : "",
+          scopes: Array.isArray(x.scopes) ? x.scopes.map(String) : [], history: history || []
+        };
+      });
+    }
+
+    _ago(t) {
+      const L = this._labels();
+      if (t == null) return L.never;
+      const m = Math.floor((Date.now() - t) / MIN);
+      if (m < 1) return L.justNow;
+      if (m < 60) return fill(L.minAgo, { n: m });
+      const h = Math.floor(m / 60);
+      if (h < 24) return fill(L.hAgo, { n: h });
+      const d = Math.floor(h / 24);
+      return d === 1 ? L.dAgo1 : fill(L.dAgo, { n: d });
+    }
+
+    _render(animate) {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      $.footR.textContent = d.footnote || "";
+      $.filters.setAttribute("aria-label", L.filterGroup);
+      $.filters.replaceChildren(...FILTERS.map(f => {
+        const b = make("button", "isg-filter"); b.type = "button"; b.dataset.filter = f;
+        if (f !== "all") { const dot = make("span", "isg-fdot"); dot.style.setProperty("--c", `var(--isg-${f === "connected" ? "ok" : f === "warning" ? "warn" : "bad"})`); b.append(dot); }
+        b.append(L[f] + " ", make("b"));
+        return b;
+      }));
+      $.emptyMsg.textContent = L.empty;
+      $.showAll.textContent = L.showAll;
+      $.close.innerHTML = ICON_X;
+      $.close.setAttribute("aria-label", L.close);
+      this._renderGrid(animate);
+      this._summary();
+      this._syncFilters();
+    }
+
+    _summary() {
+      const L = this._labels(), $ = this.$, items = this._items;
+      const c = s => items.filter(it => it.status === s).length;
+      const ok = c("connected"), warn = c("warning"), bad = c("disconnected"), n = items.length;
+      $.big.textContent = fill(L.healthy, { ok, n });
+      $.healthSub.textContent = warn + bad ? fill(L.needs, { n: warn + bad }) : L.allGood;
+      const segs = [["ok", ok], ["warn", warn], ["bad", bad]].filter(x => x[1] > 0);
+      $.meter.replaceChildren(...segs.map(([k, v]) => { const s = make("span"); s.style.setProperty("--c", `var(--isg-${k})`); s.style.setProperty("--n", v); return s; }));
+      $.filters.querySelectorAll(".isg-filter").forEach(b => { b.querySelector("b").textContent = String(b.dataset.filter === "all" ? n : c(b.dataset.filter)); });
+      $.footL.textContent = fill(L.eventsTotal, { n: this._int(items.reduce((a, it) => a + it.events, 0)) });
+      const syncable = items.some(it => it.status !== "disconnected");
+      $.syncAll.replaceChildren();
+      const busyAll = !!(this._allIds && this._allIds.size);
+      $.syncAll.insertAdjacentHTML("beforeend", busyAll ? ICON_SPIN : ICON_SYNC);
+      $.syncAll.append(busyAll ? L.syncingAll : L.syncAll);
+      $.syncAll.setAttribute("aria-busy", String(busyAll));
+      $.syncAll.disabled = busyAll || !syncable;
+    }
+
+    _syncFilters() {
+      const f = this.filter;
+      this.$.filters.querySelectorAll(".isg-filter").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.filter === f)));
+    }
+
+    _renderGrid(animate) {
+      const f = this.filter, motion = animate && !reduceMotion();
+      const shown = this._items.filter(it => f === "all" || it.status === f);
+      this.$.grid.replaceChildren(...shown.map((it, i) => {
+        const li = this._tile(it);
+        if (motion) { li.classList.add("isg-is-enter"); li.style.setProperty("--i", i); }
+        return li;
+      }));
+      this.$.empty.hidden = shown.length > 0;
+      this.$.grid.hidden = shown.length === 0;
+    }
+
+    _tile(it) {
+      const L = this._labels();
+      const li = make("li", "isg-tile");
+      li.dataset.id = it.id;
+      li.dataset.status = it.status;
+      const top = make("div", "isg-tile-top");
+      const g = make("span", "isg-glyph"); g.innerHTML = glyph(it.icon);
+      top.append(g, this._light(it, L));
+      const name = make("h3", "isg-name", it.name);
+      name.id = `${this._uid}-n-${it.id}`;
+      li.setAttribute("aria-labelledby", name.id);
+      li.append(top, name, make("p", "isg-desc", it.description), make("p", "isg-issue", it.issue));
+
+      const bars = make("div", "isg-bars");
+      const max = Math.max(1, ...it.activity);
+      it.activity.forEach(v => { const s = make("span"); s.style.setProperty("--h", (v / max * 100).toFixed(1)); bars.append(s); });
+      bars.setAttribute("role", "img");
+      bars.setAttribute("aria-label", fill(L.bars, { v: it.activity.join(", ") }));
+      if (!it.activity.length) bars.hidden = true;
+      li.append(bars);
+
+      const meta = make("dl", "isg-meta");
+      const m1 = make("div"), m2 = make("div");
+      const ago = make("dd", "isg-ago", this._ago(it.lastSync));
+      ago.dataset.t = it.lastSync ?? "";
+      m1.append(make("dt", null, L.lastSync), ago);
+      m2.append(make("dt", null, L.events), make("dd", "isg-ev", this._int(it.events)));
+      meta.append(m1, m2);
+      li.append(meta);
+
+      const act = make("div", "isg-actions");
+      act.append(this._mainBtn(it, L));
+      const det = make("button", "isg-btn isg-btn--ghost isg-det");
+      det.type = "button"; det.dataset.act = "details"; det.dataset.id = it.id;
+      det.setAttribute("aria-haspopup", "dialog");
+      det.setAttribute("aria-label", fill(L.detailsOf, { name: it.name }));
+      det.innerHTML = ICON_INFO; det.append(L.details);
+      act.append(det);
+      li.append(act);
+      return li;
+    }
+
+    _light(it, L) {
+      const s = make("span", "isg-light");
+      s.style.setProperty("--c", `var(--isg-${it.status === "connected" ? "ok" : it.status === "warning" ? "warn" : "bad"})`);
+      s.append(make("i"), make("span", null, L[it.status]));
+      return s;
+    }
+
+    _mainBtn(it, L) {
+      const busy = this._busy.get(it.id);
+      const needsReconnect = it.status === "disconnected" || (it.status === "warning" && it.fix === "reconnect");
+      const action = busy || (needsReconnect ? "reconnect" : "sync");
+      const b = make("button", "isg-btn " + (action === "reconnect" ? (it.status === "disconnected" ? "isg-btn--fix" : "isg-btn--main") : "isg-btn--main"));
+      b.type = "button"; b.dataset.act = action; b.dataset.id = it.id;
+      b.insertAdjacentHTML("beforeend", busy ? ICON_SPIN : action === "reconnect" ? ICON_PLUG : ICON_SYNC);
+      b.append(busy ? (busy === "reconnect" ? L.reconnecting : L.syncing) : (action === "reconnect" ? L.reconnect : L.syncNow));
+      b.setAttribute("aria-busy", String(!!busy));
+      if (busy) b.disabled = true;
+      b.setAttribute("aria-describedby", `${this._uid}-n-${it.id}`);
+      return b;
+    }
+
+    /* update one tile + summary + open drawer in place */
+    _refresh(it, flash) {
+      const old = this.$.grid.querySelector(`.isg-tile[data-id="${CSS.escape(it.id)}"]`);
+      const f = this.filter;
+      const hadFocus = old && old.contains(document.activeElement) ? document.activeElement.dataset.act : null;
+      if (old) {
+        if (f === "all" || it.status === f) {
+          const fresh = this._tile(it);
+          if (flash && !reduceMotion()) fresh.classList.add("isg-is-flash");
+          old.replaceWith(fresh);
+          if (hadFocus) {
+            const target = fresh.querySelector(hadFocus === "details" ? ".isg-det" : ".isg-actions .isg-btn");
+            if (target) target.focus();
+          }
+        } else old.remove();
+      } else if (f === it.status) this._renderGrid(false);
+      const visible = this.$.grid.children.length;
+      this.$.empty.hidden = visible > 0; this.$.grid.hidden = visible === 0;
+      if (hadFocus && !this.$.grid.contains(document.activeElement)) (visible ? this.$.grid.querySelector(".isg-btn") : this.$.showAll).focus();
+      this._summary();
+      if (this._open === it.id) this._fillDrawer(it);
+    }
+
+    _act(it, action) {
+      if (this._busy.has(it.id)) return;
+      const L = this._labels();
+      this._busy.set(it.id, action);
+      this._refresh(it);
+      this._later(() => {
+        if (!this._busy.has(it.id)) return;
+        this._busy.delete(it.id);
+        if (this._allIds) this._allIds.delete(it.id);
+        const now = Date.now();
+        this._lastHist = it.id + ":" + now;
+        let added = 0;
+        if (action === "reconnect") {
+          it.status = "connected"; it.issue = ""; it.fix = "sync";
+          added = 1 + hash(it.id + now) % 6;
+          it.history.unshift({ at: now, result: "ok", events: added, note: L.reconnected });
+          this.$.live.textContent = fill(L.announceReconnect, { name: it.name });
+        } else {
+          added = 2 + hash(it.id + it.events + now) % (it.events > 500 ? 40 : 12);
+          if (it.status === "warning" && it.fix === "sync") { it.status = "connected"; it.issue = ""; }
+          it.history.unshift({ at: now, result: "ok", events: added, note: "" });
+          this.$.live.textContent = fill(L.announceSync, { name: it.name, n: added });
+        }
+        it.history = it.history.slice(0, 6);
+        it.lastSync = now;
+        it.events += added;
+        if (it.activity.length) it.activity[it.activity.length - 1] += added;
+        this._refresh(it, true);
+        const dd = this.$.grid.querySelector(`.isg-tile[data-id="${CSS.escape(it.id)}"] .isg-ago`);
+        if (dd) { dd.classList.add("isg-is-fresh"); this._later(() => dd.classList.remove("isg-is-fresh"), 2400); }
+        this.dispatchEvent(new CustomEvent("integrationsync", {
+          bubbles: true, detail: { id: it.id, name: it.name, action, status: it.status, eventsAdded: added, eventsToday: it.events }
+        }));
+      }, action === "reconnect" ? 1700 : 1100 + hash(it.id) % 500);
+    }
+
+    _tickTimes() {
+      this.querySelectorAll(".isg-ago").forEach(dd => { const t = num(dd.dataset.t); dd.textContent = this._ago(t); });
+      if (this._open) { const it = this._get(this._open); if (it) this._fillDrawer(it); }
+    }
+
+    /* ---------- details drawer ---------- */
+    _openDrawer(id, opener) {
+      const it = this._get(id);
+      if (!it) return;
+      this._open = id;
+      this._opener = opener || null;
+      const $ = this.$;
+      this._fillDrawer(it);
+      $.scrim.hidden = false; $.drawer.hidden = false;
+      // keep the drawer inside the part of the card that is on screen
+      const box = $.root.getBoundingClientRect(), full = $.root.clientHeight, vh = window.innerHeight || full;
+      const visTop = Math.max(0, -box.top), visBottom = Math.min(full, vh - box.top);
+      let top = visTop, h = visBottom - visTop;
+      if (h < 360) { h = Math.min(full, Math.max(360, vh)); top = Math.max(0, Math.min(visTop, full - h)); }
+      $.drawer.style.top = top + "px";
+      $.drawer.style.bottom = "auto";
+      $.drawer.style.height = h + "px";
+      $.main.inert = true;
+      const show = () => { $.scrim.classList.add("isg-is-open"); $.drawer.classList.add("isg-is-open"); $.drTitle.focus({ preventScroll: true }); };
+      if (reduceMotion()) show(); else requestAnimationFrame(() => requestAnimationFrame(show));
+      this.dispatchEvent(new CustomEvent("integrationopen", { bubbles: true, detail: { id: it.id, name: it.name, status: it.status } }));
+    }
+
+    _closeDrawer(restore = true) {
+      const $ = this.$;
+      if (!this._open) return;
+      this._open = null;
+      $.main.inert = false;
+      $.scrim.classList.remove("isg-is-open"); $.drawer.classList.remove("isg-is-open");
+      const done = () => { if (!this._open) { $.scrim.hidden = true; $.drawer.hidden = true; } };
+      if (reduceMotion()) done(); else this._later(done, 380);
+      if (restore && this._opener && this._opener.isConnected) this._opener.focus();
+      else if (restore && this._openId) { const b = this.$.grid.querySelector(`.isg-tile[data-id="${CSS.escape(this._openId)}"] .isg-det`); if (b) b.focus(); }
+    }
+
+    _fillDrawer(it) {
+      const L = this._labels(), $ = this.$;
+      this._openId = it.id;
+      $.drGlyph.innerHTML = glyph(it.icon);
+      $.drTitle.textContent = it.name;
+      $.drLight.style.setProperty("--c", `var(--isg-${it.status === "connected" ? "ok" : it.status === "warning" ? "warn" : "bad"})`);
+      $.drLight.lastElementChild.textContent = L[it.status];
+
+      const body = [];
+      if (it.issue) { const p = make("p", "isg-issue", it.issue); p.style.setProperty("--c", `var(--isg-${it.status === "warning" ? "warn" : "bad"})`); p.style.margin = "0"; body.push(p); }
+      const sec1 = make("section", "isg-dr-sec");
+      sec1.append(make("h4", null, L.connection));
+      const facts = make("dl", "isg-dr-facts");
+      const fact = (k, v, wide) => { const d = make("div", wide ? "isg-wide" : null); d.append(make("dt", null, k), make("dd", null, v)); facts.append(d); };
+      if (it.account) fact(L.account, it.account, true);
+      fact(L.lastSync, this._ago(it.lastSync));
+      fact(L.events, this._int(it.events));
+      if (it.interval) fact(L.interval, it.interval);
+      if (it.since) fact(L.since, it.since);
+      sec1.append(facts);
+      body.push(sec1);
+      if (it.scopes.length) {
+        const sec = make("section", "isg-dr-sec");
+        sec.append(make("h4", null, L.scopes));
+        const ul = make("ul", "isg-scopes");
+        it.scopes.forEach(s => { const li = make("li"); li.innerHTML = ICON_CHECK; li.append(make("span", null, s)); ul.append(li); });
+        sec.append(ul);
+        body.push(sec);
+      }
+      if (it.history.length) {
+        const sec = make("section", "isg-dr-sec");
+        sec.append(make("h4", null, L.recent));
+        const ol = make("ol", "isg-hist");
+        it.history.slice(0, 5).forEach((h, k) => {
+          const li = make("li");
+          if (k === 0 && this._lastHist === it.id + ":" + h.at && !reduceMotion()) li.classList.add("isg-is-enter");
+          const dot = make("i"); dot.style.setProperty("--c", `var(--isg-${h.result === "ok" ? "ok" : "bad"})`);
+          const txt = make("div");
+          txt.append(make("b", null, h.note && h.result === "ok" ? h.note : h.result === "ok" ? L.syncOk : L.syncFail));
+          const sub = h.result === "ok" ? (h.events ? fill(L.added, { n: this._int(h.events) }) : (h.events === 0 ? L.noEvents : "")) : h.note;
+          if (sub) txt.append(make("small", null, sub));
+          li.append(dot, txt, make("em", null, this._ago(h.at)));
+          ol.append(li);
+        });
+        this._lastHist = null;
+        sec.append(ol);
+        body.push(sec);
+      }
+      $.drBody.replaceChildren(...body);
+
+      const foot = [this._mainBtn(it, L)];
+      if (it.status !== "disconnected") {
+        const dis = make("button", "isg-btn isg-btn--ghost", L.disconnect);
+        dis.type = "button"; dis.dataset.act = "disconnect"; dis.dataset.id = it.id;
+        if (this._busy.has(it.id)) dis.disabled = true;
+        foot.push(dis);
+      }
+      const keep = $.drFoot.contains(document.activeElement) ? document.activeElement.dataset.act : null;
+      $.drFoot.replaceChildren(...foot);
+      if (keep) { const t = $.drFoot.querySelector(".isg-btn"); if (t) t.focus(); }
+    }
+
+    _wire() {
+      const $ = this.$;
+      $.filters.addEventListener("click", e => {
+        const b = e.target.closest(".isg-filter");
+        if (!b || b.dataset.filter === this.filter) return;
+        this.filter = b.dataset.filter;
+        const n = this.$.grid.hidden ? 0 : this.$.grid.children.length;
+        $.live.textContent = fill(this._labels().announceFilter, { n });
+        this.dispatchEvent(new CustomEvent("filterchange", { bubbles: true, detail: { filter: this.filter, shown: n } }));
+      });
+      $.showAll.addEventListener("click", () => { this.filter = "all"; const b = $.filters.querySelector('[data-filter="all"]'); if (b) b.focus(); });
+      $.syncAll.addEventListener("click", () => this.syncAll());
+      const onAct = e => {
+        const b = e.target.closest(".isg-btn[data-act]");
+        if (!b || b.disabled) return;
+        const it = this._get(b.dataset.id);
+        if (!it) return;
+        if (b.dataset.act === "details") this._openDrawer(it.id, b);
+        else if (b.dataset.act === "disconnect") {
+          it.status = "disconnected"; it.fix = "reconnect"; it.issue = this._labels().disconnectedNote + ".";
+          it.history.unshift({ at: Date.now(), result: "fail", note: this._labels().disconnectedNote });
+          this._refresh(it);
+          const r = $.drFoot.querySelector(".isg-btn"); if (r) r.focus();
+        } else this._act(it, b.dataset.act);
+      };
+      $.grid.addEventListener("click", onAct);
+      $.drFoot.addEventListener("click", onAct);
+      $.close.addEventListener("click", () => this._closeDrawer());
+      $.scrim.addEventListener("click", () => this._closeDrawer());
+      $.drawer.addEventListener("keydown", e => {
+        if (e.key === "Escape") { e.preventDefault(); this._closeDrawer(); return; }
+        if (e.key !== "Tab") return;
+        const f = [...$.drawer.querySelectorAll("button:not(:disabled), [tabindex='0']")].filter(x => x.offsetParent !== null);
+        if (!f.length) return;
+        const first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === $.drTitle)) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      });
+    }
+  }
+
+  if (!customElements.get("integration-status-grid")) customElements.define("integration-status-grid", IntegrationStatusGrid);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const note = document.getElementById("isg-note");
+  const ORIGINAL = JSON.parse(JSON.stringify(el.data));
+  document.getElementById("outage").addEventListener("click", () => {
+    el.setStatus("payments", "disconnected", "The payment provider rejected the saved key.");
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    el.data = JSON.parse(JSON.stringify(ORIGINAL));
+    el.filter = "all";
+  });
+  el.addEventListener("integrationsync", e => {
+    const d = e.detail;
+    note.replaceChildren();
+    const b = document.createElement("b");
+    b.textContent = d.action === "reconnect" ? `${d.name} reconnected.` : `${d.name} synced, ${d.eventsAdded} new events.`;
+    note.append(b, " The grid sent an integrationsync event. Syncs are simulated.");
+  });
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+<script src="/assets/gallery-nav.js" defer></script>
+</body>
+</html>
