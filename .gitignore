@@ -8,6 +8,7 @@ submissions.md
 .vercel/
 .claude/
 node_modules/
+.playwright-mcp/
 
 # OS files
 .DS_Store
