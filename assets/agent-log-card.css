@@ -1,0 +1,262 @@
+/* =========================================================
+   Agent Log Card — homepage copy
+   Copied unchanged from components/agent-log-card/index.html
+   (tokens + "Agent Log Card component" block) so the homepage
+   can show real log entries. Keep the two in sync.
+   ========================================================= */
+:root {
+  --alc-card: #FCFDFD;
+  --alc-ink: #12171C;
+  --alc-muted: #5A646E;
+  --alc-faint: #8C96A0;
+  --alc-line: #DCE2E6;
+  --alc-panel: #F1F4F5;
+  --alc-accent: #1E6B62;
+  --alc-accent-soft: #DDEEEB;
+  --alc-on-accent: #F4FBFA;
+  --alc-glow: rgba(30, 107, 98, 0.09);
+  --alc-shadow: rgba(18, 30, 38, 0.22);
+  --alc-ground: var(--lsg-bg);            /* colour behind the card — used by the perforation notches */
+  --alc-draft: #9A6511;      --alc-draft-bg: #F8EDD8;
+  --alc-selected: #2B57C4;   --alc-selected-bg: #E2E9FA;
+  --alc-submitted: #1D7A45;  --alc-submitted-bg: #DDF1E4;
+  --alc-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --alc-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --alc-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --alc-card: #181D21; --alc-ink: #E9EDF0; --alc-muted: #9CA6B0; --alc-faint: #6E7882;
+    --alc-line: #2A3137; --alc-panel: #1F252A; --alc-accent: #5FC2B2; --alc-accent-soft: #1B3632;
+    --alc-on-accent: #0B1A18; --alc-glow: rgba(95, 194, 178, 0.08); --alc-shadow: rgba(0, 0, 0, 0.6);
+    --alc-draft: #E3B25E; --alc-draft-bg: #33280F;
+    --alc-selected: #86A6F5; --alc-selected-bg: #1A2544;
+    --alc-submitted: #6BD097; --alc-submitted-bg: #13301F;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --alc-card: #181D21; --alc-ink: #E9EDF0; --alc-muted: #9CA6B0; --alc-faint: #6E7882;
+  --alc-line: #2A3137; --alc-panel: #1F252A; --alc-accent: #5FC2B2; --alc-accent-soft: #1B3632;
+  --alc-on-accent: #0B1A18; --alc-glow: rgba(95, 194, 178, 0.08); --alc-shadow: rgba(0, 0, 0, 0.6);
+  --alc-draft: #E3B25E; --alc-draft-bg: #33280F;
+  --alc-selected: #86A6F5; --alc-selected-bg: #1A2544;
+  --alc-submitted: #6BD097; --alc-submitted-bg: #13301F;
+}
+
+agent-log-card {
+  display: block;
+  container-type: inline-size;
+  width: 100%;
+  max-width: 680px;
+  font-family: var(--alc-body);
+  color: var(--alc-ink);
+}
+.alc {
+  --pad: 30px;
+  position: relative;
+  background: var(--alc-card);
+  border: 1px solid var(--alc-line);
+  border-radius: 20px;
+  padding: calc(var(--pad) - 4px) var(--pad) var(--pad);
+  box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 22px 44px -30px var(--alc-shadow), 0 2px 6px -3px var(--alc-shadow);
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease;
+  display: grid;
+  gap: 22px;
+}
+.alc::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(460px circle at var(--mx, 70%) var(--my, -10%), var(--alc-glow), transparent 62%);
+  opacity: 0;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+.alc > * { position: relative; }
+.alc:hover { transform: translateY(-3px); box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset, 0 34px 60px -34px var(--alc-shadow), 0 4px 10px -5px var(--alc-shadow); }
+.alc:hover::before { opacity: 1; }
+
+/* top rail */
+.alc-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.alc-eyebrow {
+  font: 500 11px/1 var(--alc-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--alc-faint);
+  display: inline-flex; gap: 8px; align-items: center;
+}
+.alc-eyebrow b { font-weight: 500; color: var(--alc-muted); }
+.alc-eyebrow i { font-style: normal; opacity: .6; }
+
+.alc-status {
+  --c: var(--alc-muted); --bg: var(--alc-panel);
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 11px 6px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--c);
+  font: 600 12px/1 var(--alc-body);
+  letter-spacing: .01em;
+}
+.alc-status[data-state="draft"]     { --c: var(--alc-draft);     --bg: var(--alc-draft-bg); }
+.alc-status[data-state="selected"]  { --c: var(--alc-selected);  --bg: var(--alc-selected-bg); }
+.alc-status[data-state="submitted"] { --c: var(--alc-submitted); --bg: var(--alc-submitted-bg); }
+.alc-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); position: relative; }
+.alc-status[data-state="draft"] .alc-dot::after {
+  content: ""; position: absolute; inset: -4px; border-radius: 50%;
+  border: 1.5px solid var(--c); opacity: 0;
+  animation: alc-ping 2.4s ease-out infinite;
+}
+.alc-status[data-state="submitted"] .alc-dot { width: 12px; height: 12px; display: grid; place-items: center; }
+.alc-status[data-state="submitted"] .alc-dot::before {
+  content: ""; width: 5px; height: 3px; margin-top: -1px;
+  border: solid var(--bg); border-width: 0 0 1.6px 1.6px; transform: rotate(-45deg);
+}
+@keyframes alc-ping { 0% { transform: scale(.5); opacity: .7; } 80%, 100% { transform: scale(1.4); opacity: 0; } }
+
+/* title */
+.alc-task {
+  margin: -4px 0 0;
+  font: 650 clamp(22px, 5.2cqi, 30px)/1.12 var(--alc-display);
+  letter-spacing: -0.018em;
+  text-wrap: balance;
+  color: var(--alc-ink);
+}
+
+/* meta strip */
+.alc-meta {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1.25fr 1fr 0.9fr;
+  border-block: 1px solid var(--alc-line);
+}
+.alc-meta > div { padding: 13px 16px; min-width: 0; }
+.alc-meta > div:first-child { padding-left: 0; }
+.alc-meta > div + div { border-left: 1px solid var(--alc-line); }
+.alc-meta dt {
+  font: 500 10.5px/1 var(--alc-mono);
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--alc-faint);
+  margin-bottom: 8px;
+}
+.alc-meta dd { margin: 0; font: 500 14.5px/1.35 var(--alc-body); overflow-wrap: anywhere; }
+.alc-agent { display: inline-flex; align-items: center; gap: 8px; }
+.alc-agent::before {
+  content: ""; flex: none; width: 8px; height: 8px; border-radius: 2px;
+  background: var(--alc-accent);
+  box-shadow: 0 0 0 3px var(--alc-accent-soft);
+  transition: transform .5s cubic-bezier(.2,.7,.2,1);
+}
+.alc:hover .alc-agent::before { transform: rotate(45deg); }
+.alc-date { font-variant-numeric: tabular-nums; }
+
+/* input / output sections */
+.alc-io { display: grid; gap: 12px; }
+.alc-io-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 28px; }
+.alc-io-label { display: inline-flex; align-items: center; gap: 10px; font: 600 13px/1 var(--alc-body); color: var(--alc-ink); }
+.alc-tag {
+  font: 500 10px/1 var(--alc-mono); letter-spacing: .1em;
+  padding: 5px 7px 4px; border-radius: 6px;
+  background: var(--alc-accent-soft); color: var(--alc-accent);
+}
+.alc-out .alc-tag { background: var(--alc-accent); color: var(--alc-on-accent); }
+
+.alc-btn {
+  appearance: none; border: 1px solid transparent; background: transparent;
+  font: 500 12px/1 var(--alc-body); color: var(--alc-muted);
+  padding: 7px 10px; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background .2s, color .2s, border-color .2s;
+}
+.alc-btn:hover { background: var(--alc-panel); color: var(--alc-ink); border-color: var(--alc-line); }
+.alc-btn:focus-visible { outline: 2px solid var(--alc-accent); outline-offset: 2px; }
+.alc-btn svg { width: 13px; height: 13px; }
+.alc-btn[data-done] { color: var(--alc-accent); }
+
+.alc-prompt {
+  margin: 0;
+  position: relative;
+  background: var(--alc-panel);
+  border-radius: 12px;
+  padding: 14px 16px 14px 36px;
+  font: 400 13px/1.65 var(--alc-mono);
+  color: var(--alc-ink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: calc(1.65em * 9 + 28px);
+  overflow: hidden;
+  transition: max-height .5s cubic-bezier(.2,.7,.2,1);
+}
+.alc-prompt::before {
+  content: "›"; position: absolute; left: 16px; top: 13px;
+  color: var(--alc-accent); font-weight: 500;
+}
+.alc--clamped .alc-prompt:not(.is-open) {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent);
+          mask-image: linear-gradient(to bottom, #000 62%, transparent);
+}
+.alc-expand { justify-self: start; margin-top: -4px; padding-left: 0; }
+.alc-expand:hover { padding-left: 10px; }
+.alc-expand svg { transition: transform .35s ease; }
+.alc-expand[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+/* perforation between input and output */
+.alc-tear {
+  display: flex; align-items: center;
+  margin-inline: calc(var(--pad) * -1 - 1px);
+  height: 22px;
+}
+.alc-notch {
+  flex: none; width: 12px; height: 22px;
+  background: var(--alc-ground);
+  border: 1px solid var(--alc-line);
+}
+.alc-notch--l { border-left: 0; border-radius: 0 22px 22px 0; }
+.alc-notch--r { border-right: 0; border-radius: 22px 0 0 22px; }
+.alc-perf {
+  flex: 1; height: 2px; margin-inline: 10px;
+  background-image: linear-gradient(to right, var(--alc-line) 55%, transparent 0);
+  background-size: 9px 2px;
+  transition: background-position 1.2s cubic-bezier(.2,.7,.2,1);
+}
+.alc:hover .alc-perf { background-position: 36px 0; }
+
+/* result */
+.alc-result { font: 400 15px/1.62 var(--alc-body); color: var(--alc-ink); max-width: 64ch; }
+.alc-result > * { margin: 0; }
+.alc-result > * + * { margin-top: 12px; }
+.alc-result ul { padding: 0; list-style: none; display: grid; gap: 6px; }
+.alc-result li { padding-left: 18px; position: relative; color: var(--alc-muted); }
+.alc-result li::before { content: ""; position: absolute; left: 2px; top: .8em; width: 8px; height: 1.5px; background: var(--alc-accent); }
+.alc-result code { font: 400 .88em var(--alc-mono); background: var(--alc-panel); padding: 1px 5px; border-radius: 5px; }
+.alc-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.alc-chip {
+  font: 400 12px/1 var(--alc-mono); color: var(--alc-muted);
+  padding: 7px 10px; border: 1px solid var(--alc-line); border-radius: 999px;
+  transition: border-color .2s, color .2s, transform .2s;
+}
+.alc-chip:hover { border-color: var(--alc-accent); color: var(--alc-accent); transform: translateY(-1px); }
+
+/* narrow: stack meta, tighten padding */
+@container (max-width: 540px) {
+  .alc { --pad: 20px; border-radius: 18px; gap: 18px; }
+  .alc-meta { grid-template-columns: 1fr; }
+  .alc-meta > div, .alc-meta > div:first-child {
+    padding: 11px 0; display: flex; justify-content: space-between; align-items: baseline; gap: 16px;
+  }
+  .alc-meta > div + div { border-left: 0; border-top: 1px solid var(--alc-line); }
+  .alc-meta dt { margin: 0; }
+  .alc-meta dd { text-align: right; }
+  .alc-prompt { font-size: 12.5px; padding-left: 30px; }
+  .alc-prompt::before { left: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .alc, .alc::before, .alc-perf, .alc-prompt, .alc-agent::before, .alc-chip { transition: none; }
+  .alc:hover { transform: none; }
+  .alc-status .alc-dot::after { animation: none; }
+}

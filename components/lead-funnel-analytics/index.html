@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>if (new URLSearchParams(location.search).has("embed")) document.documentElement.classList.add("lsg-embed");</script>
+<meta name="description" content="A reusable lead funnel card: visitors, leads, booked calls and conversions, with each stage's count, step conversion and drop-off.">
+<meta property="og:title" content="Lead Funnel Analytics · LofiStack Components">
+<meta property="og:description" content="A reusable lead funnel card: visitors, leads, booked calls and conversions, with each stage's count, step conversion and drop-off.">
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/gallery.css">
+<title>Lead Funnel Analytics · LofiStack Components</title>
+<style>
+/* =========================================================
+   Page tokens (showcase shell)
+   ========================================================= */
+:root {
+  --ground: #EDECF1;
+  --stage: #F6F5F9;
+  --ink: #17141F;
+  --muted: #5E5869;
+  --faint: #8A8495;
+  --line: #DEDAE6;
+  --panel: #F9F8FB;
+  --accent: #A3165F;
+
+  /* ---- Lead Funnel tokens (override these to re-theme the component) ---- */
+  --lfa-card: #FFFFFF;
+  --lfa-ink: #17141F;
+  --lfa-muted: #5E5869;
+  --lfa-faint: #78717F;
+  --lfa-line: #E7E3EE;
+  --lfa-tint: #F5F3F8;
+  --lfa-from: #E58DBE;      /* first stage colour */
+  --lfa-to: #8A0F52;        /* last stage colour  */
+  --lfa-accent: #A3165F;
+  --lfa-good: #1B7F4B;
+  --lfa-bad: #B4372A;
+  --lfa-shadow: rgba(30, 16, 40, 0.22);
+  --lfa-sans: "Segoe UI Variable Text", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, "Helvetica Neue", Arial, sans-serif;
+  --lfa-num: "Bahnschrift", "DIN Alternate", "DIN Next", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --lfa-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0D0B11; --stage: #131118; --ink: #EEEAF3; --muted: #A8A1B3; --faint: #7C758A;
+    --line: #29242F; --panel: #16131B; --accent: #FF8CCB;
+    --lfa-card: #17141C; --lfa-ink: #EEEAF3; --lfa-muted: #A8A1B3; --lfa-faint: #8C8598;
+    --lfa-line: #2B2633; --lfa-tint: #1F1B26;
+    --lfa-from: #6E2C57; --lfa-to: #FF7BC2; --lfa-accent: #FF8CCB;
+    --lfa-good: #5FD394; --lfa-bad: #FF8A7A; --lfa-shadow: rgba(0, 0, 0, 0.6);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0D0B11; --stage: #131118; --ink: #EEEAF3; --muted: #A8A1B3; --faint: #7C758A;
+  --line: #29242F; --panel: #16131B; --accent: #FF8CCB;
+  --lfa-card: #17141C; --lfa-ink: #EEEAF3; --lfa-muted: #A8A1B3; --lfa-faint: #8C8598;
+  --lfa-line: #2B2633; --lfa-tint: #1F1B26;
+  --lfa-from: #6E2C57; --lfa-to: #FF7BC2; --lfa-accent: #FF8CCB;
+  --lfa-good: #5FD394; --lfa-bad: #FF8A7A; --lfa-shadow: rgba(0, 0, 0, 0.6);
+}
+
+/* =========================================================
+   Lead Funnel component  (copy this block + the script)
+   ========================================================= */
+lead-funnel {
+  display: block;
+  container: lfa / inline-size;
+  width: 100%;
+  max-width: 900px;
+  font-family: var(--lfa-sans);
+  color: var(--lfa-ink);
+}
+.lfa {
+  position: relative;
+  background: var(--lfa-card);
+  border: 1px solid var(--lfa-line);
+  border-radius: 16px;
+  padding: 28px 28px 18px;
+  overflow: hidden;
+  box-shadow: 0 26px 52px -40px var(--lfa-shadow), 0 2px 6px -4px var(--lfa-shadow);
+}
+.lfa::before {
+  content: ""; position: absolute; inset: 0 0 auto; height: 3px;
+  background: linear-gradient(90deg, var(--lfa-from), var(--lfa-to));
+}
+
+/* header */
+.lfa-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px 20px; flex-wrap: wrap; }
+.lfa-intro { display: grid; gap: 6px; min-width: 0; }
+.lfa-eyebrow { font: 500 10.5px/1 var(--lfa-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--lfa-accent); }
+.lfa-title { margin: 0; font: 600 clamp(19px, 3.2cqi, 24px)/1.2 var(--lfa-sans); letter-spacing: -0.012em; text-wrap: balance; }
+.lfa-sub { margin: 0; font-size: 13.5px; color: var(--lfa-muted); }
+.lfa-period {
+  display: inline-flex; align-items: center; gap: 8px; flex: none;
+  padding: 7px 11px; border-radius: 8px;
+  background: var(--lfa-tint); border: 1px solid var(--lfa-line);
+  font: 500 12.5px/1 var(--lfa-sans); color: var(--lfa-muted); font-variant-numeric: tabular-nums;
+}
+.lfa-period svg { width: 13px; height: 13px; color: var(--lfa-faint); }
+.lfa-eyebrow:empty, .lfa-title:empty, .lfa-sub:empty, .lfa-period:empty, .lfa-delta:empty, .lfa-foot span:empty { display: none; }
+
+/* performance summary */
+.lfa-summary {
+  margin: 22px 0 8px; padding: 16px 0;
+  display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+  border-block: 1px solid var(--lfa-line);
+}
+.lfa-kpi { margin: 0; min-width: 0; display: grid; gap: 6px; align-content: start; padding-inline: 20px; }
+.lfa-kpi:first-child { padding-left: 0; }
+.lfa-kpi + .lfa-kpi { border-left: 1px solid var(--lfa-line); }
+.lfa-kpi dt { font: 500 10.5px/1.2 var(--lfa-mono); letter-spacing: .09em; text-transform: uppercase; color: var(--lfa-faint); }
+.lfa-kpi dd { margin: 0; }
+.lfa-big-row { display: flex; align-items: baseline; gap: 4px 10px; flex-wrap: wrap; }
+.lfa-big {
+  font: 600 clamp(34px, 6.4cqi, 46px)/1 var(--lfa-num);
+  letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  color: var(--lfa-accent);
+}
+.lfa-delta {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 7px; border-radius: 6px;
+  font: 600 11.5px/1 var(--lfa-sans); font-variant-numeric: tabular-nums;
+  color: var(--lfa-muted); background: var(--lfa-tint);
+}
+.lfa-delta[data-tone="good"] { color: var(--lfa-good); background: color-mix(in oklab, var(--lfa-good) 12%, transparent); }
+.lfa-delta[data-tone="bad"]  { color: var(--lfa-bad);  background: color-mix(in oklab, var(--lfa-bad) 12%, transparent); }
+.lfa-kpi-val { font: 600 15px/1.3 var(--lfa-sans); overflow-wrap: anywhere; }
+.lfa-kpi-sub { font-size: 12.5px; line-height: 1.35; color: var(--lfa-muted); font-variant-numeric: tabular-nums; }
+
+/* funnel */
+.lfa-funnel { list-style: none; margin: 0; padding: 0; display: grid; }
+.lfa-stage {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 136px;
+  grid-template-areas: ". link ." "label track figs";
+  column-gap: 20px;
+  align-items: center;
+  border-radius: 12px;
+  outline: none;
+  transition: opacity .3s ease;
+}
+.lfa-funnel.has-active .lfa-stage:not(.is-active) { opacity: .42; }
+.lfa-stage:focus-visible .lfa-track { outline: 2px solid var(--lfa-accent); outline-offset: 4px; border-radius: 12px; }
+.lfa-stage:first-child { padding-top: 14px; }
+
+.lfa-link { grid-area: link; position: relative; height: 40px; display: grid; place-items: center; }
+.lfa-flow {
+  position: absolute; inset: 0;
+  background: color-mix(in oklab, var(--c) 18%, transparent);
+  transition: clip-path .7s cubic-bezier(.2,.7,.2,1), background .3s ease, opacity .5s ease calc(var(--i) * 90ms + 250ms);
+}
+.lfa-stage.is-active .lfa-flow { background: color-mix(in oklab, var(--c) 32%, transparent); }
+.lfa-chip {
+  position: relative; display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 9px 5px 7px; border-radius: 999px;
+  background: var(--lfa-card); box-shadow: 0 0 0 1px var(--lfa-line), 0 6px 14px -10px var(--lfa-shadow);
+  font: 600 12px/1 var(--lfa-sans); font-variant-numeric: tabular-nums; color: var(--lfa-ink);
+  white-space: nowrap;
+  transition: opacity .4s ease calc(var(--i) * 90ms + 350ms), transform .4s ease calc(var(--i) * 90ms + 350ms);
+}
+.lfa-chip svg { width: 11px; height: 11px; color: var(--c); }
+.lfa-chip-more {
+  display: inline-block; max-width: 0; overflow: hidden; opacity: 0;
+  font-weight: 500; color: var(--lfa-muted);
+  transition: max-width .45s cubic-bezier(.2,.7,.2,1), opacity .3s ease;
+}
+.lfa-stage.is-active .lfa-chip-more { max-width: 18em; opacity: 1; }
+
+.lfa-label { grid-area: label; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.lfa-idx {
+  flex: none; font: 500 10.5px/1 var(--lfa-mono); color: var(--lfa-faint);
+  padding: 5px 6px; border-radius: 6px; background: var(--lfa-tint);
+  transition: background .3s, color .3s;
+}
+.lfa-stage.is-active .lfa-idx { background: color-mix(in oklab, var(--c) 22%, transparent); color: var(--lfa-ink); box-shadow: inset 0 0 0 1px var(--c); }
+.lfa-name { font: 600 15px/1.2 var(--lfa-sans); overflow-wrap: anywhere; }
+
+.lfa-track { grid-area: track; position: relative; height: 46px; display: flex; align-items: center; justify-content: center; }
+.lfa-track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+  background-image: linear-gradient(to right, var(--lfa-line) 50%, transparent 0);
+  background-size: 6px 1px;
+}
+.lfa-bar {
+  position: relative; height: 100%;
+  width: calc(var(--w) * 1%);
+  border-radius: 10px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--c), #fff 16%), var(--c));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    width .7s cubic-bezier(.2,.7,.2,1),
+    transform .9s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 90ms),
+    opacity .4s ease calc(var(--i) * 90ms),
+    box-shadow .3s ease, filter .3s ease;
+}
+.lfa-stage.is-active .lfa-bar {
+  filter: saturate(1.12) brightness(1.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 10px 22px -12px var(--c);
+}
+
+.lfa-figs { grid-area: figs; display: grid; justify-items: end; gap: 5px; text-align: right; }
+.lfa-count { font: 600 26px/1 var(--lfa-num); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.lfa-share { font-size: 12px; line-height: 1.2; color: var(--lfa-muted); font-variant-numeric: tabular-nums; }
+
+.lfa-foot {
+  margin-top: 18px; padding-top: 12px; border-top: 1px dashed var(--lfa-line);
+  display: flex; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap;
+  font-size: 12px; color: var(--lfa-faint);
+}
+.lfa-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* first-view reveal: bars grow out from the centre, then the flows and rates fade in */
+.lfa.is-pending .lfa-bar { transform: scaleX(0); opacity: 0; }
+.lfa.is-pending .lfa-flow { opacity: 0; }
+.lfa.is-pending .lfa-chip { opacity: 0; transform: translateY(4px); }
+
+/* tablet */
+@container lfa (max-width: 699px) {
+  .lfa { padding: 24px 22px 16px; }
+  .lfa-summary { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); row-gap: 14px; }
+  .lfa-kpi--main { grid-column: 1 / -1; padding-inline: 0; }
+  .lfa-kpi--main + .lfa-kpi { border-left: 0; padding-left: 0; }
+  .lfa-kpi:not(.lfa-kpi--main) { padding-top: 14px; border-top: 1px solid var(--lfa-line); }
+  .lfa-stage { grid-template-columns: 112px minmax(0, 1fr) 100px; column-gap: 14px; }
+  .lfa-count { font-size: 22px; }
+}
+/* phone: name and figures on one line, the bar full width beneath */
+@container lfa (max-width: 479px) {
+  .lfa { padding: 22px 16px 14px; }
+  .lfa-summary { grid-template-columns: 1fr; }
+  .lfa-kpi:not(.lfa-kpi--main) { border-left: 0; padding-left: 0; }
+  .lfa-stage {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "label figs" "link link" "track track";
+    row-gap: 6px;
+  }
+  .lfa-stage:first-child .lfa-label, .lfa-stage:first-child .lfa-figs { margin-bottom: 4px; }
+  .lfa-stage + .lfa-stage { padding-top: 14px; }
+  .lfa-link { height: 30px; }
+  .lfa-track { height: 38px; }
+  .lfa-figs { grid-auto-flow: column; align-items: baseline; gap: 8px; }
+  .lfa-count { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lfa-stage, .lfa-flow, .lfa-chip, .lfa-chip-more, .lfa-idx, .lfa-bar { transition: none; }
+}
+@media print {
+  .lfa.is-pending .lfa-bar, .lfa.is-pending .lfa-flow, .lfa.is-pending .lfa-chip { transform: none; opacity: 1; }
+}
+
+/* =========================================================
+   Showcase shell
+   ========================================================= */
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 15px/1.55 var(--lfa-sans);
+}
+.shell { max-width: 1040px; margin: 0 auto; padding: 44px 20px 72px; display: grid; gap: 28px; }
+.intro { display: grid; gap: 10px; }
+.kicker { font: 500 11px/1 var(--lfa-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: flex; gap: 10px; flex-wrap: wrap; }
+.kicker span:last-child { color: var(--accent); }
+.intro h1 { margin: 0; font: 650 clamp(30px, 5vw, 44px)/1.05 var(--lfa-sans); letter-spacing: -0.025em; text-wrap: balance; }
+.intro p { margin: 0; max-width: 62ch; color: var(--muted); }
+
+.stage {
+  position: relative;
+  background:
+    linear-gradient(var(--stage), transparent 30%, transparent 70%, var(--stage)),
+    repeating-linear-gradient(to bottom, transparent 0 39px, var(--line) 39px 40px),
+    var(--stage);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: clamp(24px, 5vw, 56px) clamp(14px, 4vw, 48px);
+  display: grid; justify-items: center; gap: 20px;
+}
+.stage-bar { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; }
+.note { margin: 0; font-size: 12.5px; color: var(--muted); }
+.note b { color: var(--ink); font-weight: 600; }
+.controls { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; }
+.seg-wrap { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg-label { font: 500 10.5px/1 var(--lfa-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 9px; background: var(--ground); border: 1px solid var(--line); }
+.seg button {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font: 500 12.5px/1 var(--lfa-sans); color: var(--muted);
+  padding: 8px 11px; border-radius: 6px; transition: background .2s, color .2s;
+}
+.seg button[aria-pressed="true"] { background: var(--lfa-card); color: var(--ink); box-shadow: 0 1px 3px -1px var(--lfa-shadow); }
+.seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.docs { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; }
+@media (max-width: 820px) { .docs { grid-template-columns: 1fr; } }
+.doc { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 14px; align-content: start; min-width: 0; }
+.doc h2 { margin: 0; font: 600 17px/1.2 var(--lfa-sans); letter-spacing: -0.01em; }
+.doc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.fields-wrap { overflow-x: auto; }
+.fields { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.fields td { padding: 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+.fields tr:first-child td { border-top: 0; }
+.fields td:first-child { font: 400 12.5px/1.5 var(--lfa-mono); color: var(--accent); white-space: nowrap; padding-right: 16px; }
+.fields td:last-child { color: var(--muted); }
+.fields code, .doc p code { font: 400 .9em var(--lfa-mono); }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--lfa-card); cursor: pointer;
+  font: 500 12px/1 var(--lfa-sans); color: var(--muted); padding: 8px 11px; border-radius: 8px;
+  transition: color .2s, border-color .2s;
+}
+.btn:hover { color: var(--ink); border-color: var(--faint); }
+.code-wrap { overflow-x: auto; border-radius: 10px; background: var(--lfa-tint); }
+.code { margin: 0; padding: 16px 18px; font: 400 12.5px/1.7 var(--lfa-mono); color: var(--ink); white-space: pre; }
+.code .t { color: var(--accent); }
+.code .a { color: var(--muted); }
+.doc p { margin: 0; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header class="lsg-nav">
+  <div class="lsg-nav-inner">
+    <a class="lsg-brand" href="/" aria-label="LofiStack Components home">
+      <svg class="lsg-logo" viewBox="0 0 32 32" aria-hidden="true"><rect x="5" y="6" width="22" height="5" rx="2.5" fill="currentColor"/><rect x="8" y="13.5" width="19" height="5" rx="2.5" fill="currentColor" opacity=".7"/><rect x="5" y="21" width="16" height="5" rx="2.5" fill="currentColor" opacity=".45"/></svg>
+      LofiStack <small>Components</small>
+    </a>
+    <nav class="lsg-links" aria-label="Components">
+      <a href="/">Gallery</a>
+      <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
+      <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics" aria-current="page"><span>04</span>Lead Funnel</a>
+    </nav>
+  </div>
+</header>
+
+
+<main class="shell">
+  <header class="intro">
+    <div class="kicker"><span>LofiStack</span><span>/</span><span>Component Gallery</span><span>/</span><span>Component 04</span></div>
+    <h1>Lead Funnel Analytics</h1>
+    <p>How many people make it from visit to sale. Each stage shows its count and the share of visitors who reached it. The rate between stages shows where people drop off.</p>
+  </header>
+
+  <section class="stage" aria-label="Component preview">
+    <lead-funnel id="demo">
+      <script type="application/json">
+        {
+          "eyebrow": "Lead funnel",
+          "title": "Inbound pipeline · all channels",
+          "subtitle": "Website visit to closed sale",
+          "period": "1 Jul – 30 Sep 2026",
+          "stages": [
+            { "label": "Visitors",  "count": 8640 },
+            { "label": "Leads",     "count": 1296 },
+            { "label": "Booked",    "count": 544 },
+            { "label": "Converted", "count": 196 }
+          ],
+          "compare": { "label": "last quarter", "stages": [7910, 1107, 432, 147] },
+          "source": "Source: CRM and website analytics"
+        }
+      </script>
+    </lead-funnel>
+
+    <div class="stage-bar">
+      <p class="note"><b>Example figures.</b> Not real client data.</p>
+      <div class="controls">
+        <div class="seg-wrap">
+          <span class="seg-label">Bar scale</span>
+          <div class="seg" role="group" aria-label="Bar scale">
+            <button type="button" data-value="sqrt" aria-pressed="true">Square root</button>
+            <button type="button" data-value="linear" aria-pressed="false">Linear</button>
+          </div>
+        </div>
+        <button type="button" class="btn" id="replay">Replay animation</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="docs">
+    <div class="doc">
+      <h2>Fields</h2>
+      <div class="fields-wrap">
+        <table class="fields">
+          <tr><td>stages[]</td><td><code>{ label, count }</code> in funnel order. Two or more stages; four is typical.</td></tr>
+          <tr><td>eyebrow · title · subtitle</td><td>Optional header text.</td></tr>
+          <tr><td>period</td><td>Optional date-range text, shown top right.</td></tr>
+          <tr><td>compare</td><td>Optional <code>{ label, stages: [counts] }</code> for the previous period. Adds a change in points to the overall rate.</td></tr>
+          <tr><td>source</td><td>Optional footer note, e.g. where the data comes from.</td></tr>
+          <tr><td>scale</td><td>Attribute or JSON. <code>sqrt</code> (default) keeps small stages readable; <code>linear</code> draws bars exactly to scale.</td></tr>
+          <tr><td>labels</td><td>Optional. Override any built-in text, e.g. <code>{ "overall": "Win rate" }</code>.</td></tr>
+          <tr><td>locale</td><td>Number formatting locale (default <code>en-US</code>).</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="doc">
+      <div class="doc-head">
+        <h2>Usage</h2>
+        <button type="button" class="btn" id="copy-usage">Copy</button>
+      </div>
+      <div class="code-wrap"><pre class="code" id="usage-code"><span class="t">&lt;lead-funnel</span> <span class="a">scale=</span>"sqrt"<span class="t">&gt;</span>
+  <span class="t">&lt;script</span> <span class="a">type=</span>"application/json"<span class="t">&gt;</span>
+    {
+      "title": "Inbound pipeline",
+      "period": "1 Jul – 30 Sep 2026",
+      "stages": [
+        { "label": "Visitors",  "count": 8640 },
+        { "label": "Leads",     "count": 1296 },
+        { "label": "Booked",    "count": 544 },
+        { "label": "Converted", "count": 196 }
+      ]
+    }
+  <span class="t">&lt;/script&gt;</span>
+<span class="t">&lt;/lead-funnel&gt;</span>
+
+<span class="a">// or from data:</span>
+el.data = { title, stages: [...] };
+el.replay();  <span class="a">// re-run the entry animation</span></pre></div>
+      <p>Every rate is worked out from the counts: each stage against the one before it, against the first stage, and overall. The summary picks out the biggest drop-off and the strongest step automatically.</p>
+    </div>
+  </section>
+</main>
+
+<footer class="lsg-footer">
+  <div class="lsg-footer-inner">
+    <a class="lsg-pager" href="/components/pricing-comparison"><small>← Previous · 03</small><strong>Pricing Comparison Card</strong></a>
+    <a class="lsg-pager lsg-pager--next" href="/"><small>Back to →</small><strong>All components</strong></a>
+    <div class="lsg-foot-note"><span>LofiStack Component Gallery</span><span>Component 04 of 04</span></div>
+  </div>
+</footer>
+
+<script>
+/* =========================================================
+   <lead-funnel> — reusable custom element
+   ========================================================= */
+(() => {
+  const LABELS = {
+    overall: "Overall conversion", overallSub: "{last} of {first} {firstLabel}",
+    drop: "Biggest drop-off", dropSub: "{pct} didn't continue",
+    best: "Strongest step", bestSub: "{pct} moved on",
+    share: "{pct} of {firstLabel}", moved: "moved on", dropped: "{n} dropped",
+    vs: "vs {label}", pts: "pts",
+    scaleSqrt: "Bar widths use a square-root scale so smaller stages stay readable.",
+    scaleLinear: "Bar widths are drawn to scale."
+  };
+  const ICON_CAL = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" rx="2"/><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3"/></svg>';
+  const ICON_DOWN = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v8M2.8 6.8 6 10l3.2-3.2"/></svg>';
+
+  const TEMPLATE = `
+    <article class="lfa">
+      <header class="lfa-head">
+        <div class="lfa-intro">
+          <span class="lfa-eyebrow"></span>
+          <h2 class="lfa-title"></h2>
+          <p class="lfa-sub"></p>
+        </div>
+        <span class="lfa-period"></span>
+      </header>
+      <dl class="lfa-summary">
+        <div class="lfa-kpi lfa-kpi--main">
+          <dt class="lfa-k-overall"></dt>
+          <dd class="lfa-big-row"><span class="lfa-big"></span><span class="lfa-delta"></span></dd>
+          <dd class="lfa-kpi-sub lfa-overall-sub"></dd>
+        </div>
+        <div class="lfa-kpi">
+          <dt class="lfa-k-drop"></dt>
+          <dd class="lfa-kpi-val lfa-drop-val"></dd>
+          <dd class="lfa-kpi-sub lfa-drop-sub"></dd>
+        </div>
+        <div class="lfa-kpi">
+          <dt class="lfa-k-best"></dt>
+          <dd class="lfa-kpi-val lfa-best-val"></dd>
+          <dd class="lfa-kpi-sub lfa-best-sub"></dd>
+        </div>
+      </dl>
+      <ol class="lfa-funnel"></ol>
+      <footer class="lfa-foot"><span class="lfa-scale-note"></span><span class="lfa-source"></span></footer>
+    </article>`;
+
+  const num = v => (v === null || v === undefined || v === "" || !Number.isFinite(+v) ? null : +v);
+  const fill = (s, vars) => String(s).replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "");
+  const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
+  const reduceMotion = () => window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  class LeadFunnel extends HTMLElement {
+    static get observedAttributes() { return ["scale"]; }
+
+    connectedCallback() {
+      if (this._built) return;
+      if (!this._data) {
+        const src = this.querySelector(':scope > script[type="application/json"]');
+        try { this._data = src ? JSON.parse(src.textContent) : {}; }
+        catch (e) { console.warn("<lead-funnel>: the JSON data could not be read.", e); this._data = {}; }
+      }
+      this.innerHTML = TEMPLATE;
+      const q = s => this.querySelector(s);
+      this.$ = {
+        card: q(".lfa"), eyebrow: q(".lfa-eyebrow"), title: q(".lfa-title"), sub: q(".lfa-sub"), period: q(".lfa-period"),
+        kOverall: q(".lfa-k-overall"), big: q(".lfa-big"), delta: q(".lfa-delta"), overallSub: q(".lfa-overall-sub"),
+        kDrop: q(".lfa-k-drop"), dropVal: q(".lfa-drop-val"), dropSub: q(".lfa-drop-sub"),
+        kBest: q(".lfa-k-best"), bestVal: q(".lfa-best-val"), bestSub: q(".lfa-best-sub"),
+        funnel: q(".lfa-funnel"), scaleNote: q(".lfa-scale-note"), source: q(".lfa-source")
+      };
+      this._wire();
+      this._built = true;
+      this._render();
+      this._reveal();
+    }
+
+    attributeChangedCallback() { if (this._built) this._render(); }
+
+    /* Programmatic API: el.data = { eyebrow, title, subtitle, period, stages: [{ label, count }], compare, source } */
+    get data() { return this._data; }
+    set data(d) { this._data = d || {}; if (this._built) this._render(); }
+
+    /* Re-run the entry animation. */
+    replay() {
+      if (!this._built || reduceMotion()) return;
+      const card = this.$.card;
+      card.classList.add("is-pending");
+      void card.offsetWidth;
+      requestAnimationFrame(() => { card.classList.remove("is-pending"); this._countUp(); });
+    }
+
+    _labels() { return Object.assign({}, LABELS, (this._data && this._data.labels) || {}); }
+    _int(v) { return Math.round(v).toLocaleString(this._data.locale || "en-US"); }
+    _pct(r) {
+      if (r == null || !Number.isFinite(r)) return "—";
+      const p = r * 100;
+      return (p === 100 || p === 0 ? String(p) : p.toLocaleString(this._data.locale || "en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 })) + "%";
+    }
+
+    _render() {
+      const d = this._data || {}, L = this._labels(), $ = this.$;
+      $.eyebrow.textContent = d.eyebrow || "";
+      $.title.textContent = d.title || "";
+      $.sub.textContent = d.subtitle || "";
+      $.period.innerHTML = d.period ? ICON_CAL : "";
+      if (d.period) $.period.append(d.period);
+      $.source.textContent = d.source || "";
+
+      const stages = (Array.isArray(d.stages) ? d.stages : []).map((s, i) => ({
+        label: (s && s.label) || `Stage ${i + 1}`,
+        count: Math.max(0, num(s && s.count) ?? 0)
+      }));
+      const n = stages.length, first = n ? stages[0].count : 0, last = n ? stages[n - 1].count : 0;
+      const firstLabel = n ? stages[0].label.toLowerCase() : "";
+      const scale = ((this.getAttribute("scale") || d.scale || "sqrt") + "").toLowerCase() === "linear" ? "linear" : "sqrt";
+      $.scaleNote.textContent = scale === "linear" ? L.scaleLinear : L.scaleSqrt;
+
+      // step conversion: each stage against the one before
+      const steps = stages.slice(1).map((s, i) => {
+        const prev = stages[i].count;
+        return { from: stages[i].label, to: s.label, rate: prev > 0 ? s.count / prev : null, lost: Math.max(0, prev - s.count) };
+      });
+
+      // summary
+      const overall = first > 0 && n > 1 ? last / first : null;
+      $.kOverall.textContent = L.overall;
+      $.big.dataset.to = overall == null ? "" : overall;
+      $.big.textContent = this._pct(overall);
+      $.overallSub.textContent = n > 1 ? fill(L.overallSub, { last: this._int(last), first: this._int(first), firstLabel }) : "";
+
+      $.delta.textContent = ""; delete $.delta.dataset.tone;
+      const prev = d.compare && Array.isArray(d.compare.stages) ? d.compare.stages.map(num) : null;
+      if (overall != null && prev && prev.length === n && prev[0] > 0 && prev[n - 1] != null) {
+        const diff = (overall - prev[n - 1] / prev[0]) * 100;
+        const r = Math.round(diff * 10) / 10;
+        $.delta.dataset.tone = r > 0 ? "good" : r < 0 ? "bad" : "flat";
+        $.delta.textContent = `${r > 0 ? "▲" : r < 0 ? "▼" : "▶"} ${Math.abs(r).toFixed(1)} ${L.pts} ${fill(L.vs, { label: d.compare.label || "" })}`.trim();
+      }
+
+      const rated = steps.filter(s => s.rate != null);
+      const worst = rated.reduce((a, s) => (!a || s.rate < a.rate ? s : a), null);
+      const best = rated.reduce((a, s) => (!a || s.rate > a.rate ? s : a), null);
+      $.kDrop.textContent = L.drop;
+      $.dropVal.textContent = worst ? `${worst.from} → ${worst.to}` : "—";
+      $.dropSub.textContent = worst ? fill(L.dropSub, { pct: this._pct(1 - worst.rate) }) : "";
+      $.kBest.textContent = L.best;
+      $.bestVal.textContent = best ? `${best.from} → ${best.to}` : "—";
+      $.bestSub.textContent = best ? fill(L.bestSub, { pct: this._pct(best.rate) }) : "";
+
+      // funnel rows
+      const width = c => {
+        if (!(first > 0) || !(c > 0)) return 2;
+        const r = c / first;
+        // linear keeps a 1% sliver so tiny stages stay visible; sqrt floors at 4%
+        return scale === "linear" ? Math.max(1, r * 100) : Math.max(4, Math.sqrt(r) * 100);
+      };
+      const widths = stages.map(s => width(s.count));
+      const rows = stages.map((s, i) => {
+        const li = make("li", "lfa-stage");
+        li.tabIndex = 0;
+        const t = n > 1 ? i / (n - 1) * 100 : 100;
+        li.style.setProperty("--c", `color-mix(in oklab, var(--lfa-from), var(--lfa-to) ${t.toFixed(1)}%)`);
+        li.style.setProperty("--i", i);
+        li.style.setProperty("--w", widths[i].toFixed(2));
+        const share = first > 0 ? s.count / first : null;
+        const parts = [`${s.label}: ${this._int(s.count)}`];
+        if (i > 0) parts.push(fill(L.share, { pct: this._pct(share), firstLabel }));
+
+        if (i > 0) {
+          const st = steps[i - 1];
+          const link = make("div", "lfa-link");
+          const flow = make("span", "lfa-flow");
+          const a = (100 - widths[i - 1]) / 2, c = (100 - widths[i]) / 2;
+          flow.style.clipPath = `polygon(${a}% 0, ${100 - a}% 0, ${100 - c}% 100%, ${c}% 100%)`;
+          const chip = make("span", "lfa-chip");
+          chip.innerHTML = ICON_DOWN;
+          chip.append(make("b", null, this._pct(st.rate)));
+          chip.append(make("span", "lfa-chip-more", ` ${L.moved} · ${fill(L.dropped, { n: this._int(st.lost) })}`));
+          link.append(flow, chip);
+          link.setAttribute("aria-hidden", "true");
+          li.append(link);
+          parts.push(`${this._pct(st.rate)} of ${st.from.toLowerCase()} ${L.moved}, ${fill(L.dropped, { n: this._int(st.lost) })}`);
+        }
+
+        const label = make("div", "lfa-label");
+        label.append(make("span", "lfa-idx", String(i + 1).padStart(2, "0")), make("span", "lfa-name", s.label));
+        const track = make("div", "lfa-track");
+        track.append(make("span", "lfa-bar"));
+        const figs = make("div", "lfa-figs");
+        const count = make("span", "lfa-count", this._int(s.count));
+        count.dataset.to = s.count;
+        figs.append(count, make("span", "lfa-share", i === 0 ? "100%" : fill(L.share, { pct: this._pct(share), firstLabel })));
+        [label, track, figs].forEach(x => x.setAttribute("aria-hidden", "true"));
+        li.append(label, track, figs, make("span", "lfa-sr", parts.join(". ") + "."));
+        return li;
+      });
+      $.funnel.replaceChildren(...rows);
+    }
+
+    _wire() {
+      const f = this.$.funnel;
+      const set = li => {
+        f.querySelectorAll(".lfa-stage.is-active").forEach(x => x !== li && x.classList.remove("is-active"));
+        if (li) li.classList.add("is-active");
+        f.classList.toggle("has-active", !!li);
+      };
+      f.addEventListener("pointerover", e => set(e.target.closest(".lfa-stage")));
+      f.addEventListener("pointerleave", () => set(f.contains(document.activeElement) ? document.activeElement.closest(".lfa-stage") : null));
+      f.addEventListener("focusin", e => set(e.target.closest(".lfa-stage")));
+      f.addEventListener("focusout", e => { if (!f.contains(e.relatedTarget)) set(null); });
+    }
+
+    _reveal() {
+      if (reduceMotion()) return;
+      const card = this.$.card;
+      card.classList.add("is-pending");
+      const go = () => requestAnimationFrame(() => { card.classList.remove("is-pending"); this._countUp(); });
+      if (!("IntersectionObserver" in window)) return go();
+      const io = new IntersectionObserver(entries => {
+        if (entries.some(e => e.isIntersecting)) { io.disconnect(); go(); }
+      }, { threshold: 0.2 });
+      io.observe(card);
+    }
+
+    _countUp() {
+      const els = [...this.querySelectorAll(".lfa-count[data-to], .lfa-big[data-to]")].filter(el => el.dataset.to !== "");
+      const t0 = performance.now(), dur = 900;
+      const ease = t => 1 - Math.pow(1 - t, 3);
+      const tick = now => {
+        const k = ease(Math.min(1, (now - t0) / dur));
+        els.forEach(el => {
+          const v = +el.dataset.to * k;
+          el.textContent = el.classList.contains("lfa-big") ? this._pct(k < 1 ? v : +el.dataset.to) : this._int(v);
+        });
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+  }
+
+  if (!customElements.get("lead-funnel")) customElements.define("lead-funnel", LeadFunnel);
+})();
+
+/* ---------- Showcase controls ---------- */
+(() => {
+  const el = document.getElementById("demo");
+  const buttons = document.querySelectorAll(".seg button");
+  buttons.forEach(b => b.addEventListener("click", () => {
+    el.setAttribute("scale", b.dataset.value);
+    buttons.forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+  }));
+  document.getElementById("replay").addEventListener("click", () => el.replay());
+
+  const copyBtn = document.getElementById("copy-usage");
+  copyBtn.addEventListener("click", () => {
+    const code = document.getElementById("usage-code");
+    const done = t => { copyBtn.textContent = t; setTimeout(() => (copyBtn.textContent = "Copy"), 1600); };
+    const select = () => {
+      const r = document.createRange(); r.selectNodeContents(code);
+      const s = getSelection(); s.removeAllRanges(); s.addRange(r); done("Selected");
+    };
+    try { navigator.clipboard.writeText(code.textContent).then(() => done("Copied"), select); }
+    catch (e) { select(); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -9,6 +9,8 @@ There's no framework, build step or package install. It is a static site that de
 | Gallery homepage | `/` |
 | 01 · Agent Log Card | `/components/agent-log-card` |
 | 02 · Campaign Performance Snapshot | `/components/campaign-performance` |
+| 03 · Pricing Comparison Card | `/components/pricing-comparison` |
+| 04 · Lead Funnel Analytics | `/components/lead-funnel-analytics` |
 
 ## Project structure
 
@@ -19,11 +21,16 @@ There's no framework, build step or package install. It is a static site that de
 ├── components/
 │   ├── agent-log-card/
 │   │   └── index.html                  # 01 · Agent Log Card  → /components/agent-log-card
-│   └── campaign-performance/
-│       └── index.html                  # 02 · Campaign Performance Snapshot → /components/campaign-performance
+│   ├── campaign-performance/
+│   │   └── index.html                  # 02 · Campaign Performance Snapshot → /components/campaign-performance
+│   ├── pricing-comparison/
+│   │   └── index.html                  # 03 · Pricing Comparison Card → /components/pricing-comparison
+│   └── lead-funnel-analytics/
+│       └── index.html                  # 04 · Lead Funnel Analytics → /components/lead-funnel-analytics
 ├── assets/
 │   ├── gallery.css                     # Shared nav, footer and homepage styles (all classes prefixed lsg-)
 │   ├── gallery.js                      # Scales the live previews on the homepage
+│   ├── agent-log-card.css / .js        # Copy of the Agent Log Card, for the Week 02 log on the homepage
 │   └── favicon.svg
 ├── vercel.json                         # Clean URLs, redirects, security headers
 ├── .gitignore
@@ -90,6 +97,6 @@ Adding `?embed` to any component URL hides the gallery chrome and shows only the
 
 ## Notes
 
-- **Sample data:** the Campaign Performance Snapshot shows example figures only; the page labels them as such.
+- **Sample data:** the Campaign Performance Snapshot, Pricing Comparison Card and Lead Funnel Analytics show example figures only; each page labels them as such.
 - **Fonts:** the Agent Log Card loads its typefaces from Google Fonts. Everything else uses system fonts.
 - **Private files:** `CLAUDE.md`, `logs/` and `submissions.md` hold the private LofiStack Agent Log. They are listed in `.gitignore` and `.vercelignore`, so they are not pushed or deployed.

@@ -9,6 +9,10 @@
 <meta property="og:description" content="Reusable UI components for LofiStack, each built in plain HTML, CSS and JavaScript with its own page.">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/assets/gallery.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="/assets/agent-log-card.css">
 </head>
 <body class="lsg-page">
 
@@ -22,6 +26,8 @@
       <a href="/" aria-current="page">Gallery</a>
       <a href="/components/agent-log-card"><span>01</span>Agent Log Card</a>
       <a href="/components/campaign-performance"><span>02</span>Campaign Performance</a>
+      <a href="/components/pricing-comparison"><span>03</span>Pricing Comparison</a>
+      <a href="/components/lead-funnel-analytics"><span>04</span>Lead Funnel</a>
     </nav>
   </div>
 </header>
@@ -32,7 +38,7 @@
     <h1>Reusable UI, <em>one component at a time.</em></h1>
     <p>Every component here is a self-contained piece of HTML, CSS and JavaScript with its own page. Open one to see it working, try its states, and copy the markup into your own project.</p>
     <ul class="lsg-facts">
-      <li><b>2</b> components</li>
+      <li><b>4</b> components</li>
       <li>No build step</li>
       <li>Light &amp; dark</li>
       <li>Mobile ready</li>
@@ -42,7 +48,7 @@
   <section aria-labelledby="all-components" style="display:grid;gap:24px">
     <div class="lsg-section-head">
       <h2 id="all-components">All components</h2>
-      <span>02 total</span>
+      <span>04 total</span>
     </div>
 
   <div class="lsg-grid">
@@ -71,7 +77,124 @@
         <span class="lsg-open">Open component <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
       </div>
     </article>
+
+    <article class="lsg-card">
+      <div class="lsg-preview">
+        <iframe src="/components/pricing-comparison?embed" title="Pricing Comparison Card preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+      </div>
+      <div class="lsg-card-body">
+        <div class="lsg-card-top"><b>03</b><span>/components/pricing-comparison</span></div>
+        <h3><a class="lsg-card-link" href="/components/pricing-comparison">Pricing Comparison Card</a></h3>
+        <p>Three plans side by side, with a monthly / yearly switch and one highlighted plan. Prices change smoothly when you switch, and every plan, price and feature comes from editable JSON.</p>
+        <ul class="lsg-tags"><li>Custom element</li><li>Monthly / yearly</li><li>JSON data</li></ul>
+        <span class="lsg-open">Open component <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
+
+    <article class="lsg-card">
+      <div class="lsg-preview">
+        <iframe src="/components/lead-funnel-analytics?embed" title="Lead Funnel Analytics preview" loading="lazy" tabindex="-1" aria-hidden="true"></iframe>
+      </div>
+      <div class="lsg-card-body">
+        <div class="lsg-card-top"><b>04</b><span>/components/lead-funnel-analytics</span></div>
+        <h3><a class="lsg-card-link" href="/components/lead-funnel-analytics">Lead Funnel Analytics</a></h3>
+        <p>Visitors to leads to booked calls to sales. Each stage shows its count and conversion rate, and a summary picks out the overall rate and the biggest drop-off.</p>
+        <ul class="lsg-tags"><li>Custom element</li><li>Auto-calculated rates</li><li>JSON data</li></ul>
+        <span class="lsg-open">Open component <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+      </div>
+    </article>
   </div>
+  </section>
+
+  <section aria-labelledby="week-02-log" style="display:grid;gap:24px">
+    <div class="lsg-section-head">
+      <h2 id="week-02-log">Week 02 Agent Log</h2>
+      <span>2026-10-02 to 2026-10-08</span>
+    </div>
+
+    <agent-log-card
+      task="Reusable GHL Troubleshooting Skill"
+      agent="Claude Code · Claude Opus 5.5"
+      type="AI Agent Building"
+      date="2026-10-02"
+      status="built"
+      week="2"
+      entry="1">
+      <div data-field="prompt">
+        Create a reusable GHL Troubleshooting Agent for my LofiStack workflow.
+        The purpose of this agent is to help me troubleshoot real GoHighLevel client issues in a structured and reliable way.
+        Core Workflow
+        When I provide a GHL issue, the agent should:
+
+        1. Understand the Issue
+           * Identify what is happening.
+           * Identify what should happen instead.
+           * Summarize the issue clearly before starting the troubleshooting process.
+        2. Analyze the Root Cause
+           * Identify the most likely causes.
+           * Review relevant areas such as workflow triggers, conditions, actions, pipelines, custom fields, tags, forms, calendars, integrations, permissions, and other applicable GHL settings.
+           * Clearly separate confirmed information from assumptions.
+        3. Provide Troubleshooting Steps
+           * Give me a clear, step-by-step troubleshooting process.
+           * Tell me exactly what to check inside GHL.
+           * Start with the most likely causes.
+           * Avoid unnecessary checks or steps.
+        4. Recommend a Fix
+           * Explain the recommended fix clearly.
+           * Provide exact implementation steps whenever possible.
+           * Warn me if the change could affect existing workflows, contacts, pipelines, or automations.
+        5. Create a Testing and QA Checklist
+           * Provide a short checklist to use after applying the fix.
+           * Include the exact test scenario.
+           * Explain the expected result.
+           * Help confirm whether the issue has actually been resolved.
+        6. Provide a Final Summary
+        At the end, include:
+           * Issue
+           * Root Cause
+           * Fix Applied
+           * Test Result
+           * Remaining Issues
+           * Recommended Next Step
+
+        Important Rules
+
+        * Do not invent GHL features, settings, results, or test outcomes.
+        * If important information is missing, ask for the required details before reaching a conclusion.
+        * Clearly label all assumptions.
+        * Do not say an issue is fixed unless it has been tested or verified.
+        * Keep the troubleshooting focused on real client work.
+        * Use clear, simple language.
+        * Avoid unnecessary explanations.
+        * If there are multiple possible causes, rank them by likelihood based on the available evidence.
+        * Preserve existing working configurations unless there is a clear reason to change them.
+        * Prioritize safe changes and explain any possible side effects.
+
+        Reusability
+        Make this agent reusable across different GHL client accounts and issue types, including:
+
+        * Workflow problems
+        * Trigger issues
+        * Automation failures
+        * Form submission issues
+        * Pipeline problems
+        * Custom field issues
+        * Tag-related issues
+        * Calendar and appointment issues
+        * Lead routing
+        * Attribution
+        * Webhooks and integrations
+        * Contact record issues
+        * CRM data problems
+        * Testing and QA
+
+        The agent should allow me to provide a real GHL problem and receive guidance through the investigation, fix, and verification process.
+      </div>
+      <div data-field="result">
+        <p>Built a reusable GHL Troubleshooting Skill at <code>.claude/skills/ghl-troubleshooter/SKILL.md</code>.</p>
+        <p><strong>Status:</strong> Built — Not yet tested on a real GHL issue.</p>
+      </div>
+    </agent-log-card>
   </section>
 
   <footer class="lsg-home-foot">
@@ -81,5 +204,6 @@
 </main>
 
 <script src="/assets/gallery.js" defer></script>
+<script src="/assets/agent-log-card.js" defer></script>
 </body>
 </html>
