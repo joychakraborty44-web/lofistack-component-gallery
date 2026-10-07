@@ -8,6 +8,9 @@ submissions.md
 .vercel/
 .claude/
 node_modules/
+dist/
+.vite/
+*.log
 .playwright-mcp/
 
 # OS files

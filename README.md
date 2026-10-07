@@ -1,123 +1,120 @@
 # LofiStack Component Gallery
 
-Reusable UI components for LofiStack, each built in plain HTML, CSS and JavaScript with its own page.
+Thirty production-ready UI components for marketing, CRM, ads, SEO and AI teams — each a typed **React** component with its own page, live demo, props reference and copyable usage.
 
-There's no framework, build step or package install. It is a static site that deploys to Vercel as it is.
+**Live:** https://lofistack-component-gallery.vercel.app
 
-| Component | URL |
-| --------- | --- |
-| Gallery homepage | `/` |
-| 01 · Agent Log Card | `/components/agent-log-card` |
-| 02 · Campaign Performance Snapshot | `/components/campaign-performance` |
-| 03 · Pricing Comparison Card | `/components/pricing-comparison` |
-| 04 · Lead Funnel Analytics | `/components/lead-funnel-analytics` |
-| 05 · KPI Metrics Dashboard | `/components/kpi-metrics-dashboard` |
-| 06 · AI Prompt Card | `/components/ai-prompt-card` |
-| 07 · Client Overview Card | `/components/client-overview-card` |
-| 08 · Task Progress Board | `/components/task-progress-board` |
-| 09 · Ad Creative Performance | `/components/ad-creative-performance` |
-| 10 · SEO Ranking Tracker | `/components/seo-ranking-tracker` |
-| 11 · Conversion Rate Card | `/components/conversion-rate-card` |
-| 12 · Activity Timeline | `/components/activity-timeline` |
-| 13 · Campaign Status Card | `/components/campaign-status-card` |
-| 14 · Lead Source Breakdown | `/components/lead-source-breakdown` |
-| 15 · Revenue Growth Chart | `/components/revenue-growth-chart` |
-| 16 · Appointment Pipeline | `/components/appointment-pipeline` |
-| 17 · Workflow Automation Card | `/components/workflow-automation-card` |
-| 18 · AI Agent Status Panel | `/components/ai-agent-status-panel` |
-| 19 · Notification Center | `/components/notification-center` |
-| 20 · Client Health Score | `/components/client-health-score` |
-| 21 · Ad Spend Budget Tracker | `/components/ad-spend-budget-tracker` |
-| 22 · Form Conversion Card | `/components/form-conversion-card` |
-| 23 · SEO Audit Scorecard | `/components/seo-audit-scorecard` |
-| 24 · Integration Status Grid | `/components/integration-status-grid` |
-| 25 · Team Member Performance | `/components/team-member-performance` |
-| 26 · Revenue Goal Tracker | `/components/revenue-goal-tracker` |
-| 27 · Webhook Event Monitor | `/components/webhook-event-monitor` |
-| 28 · AI Usage Analytics | `/components/ai-usage-analytics` |
-| 29 · Customer Journey Map | `/components/customer-journey-map` |
-| 30 · Weekly Marketing Report | `/components/weekly-marketing-report` |
+Built with **React 19**, **TypeScript**, **Tailwind CSS v4** and **Vite**. One small animation dependency: [`motion`](https://motion.dev) — used for the things CSS can't do well (layout re-ordering when lists sort or filter, exit animations, shared sliding indicators). Charts are hand-built SVG; there are no chart or UI-kit libraries.
+
+## Run it
+
+```bash
+npm install
+npm run dev        # http://localhost:5173
+npm run build      # type-check + production build → dist/
+npm run preview    # serve the production build
+```
+
+## The 30 components
+
+| # | Component | Category | URL |
+|---|-----------|----------|-----|
+| 01 | Agent Log Card | AI & Automation | `/components/agent-log-card` |
+| 02 | Campaign Performance Snapshot | Ads & Campaigns | `/components/campaign-performance` |
+| 03 | Pricing Comparison Card | Sales & Reporting | `/components/pricing-comparison` |
+| 04 | Lead Funnel Analytics | Analytics | `/components/lead-funnel-analytics` |
+| 05 | KPI Metrics Dashboard | Analytics | `/components/kpi-metrics-dashboard` |
+| 06 | AI Prompt Card | AI & Automation | `/components/ai-prompt-card` |
+| 07 | Client Overview Card | CRM & Clients | `/components/client-overview-card` |
+| 08 | Task Progress Board | Operations | `/components/task-progress-board` |
+| 09 | Ad Creative Performance | Ads & Campaigns | `/components/ad-creative-performance` |
+| 10 | SEO Ranking Tracker | SEO | `/components/seo-ranking-tracker` |
+| 11 | Conversion Rate Card | Analytics | `/components/conversion-rate-card` |
+| 12 | Activity Timeline | CRM & Clients | `/components/activity-timeline` |
+| 13 | Campaign Status Card | Ads & Campaigns | `/components/campaign-status-card` |
+| 14 | Lead Source Breakdown | Analytics | `/components/lead-source-breakdown` |
+| 15 | Revenue Growth Chart | Analytics | `/components/revenue-growth-chart` |
+| 16 | Appointment Pipeline | CRM & Clients | `/components/appointment-pipeline` |
+| 17 | Workflow Automation Card | AI & Automation | `/components/workflow-automation-card` |
+| 18 | AI Agent Status Panel | AI & Automation | `/components/ai-agent-status-panel` |
+| 19 | Notification Center | Operations | `/components/notification-center` |
+| 20 | Client Health Score | CRM & Clients | `/components/client-health-score` |
+| 21 | Ad Spend Budget Tracker | Ads & Campaigns | `/components/ad-spend-budget-tracker` |
+| 22 | Form Conversion Card | Analytics | `/components/form-conversion-card` |
+| 23 | SEO Audit Scorecard | SEO | `/components/seo-audit-scorecard` |
+| 24 | Integration Status Grid | Operations | `/components/integration-status-grid` |
+| 25 | Team Member Performance | Operations | `/components/team-member-performance` |
+| 26 | Revenue Goal Tracker | Sales & Reporting | `/components/revenue-goal-tracker` |
+| 27 | Webhook Event Monitor | Operations | `/components/webhook-event-monitor` |
+| 28 | AI Usage Analytics | AI & Automation | `/components/ai-usage-analytics` |
+| 29 | Customer Journey Map | CRM & Clients | `/components/customer-journey-map` |
+| 30 | Weekly Marketing Report | Sales & Reporting | `/components/weekly-marketing-report` |
+
+All demo data is example data with fictional clients, labelled on every page.
 
 ## Project structure
 
 ```
-.
-├── index.html                          # Gallery homepage
-├── 404.html                            # Not-found page (served automatically by Vercel)
-├── components/
-│   └── <slug>/
-│       └── index.html                  # One folder per component (30) → /components/<slug>
-├── assets/
-│   ├── gallery.css                     # Shared nav, footer and homepage styles (all classes prefixed lsg-)
-│   ├── gallery.js                      # Scales the live previews on the homepage
-│   ├── gallery-nav.js                  # Keeps the long nav bar scrollable and the current page in view
-│   ├── agent-log-card.css / .js        # Copy of the Agent Log Card, for the Week 02 log on the homepage
-│   └── favicon.svg
-├── vercel.json                         # Clean URLs, redirects, security headers
-├── .gitignore
-├── .vercelignore
-└── README.md
+src/
+├── main.tsx, App.tsx          # entry, routes, page transitions, ⌘K palette
+├── styles.css                 # Tailwind + design tokens (light & dark), elevation, textures
+├── lib/
+│   ├── router.tsx             # tiny History-API router with scroll restoration
+│   ├── hooks.ts               # reduced motion, preview mode, intervals, count-up, clipboard…
+│   └── format.ts              # money / number / date formatting
+├── ui/index.tsx               # accessible primitives: Segmented, Tabs, Tooltip, CountUp, CopyButton, Skeleton, Reveal…
+├── gallery/
+│   ├── registry.ts            # metadata for the 30 components + lazy loaders + module types
+│   ├── Home.tsx               # homepage: search, category filters, live previews, Week 02 log
+│   ├── ComponentPage.tsx      # component page: live stage, props, usage, prev / next
+│   ├── Shell.tsx, load.tsx    # header, theme toggle, palette, footer, module loading, live preview
+│   └── Week02.tsx             # the Week 02 Agent Log (content kept verbatim)
+└── components/<slug>/         # one folder per component
+    ├── <Name>.tsx             # the reusable component (named export, typed props)
+    ├── data.ts                # types + example data
+    └── index.tsx              # `Demo` (page / preview modes) + `docs`
 ```
 
-Each component page is self-contained. The component's CSS and JavaScript live inside its own `index.html`. The shared `gallery.css` only adds the navigation bar and footer around it.
+Each component page loads only its own code (route-level code splitting). Homepage cards render the real component, scaled down, once they scroll into view.
 
-## Run it locally
+## Using a component
 
-Use a small local web server. Opening the files by double-clicking won't work, because the links use site paths like `/components/agent-log-card`.
+Every component is a named export with typed props — see its page for the full props table and a copyable example:
 
-With Node.js installed:
+```tsx
+import { AgentLogCard } from "./components/agent-log-card/AgentLogCard";
 
-```bash
-npx serve .
+<AgentLogCard
+  task="Build the Agent Log Card"
+  agent="Claude Code · Opus 5.5"
+  type="UI Component"
+  date="2026-09-25"
+  status="draft"
+  prompt="The exact prompt…"
+  result={<p>What the agent produced…</p>}
+/>
 ```
 
-Then open http://localhost:3000.
+## Design system
 
-Or with Python:
+- **Tokens** live in `src/styles.css` as CSS variables with light and dark values, exposed to Tailwind (`bg-surface`, `text-ink-2`, `border-line`, `elev-1…4`…). Each component layers its own palette on top as CSS variables, so components keep distinct identities on a shared foundation.
+- **Dark mode** follows the OS by default; the header toggle saves a preference. `?theme=dark` / `?theme=light` forces one for a single view.
+- **Responsive by container**: components use Tailwind container queries, so they adapt to the space they're placed in — desktop, tablet and 375px phones without horizontal scrolling.
 
-```bash
-python -m http.server 8000
-```
+## Accessibility & motion
 
-Then open http://localhost:8000.
+- Keyboard support throughout (radio groups and tabs with arrow keys, Escape closes popovers and dialogs, focus is returned), visible focus rings, labelled controls, and data tables behind charts for screen readers.
+- `prefers-reduced-motion` is respected everywhere: motion transforms become instant, decorative loops stop, live feeds keep updating data without animating, and auto-playing timers can be paused.
+
+## Adding a component
+
+1. Create `src/components/<slug>/` with the component, `data.ts` and an `index.tsx` that exports `Demo` and `docs` (see `ComponentModule` in `src/gallery/registry.ts`).
+2. Add its metadata and loader to `COMPONENTS` / `loaders` in `registry.ts`. Navigation, search, filters, previews and prev/next links update automatically.
 
 ## Deploy
 
-### 1. Push to GitHub
+Vercel builds the project with `npm run build` and serves `dist/` (see `vercel.json`, which also adds the SPA fallback, redirects, security headers and long-term caching for hashed assets). Pushing to `main` deploys to production.
 
-Create an empty repository on GitHub, for example `lofistack-component-gallery`. Don't add a README, `.gitignore` or licence there. Then, from this folder:
+## Private files
 
-```bash
-git init
-git add .
-git commit -m "Initial LofiStack Component Gallery"
-git branch -M main
-git remote add origin https://github.com/<your-username>/lofistack-component-gallery.git
-git push -u origin main
-```
-
-### 2. Deploy on Vercel
-
-1. Go to https://vercel.com/new and import the GitHub repository.
-2. **Framework Preset:** `Other`.
-3. **Build Command:** leave empty. **Output Directory:** leave empty (the repository root is the site).
-4. Click **Deploy**.
-
-Every push to `main` then redeploys the site automatically.
-
-You can also deploy from the command line with `npx vercel`, and `npx vercel --prod` for production.
-
-## Adding a new component
-
-1. Create `components/<slug>/index.html`. Copying an existing component page is the quickest start, since it already has the navigation bar, footer and embed script.
-2. Add a link to it in the navigation bar (`<nav class="lsg-links">`) on every page: `index.html`, `404.html` and each component page. Every page also loads `/assets/gallery-nav.js` at the end of `<body>`.
-3. Add a card for it to the grid in `index.html`. Point the preview `<iframe>` at `/components/<slug>?embed`.
-4. Update the previous/next links in the component page footers.
-
-Adding `?embed` to any component URL hides the gallery chrome and shows only the component. The homepage previews use this.
-
-## Notes
-
-- **Sample data:** every component except the Agent Log Card shows example data only, with fictional clients; each page labels it as such.
-- **Fonts:** the Agent Log Card loads its typefaces from Google Fonts. Everything else uses system fonts.
-- **Private files:** `CLAUDE.md`, `logs/` and `submissions.md` hold the private LofiStack Agent Log. They are listed in `.gitignore` and `.vercelignore`, so they are not pushed or deployed.
+`CLAUDE.md`, `logs/` and `submissions.md` hold the private LofiStack Agent Log. They are listed in `.gitignore` and `.vercelignore`, so they are never pushed or deployed.
