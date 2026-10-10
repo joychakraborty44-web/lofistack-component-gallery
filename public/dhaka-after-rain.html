@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dhaka After Rain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Noto+Sans+Bengali:wght@500;700&display=swap">
+<style>
+  /* Layout: a cinematic framed pixel-art stage on a rainy-night page; scene
+     title top-left, a hint, and a slim translucent control dock at the base. */
+  :root{
+    color-scheme: dark;
+    --bg:#05070f;
+    --fg:#e8eeff;
+    --muted:#8ea2cc;
+    --line:rgba(150,180,235,.22);
+    --panel:rgba(10,16,34,.62);
+    --warm:#ffc96b;
+    --cool:#57d8d0;
+    --display:"Press Start 2P", ui-monospace, monospace;
+    --ui:"VT323", ui-monospace, monospace;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;overflow:hidden;color:var(--fg);font-family:var(--ui);
+    background:radial-gradient(130% 100% at 50% 0%, #0b1226 0%, #05070f 72%);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{width:100%;max-width:1180px;padding:16px;box-sizing:border-box;display:flex;flex-direction:column;gap:10px}
+  .stage{
+    position:relative;width:100%;aspect-ratio:16/9;max-height:calc(100dvh - 120px);margin:0 auto;
+    border-radius:10px;overflow:hidden;background:#0a1226;
+    border:1px solid var(--line);
+    box-shadow:0 24px 70px -22px #000, 0 0 0 6px #0a122699, inset 0 0 90px #00000055;
+  }
+  canvas#scene{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;display:block;cursor:crosshair}
+  .corner{position:absolute;pointer-events:none;text-shadow:0 2px 7px #000b}
+  .title{top:14px;left:16px}
+  .title h1{margin:0;font-family:var(--display);font-size:clamp(11px,2.1vw,17px);letter-spacing:1px;color:#fff;line-height:1.5}
+  .title .sub{margin-top:7px;font-size:clamp(13px,2.4vw,17px);color:var(--warm);letter-spacing:2px;text-transform:uppercase}
+  .credit{bottom:9px;right:14px;font-size:14px;color:var(--muted);opacity:.75}
+  .hint{position:absolute;left:50%;top:50%;translate:-50% -50%;font-size:16px;color:#eaf0ff;background:rgba(7,11,26,.6);
+    border:1px solid var(--line);border-radius:999px;padding:8px 16px;letter-spacing:.4px;pointer-events:none;
+    animation:hintcycle 10s ease forwards}
+  @keyframes hintcycle{0%{opacity:0}10%{opacity:1}74%{opacity:1}100%{opacity:0;visibility:hidden}}
+  .dock{position:absolute;left:50%;bottom:12px;translate:-50% 0;display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+    justify-content:center;max-width:calc(100% - 20px);padding:7px 10px;border-radius:12px;background:var(--panel);
+    border:1px solid var(--line);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);opacity:.5;transition:opacity .25s ease}
+  .stage:hover .dock,.dock:focus-within{opacity:1}
+  .btn{font-family:var(--ui);font-size:16px;line-height:1;color:var(--fg);background:rgba(26,36,66,.6);
+    border:1px solid var(--line);border-radius:8px;padding:7px 11px 6px;cursor:pointer;letter-spacing:.4px;
+    display:inline-flex;align-items:center;gap:6px;transition:all .15s ease;user-select:none}
+  .btn:hover{border-color:var(--warm);color:#fff}
+  .btn[aria-pressed="true"]{background:rgba(255,201,107,.16);border-color:var(--warm);color:#fff}
+  .btn .dot{width:8px;height:8px;border-radius:50%;background:#55627f}
+  .btn[aria-pressed="true"] .dot{background:var(--warm);box-shadow:0 0 8px 1px var(--warm)}
+  .slider{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:15px;padding:0 4px}
+  .slider input{-webkit-appearance:none;appearance:none;height:4px;width:84px;border-radius:4px;
+    background:linear-gradient(90deg,var(--cool),var(--warm));outline:none;cursor:pointer}
+  .slider input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0a1226;box-shadow:0 1px 4px #000a;cursor:pointer}
+  .slider input::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:2px solid #0a1226;cursor:pointer}
+  .caption{text-align:center;color:var(--muted);font-size:15px;letter-spacing:.3px;max-width:66ch;margin:0 auto;line-height:1.45}
+  .caption b{color:var(--fg);font-weight:400}
+  .playbtn{position:absolute;left:50%;top:50%;translate:-50% -50%;font-family:var(--ui);font-size:19px;letter-spacing:1px;
+    color:#0a1226;background:var(--warm);border:none;border-radius:999px;padding:12px 22px;cursor:pointer;box-shadow:0 8px 30px -6px var(--warm)}
+  :focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+  @media (max-width:560px){.title .sub{display:none}.credit{display:none}.slider input{width:64px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="scene" width="480" height="270" aria-label="Animated pixel-art scene of a Dhaka rooftop tea stall at night after monsoon rain"></canvas>
+    <div class="corner title">
+      <h1>DHAKA AFTER RAIN</h1>
+      <div class="sub">rooftop cha stall &middot; monsoon night</div>
+    </div>
+    <div class="corner credit">pixel scene &middot; claude</div>
+    <div class="hint" id="hint">Move to look &middot; tap the bulbs, the cup, the radio &amp; a passing rickshaw</div>
+    <div class="dock" role="group" aria-label="Scene controls">
+      <button class="btn" id="bRain" aria-pressed="true"><span class="dot"></span>Rain</button>
+      <button class="btn" id="bHeavy" aria-pressed="false"><span class="dot"></span>Heavier</button>
+      <button class="btn" id="bSound" aria-pressed="false"><span class="dot"></span>Sound</button>
+      <button class="btn" id="bMusic" aria-pressed="false"><span class="dot"></span>Radio</button>
+      <label class="slider">Vol<input type="range" id="sVol" min="0" max="100" value="60" aria-label="Ambience volume"></label>
+      <button class="btn" id="bFull" title="Fullscreen">&#9974;</button>
+    </div>
+    <button class="playbtn" id="playbtn" hidden>&#9654; Enable motion</button>
+  </div>
+  <p class="caption">A humble <b>চায়ের দোকান</b> under a tin awning, warm bulbs swaying over the counter while monsoon rain glazes the Dhaka street below &mdash; <b>rickshaws</b> rolling through puddles, kettle steam, birds on the wires. Drawn pixel by pixel, animated in real time.</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  const cv=document.getElementById('scene'), ctx=cv.getContext('2d');
+  const BW=480, BH=270;
+  ctx.imageSmoothingEnabled=false;
+  const F=Math.floor, min=Math.min, max=Math.max, sin=Math.sin, cos=Math.cos, PI=Math.PI, abs=Math.abs, sqrt=Math.sqrt;
+
+  /* ---------- helpers ---------- */
+  function R(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(F(x),F(y),max(1,F(w)),max(1,F(h))); }
+  function disc(cx,cy,r,c){ ctx.fillStyle=c; cx=F(cx);cy=F(cy);r=F(r); for(let y=-r;y<=r;y++){ const w=F(sqrt(r*r-y*y)); ctx.fillRect(cx-w,cy+y,w*2+1,1);} }
+  function hx(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+  function rgba(c,a){return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')';}
+  function glow(x,y,r,col,a){ ctx.globalCompositeOperation='lighter'; const g=ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,rgba(col,a)); g.addColorStop(1,rgba(col,0)); ctx.fillStyle=g; ctx.fillRect(x-r,y-r,r*2,r*2); ctx.globalCompositeOperation='source-over'; }
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  const rng=mulberry32(77213);
+  function ri(a,b){return a+F(rng()*(b-a+1));}
+
+  /* ---------- palette ---------- */
+  const C={
+    sky0:hx('#0a1430'), sky1:hx('#111f45'), sky2:hx('#1c2f5c'),
+    moon:'#dfe6f2', moonG:[210,222,245],
+    cloud:[26,38,72], cloudEdge:[46,60,104],
+    hazeFar:'#263858',
+    bFar:'#223252', bFarW:'#39507d',
+    bMid:'#1b2746', bMidTop:'#26375d', bBalc:'#141e38',
+    tank:'#2a3a5c', tankR:'#5a4336',
+    winW:'#ffcf7a', winA:'#ff9f44', winC:'#aecbe0', winOff:'#121a30',
+    road:'#141c30', roadWet:'#1d2a44', drain:'#0c1322',
+    shop:'#1a233c', signC:[80,224,214], signM:[255,96,160], signG:[104,224,130], signA:[255,190,76],
+    lampPole:'#0d131d', lampWarm:[255,200,120],
+    awning:'#2c3346', awningLo:'#1c2234', tin:'#39445a', tinHi:'#4c5a76', rust:'#7b5942',
+    wallL:'#241c20', wallWarm:'#2e2320', board:'#111a26', boardF:'#2a3324', chalk:'#d8e0c8',
+    beng:'#ffd98a',
+    counterTop:'#6e4a2b', counterTopHi:'#8a5f38', brick:'#5a2f26', brickHi:'#743a2c', grout:'#2a1812', tileWet:'#3a4a5e',
+    kettle:'#9aa6bd', kettleHi:'#c9d4e6', kettleLo:'#6d7890, ', stove:'#2a2f3a', flame:'#ff7a2c', flameHi:'#ffd24c',
+    pot:'#30363f', potG:'#b5742e', cup:'#dcd5c6', cupSh:'#b4ac99', cha:'#b5742e', jar:'#8fa6b5', biscuit:'#c99a56',
+    skinA:'#b78350', skinB:'#95653c', hair:'#1a1410',
+    clothNavy:'#2b3550', clothTeal:'#2f5a5a', clothRust:'#7a4a3a', clothMag:'#6a3a52', clothGray:'#3a4255',
+    bulbG:[255,210,120], bulbCore:'#fff2c8', bulbShade:'#c87a3a',
+    steam:[228,236,248],
+    rail:'#2a3344', railHi:'#45526e',
+    plant:'#3a6b3a', plantHi:'#4f8a4a', pot2:'#7a4a2e',
+    wire:'#0b1120', bird:'#10151f',
+    puddleWarm:[255,196,110], puddleCool:[90,200,210],
+    rick:['#c6402f','#2f7a53','#2f5aa0','#b5842f'],
+  };
+  const WARM=[255,204,118], HOT=[255,236,180];
+
+  /* ---------- state ---------- */
+  const DEPTH={cloud:.012,far:.03,bg:.06,wire:.10,street:.13,roof:.20,fore:.34};
+  const state={rain:true,heavy:false,sound:false,music:false,vol:.6,T:7,running:false,started:false};
+  const bulbs=[{x:132,on:true,ph:.2},{x:222,on:true,ph:1.1},{x:312,on:true,ph:2.3},{x:398,on:true,ph:3.0}];
+  let radioOn=false; // visual radio light
+  let hoverStall=false;
+
+  /* camera */
+  let camX=0,camY=0,camTX=0,camTY=0;
+  const ox=d=>Math.round(-camX*d), oy=d=>Math.round(-camY*d*0.4);
+
+  /* opening rect (city window) */
+  const OP={x:52,y:58,w:400,h:92}; // city visible here; counter top at y 150
+
+  /* ---------- precomputed city ---------- */
+  const stars=[]; for(let i=0;i<40;i++) stars.push({x:OP.x+rng()*OP.w,y:OP.y+rng()*18,b:.3+rng()*.6,ph:rng()*7});
+  const clouds=[]; for(let i=0;i<4;i++) clouds.push({x:rng()*BW,y:50+rng()*22,s:.3+rng()*.5,sp:2+rng()*3,bl:[]});
+  clouds.forEach(cl=>{ for(let i=0;i<6;i++) cl.bl.push({dx:(rng()-.5)*44,dy:(rng()-.5)*10,r:6+rng()*9}); });
+
+  // buildings (world x spans wider than opening for parallax)
+  function genBldgs(n,x0,x1,baseY,minH,maxH,body,top,winCol,winChance,warmRatio,tanks,layer){
+    const out=[]; let x=x0;
+    while(x<x1){ const w=ri(16,30), h=ri(minH,maxH), topY=baseY-h;
+      const b={x,w,topY,baseY,body,top,wins:[],tank:null,ant:null};
+      // windows grid
+      for(let wy=topY+5; wy<baseY-4; wy+=6){ for(let wx=x+3; wx<x+w-3; wx+=5){
+        if(rng()<winChance){ const warm=rng()<warmRatio; b.wins.push({x:wx,y:wy, col: warm?(rng()<.5?C.winW:C.winA):C.winC, dyn: rng()<.08, on:true }); }
+      }}
+      if(tanks&&rng()<.6) b.tank={x:x+ri(2,w-10),y:topY, cyl:rng()<.5};
+      if(rng()<.5) b.ant={x:x+ri(3,w-3),h:ri(4,10)};
+      out.push(b); x+=w+ri(0,3);
+    }
+    return out;
+  }
+  const bldgFar=genBldgs(0,30,470,132,24,46,C.bFar,C.bFar,C.bFarW,.5,.3,false,'far');
+  const bldgBg =genBldgs(0,30,470,140,30,64,C.bMid,C.bMidTop,C.winW,.62,.62,true,'bg');
+  // dynamic window list
+  const dynWins=[]; bldgBg.concat(bldgFar).forEach(b=>b.wins.forEach(w=>{if(w.dyn)dynWins.push(w);}));
+
+  // street shops (ground level, lit signs)
+  const shops=[]; for(let x=36;x<460;x+=ri(46,70)){ shops.push({x, w:ri(30,46), col: ri(0,3) }); }
+  const signcols=[C.signC,C.signM,C.signG,C.signA];
+  // streetlights
+  const lamps=[{x:96},{x:210},{x:330},{x:430}];
+  // wires
+  const wires=[]; for(let i=0;i<3;i++){ wires.push({y:72+i*9, sag:5+i*2}); }
+  const birds=[]; for(let i=0;i<6;i++){ birds.push({x:OP.x+20+rng()*(OP.w-40), wi:ri(0,2), ph:rng()*7, up:0}); }
+  // rickshaws on road
+  const rickshaws=[];
+  function spawnRick(i){ const dir=rng()<.5?1:-1; return {x: dir>0? -30-rng()*160 : BW+30+rng()*160, y:138+ri(-1,2), s:.66+rng()*.14, dir, sp:(7+rng()*6), col:ri(0,3), ph:rng()*7, type: rng()<.22?'cng':'rick'}; }
+  for(let i=0;i<4;i++){ const r=spawnRick(i); r.x=70+i*108; rickshaws.push(r); }
+  // pedestrians
+  const peds=[]; for(let i=0;i<4;i++){ const dir=rng()<.5?1:-1; peds.push({x:rng()*BW,y:143+ri(0,2),dir,sp:4+rng()*3,ph:rng()*7,um:ri(0,3)}); }
+
+  /* particles */
+  const steam=[], ripples=[], drips=[], splashes=[];
+  let rainCity=[], rainNear=[];
+  function buildRain(){
+    rainCity=[]; rainNear=[];
+    for(let i=0;i<120;i++) rainCity.push({x:rng()*BW,y:rng()*BH,l:4+rng()*3,sp:150+rng()*60});
+    for(let i=0;i<80;i++) rainNear.push({x:rng()*BW,y:rng()*BH,l:7+rng()*5,sp:260+rng()*120});
+  }
+  buildRain();
+  let wind=0;
+
+  /* ---------- draw: sky ---------- */
+  function drawSky(T){
+    const g=ctx.createLinearGradient(0,0,0,BH); g.addColorStop(0,rgba(C.sky0,1)); g.addColorStop(.35,rgba(C.sky1,1)); g.addColorStop(.6,rgba(C.sky2,1)); g.addColorStop(.62,'#0e1830');
+    ctx.fillStyle=g; ctx.fillRect(0,0,BW,BH);
+    // faint city glow on horizon
+    glow(BW*0.5,150,150,[120,140,200],0.08);
+  }
+  function drawStars(T){ for(const s of stars){ const tw=.5+.5*sin(T*2+s.ph); ctx.globalAlpha=s.b*tw; R(s.x+ox(DEPTH.far),s.y,1,1,'#dce6ff'); } ctx.globalAlpha=1; }
+  function drawMoon(T){ const mx=400+ox(DEPTH.cloud), my=70+oy(DEPTH.cloud); glow(mx,my,34,C.moonG,0.12); disc(mx,my,9,C.moon); R(mx+2,my-3,3,2,'#c9d2e2'); R(mx-4,my+2,2,2,'#c9d2e2'); }
+  function drawClouds(T){ const off=ox(DEPTH.cloud);
+    for(const cl of clouds){ let cx=(cl.x+T*cl.sp)%(BW+120)-60+off; for(const b of cl.bl){ ctx.globalAlpha=.5; disc(cx+b.dx, cl.y+b.dy, b.r*cl.s, rgba(C.cloud,1)); }
+      for(const b of cl.bl){ ctx.globalAlpha=.4; disc(cx+b.dx, cl.y+b.dy-b.r*cl.s*.4, b.r*cl.s*.7, rgba(C.cloudEdge,1)); } }
+    ctx.globalAlpha=1;
+  }
+
+  /* ---------- draw: city (clipped to opening) ---------- */
+  function winDraw(b,off){ R(b.x+off,b.topY,b.w,b.baseY-b.topY,b.body); R(b.x+off,b.topY,b.w,1,b.top);
+    for(const w of b.wins){ if(w.on){ R(w.x+off,w.y,3,3,w.col); } else R(w.x+off,w.y,3,3,C.winOff); }
+    if(b.tank){ if(b.tank.cyl){ R(b.tank.x+off,b.topY-6,8,6,C.tank); R(b.tank.x+off,b.topY-6,8,1,'#3c4e74'); } else { R(b.tank.x+off,b.topY-5,7,5,C.tankR); R(b.tank.x+off,b.topY-6,7,1,'#8a6a52'); } }
+    if(b.ant){ R(b.ant.x+off,b.topY-b.ant.h,1,b.ant.h,'#0c1322'); }
+  }
+  function drawCity(T){
+    ctx.save(); ctx.beginPath(); ctx.rect(OP.x, OP.y-2, OP.w, OP.h+2); ctx.clip();
+    // sky already shows; haze strip
+    R(OP.x,110,OP.w,40,C.hazeFar); ctx.globalAlpha=.4; R(OP.x,108,OP.w,6,'#31466a'); ctx.globalAlpha=1;
+    // far buildings
+    let off=ox(DEPTH.far); for(const b of bldgFar){ if(b.x+off>OP.x-40&&b.x+off<OP.x+OP.w+10) winDraw(b,off); }
+    // bg buildings
+    off=ox(DEPTH.bg); for(const b of bldgBg){ if(b.x+off>OP.x-40&&b.x+off<OP.x+OP.w+10) winDraw(b,off); }
+    // wires + birds
+    off=ox(DEPTH.wire); ctx.strokeStyle=C.wire; ctx.lineWidth=1;
+    for(const w of wires){ ctx.beginPath(); ctx.moveTo(OP.x-4+off*0, w.y); ctx.quadraticCurveTo(BW/2+off, w.y+w.sag, OP.x+OP.w+4, w.y); ctx.stroke(); }
+    for(const b of birds){ const bx=b.x+off, by=wires[b.wi].y + Math.round(sin((b.x/BW)*PI)*wires[b.wi].sag) - 2 - b.up;
+      R(bx,by,3,2,C.bird); R(bx+ (b.ph>3.5?2:-1), by, 1,1,C.bird); }
+    // street band: shop fronts + road
+    off=ox(DEPTH.street);
+    R(OP.x,132,OP.w,18,C.road); R(OP.x,132,OP.w,1,'#243253');
+    // shop fronts
+    for(const sh of shops){ const sx=sh.x+off; if(sx<OP.x-50||sx>OP.x+OP.w+10) continue;
+      R(sx,122,sh.w,12,C.shop); R(sx,122,sh.w,1,'#283654');
+      const col=signcols[sh.col]; R(sx+3,124,sh.w-6,3,rgba(col,.9)); glow(sx+sh.w/2,126,10,col,.28);
+      // wet reflection of sign on road
+      ctx.globalCompositeOperation='lighter';
+      for(let k=0;k<4;k++){ const a=.16*(1-k/4)*(.6+.4*sin(T*3+sx+k)); R(sx+sh.w/2-3+sin(T*2+k)*1, 136+k*2, 6,1, rgba(col,a)); }
+      ctx.globalCompositeOperation='source-over';
+    }
+    // streetlights + warm pools
+    for(const lp of lamps){ const lx=lp.x+off; R(lx,118,1,16,C.lampPole); R(lx-2,117,5,2,'#1a222f'); glow(lx,120,16,C.lampWarm,.3);
+      ctx.globalCompositeOperation='lighter'; for(let k=0;k<5;k++){ const a=.2*(1-k/5); R(lx-3,134+k*2,6,1,rgba(C.lampWarm,a*(.7+.3*sin(T*2+k)))); } ctx.globalCompositeOperation='source-over'; }
+    // drain water line
+    for(let x=OP.x;x<OP.x+OP.w;x+=2){ const a=.3+.2*sin(T*3+x*0.3); R(x,149,2,1,rgba([70,120,150],a)); }
+    // rickshaws + peds
+    for(const rk of rickshaws) drawRick(rk,off,T);
+    for(const p of peds) drawPed(p,off,T);
+    // push the busy city back so the warm stall reads as the focus
+    ctx.fillStyle='rgba(11,19,44,0.20)'; ctx.fillRect(OP.x,OP.y-2,OP.w,OP.h+2);
+    // city rain inside opening
+    if(state.rain) drawRainLayer(rainCity, '#9fc0ea', .5, 0);
+    ctx.restore();
+  }
+
+  function drawRick(rk,off,T){
+    const x=rk.x+off, y=rk.y, s=rk.s, dir=rk.dir; if(x<OP.x-40||x>OP.x+OP.w+40) return;
+    ctx.save(); ctx.translate(F(x),F(y)); ctx.scale(dir,1);
+    const col=C.rick[rk.col];
+    if(rk.type==='cng'){
+      R(-9,-10,18,8,'#2f7a3a'); R(-9,-10,18,1,'#49a85a'); R(-9,-2,18,2,'#12201a');
+      R(-10,-4,4,4,'#101418'); // canopy black trim
+      wheel(-6,2,2.5,rk.ph); wheel(6,2,2.5,rk.ph);
+    } else {
+      // back wheel
+      wheel(-6,2,4,rk.ph);
+      // front wheel
+      wheel(7,3,3,rk.ph*1.3);
+      // frame
+      R(-7,0,13,1,'#10151f'); R(5,-2,2,4,'#10151f');
+      // seat box + canopy (colorful hood)
+      R(-8,-8,10,8,'#3a2a22');
+      for(let i=0;i<10;i++){ const hy=-8-Math.round(sqrt(max(0,25-(i-4.5)*(i-4.5)))); R(-8+i,hy,1,-( -8-hy)+1,col); }
+      R(-8,-8,10,1,'#ffffff33');
+      // canopy pattern dots
+      R(-6,-11,1,1,'#ffe'); R(-3,-12,1,1,'#ffe'); R(0,-11,1,1,'#ffe');
+      // driver
+      R(5,-6,2,5,'#283452'); disc(6,-7,2,C.skinA);
+      // pedal motion leg
+      R(4,-1,2,2+Math.round(sin(rk.ph)*1), '#1a2236');
+    }
+    ctx.restore();
+    // wet reflection under vehicle
+    ctx.globalCompositeOperation='lighter';
+    for(let k=0;k<3;k++){ R(F(x)-6,150+k,12,1,rgba(hx(C.rick[rk.col]),.12*(1-k/3))); }
+    ctx.globalCompositeOperation='source-over';
+  }
+  function wheel(cx,cy,r,ph){ disc(cx,cy,r,'#0c1119'); disc(cx,cy,r-1,'#1a2230'); R(cx,cy,1,1,'#3a4660');
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(ph); ctx.strokeStyle='#3a4660'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(-r,0);ctx.lineTo(r,0);ctx.moveTo(0,-r);ctx.lineTo(0,r); ctx.stroke(); ctx.restore(); }
+  function drawPed(p,off,T){ const x=p.x+off,y=p.y; if(x<OP.x-10||x>OP.x+OP.w+10) return;
+    ctx.save(); ctx.translate(F(x),F(y)); ctx.scale(p.dir,1);
+    R(-1,-6,2,4,C.clothGray); disc(0,-7,1,C.skinA);
+    const lg=Math.round(sin(p.ph)*1); R(-1,-2,1,2+lg,'#1a2030'); R(0,-2,1,2-lg,'#1a2030');
+    // umbrella
+    const uc=signcols[p.um]; ctx.scale(p.dir,1);
+    disc(0,-11,4,rgba(uc,.9)); R(0,-11,1,5,'#20262f');
+    ctx.restore();
+  }
+
+  /* ---------- draw: stall frame ---------- */
+  function drawFrame(T,flick){
+    const off=ox(DEPTH.roof);
+    ctx.save(); ctx.translate(off,0);
+    // interior walls behind frame (sides)
+    R(0,58,52,150,C.wallWarm); R(452,58,28,150,C.wallL);
+    // left wall warm wash from bulbs
+    glow(40,150,60,WARM,0.05*flick);
+    // top awning beam
+    R(40,42,412,16,C.awning); R(40,42,412,2,'#3a425a'); R(40,56,412,2,C.awningLo);
+    // tin roof texture above beam
+    for(let x=40;x<452;x+=4){ R(x,36,2,8,C.tin); R(x+2,36,2,8,C.tinHi); }
+    R(40,34,412,2,'#20283a');
+    // posts
+    R(50,58,4,150,'#1b2130'); R(448,58,4,150,'#1b2130'); R(248,58,3,92,'#1b2130');
+    // chalkboard menu on left wall
+    R(6,72,42,66,C.board); R(6,72,42,2,C.boardF); R(6,136,42,2,C.boardF); R(6,72,2,66,C.boardF); R(46,72,2,66,C.boardF);
+    // hanging plant / vines top-left
+    for(let i=0;i<7;i++){ const vx=8+i*5, vl=6+((i*3)%10); R(vx,58,1,vl,C.plant); R(vx+1,58+vl-2,1,2,C.plantHi); }
+    for(let i=0;i<5;i++){ R(430+i*8%40,58,1,8+((i*5)%9),C.plant); }
+    // radio on shelf (left end of counter)
+    R(10,150,2,2,'#333'); drawRadio(14,140);
+    ctx.restore();
+    // chalkboard text (draw without translate so font crisp; add off)
+    drawMenu(off);
+  }
+  function drawRadio(x,y){
+    R(x,y,22,10,'#2a2018'); R(x,y,22,1,'#4a3826'); R(x+1,y+1,9,8,'#120d08'); disc(x+5,y+5,3,'#3a2c1e');
+    R(x+12,y+2,8,2,'#4a3826'); R(x+12,y+5,8,1,'#4a3826');
+    if(radioOn){ glow(x+5,y+5,10,[255,120,60],.3); R(x+18,y+1,1,1,'#ff5'); } else R(x+18,y+1,1,1,'#333');
+    R(x+10,y-5,1,6,'#4a3826'); // antenna
+  }
+  function drawMenu(off){
+    ctx.textBaseline='top';
+    ctx.fillStyle=C.beng; ctx.font="7px 'Noto Sans Bengali', sans-serif";
+    ctx.fillText('চায়ের', 11+off, 76); ctx.fillText('দোকান', 12+off, 84);
+    ctx.font="5px 'Noto Sans Bengali', sans-serif"; ctx.fillStyle=C.chalk;
+    ctx.fillText('চা — ১০৳', 11+off, 98);
+    ctx.fillText('দুধ চা — ১৫৳', 11+off, 106);
+    ctx.fillText('কফি — ২০৳', 11+off, 114);
+    ctx.fillText('বিস্কুট — ৫৳', 11+off, 122);
+  }
+
+  /* ---------- draw: people behind counter ---------- */
+  function drawSeller(T){
+    const off=ox(DEPTH.roof), x=250+off, stir=sin(T*3)*2, bob=sin(T*1.5)*1;
+    // body
+    R(x-9,133+bob,18,17,C.clothTeal); R(x-9,133+bob,18,2,'#3f6e6e');
+    disc(x,126+bob,6,C.skinB); R(x-6,120+bob,12,5,C.hair); R(x-6,120+bob,12,1,'#2a2015'); // hair bun
+    R(x+4,122+bob,3,3,C.hair);
+    // apron
+    R(x-6,140+bob,12,10,'#b9b0a0'); R(x-6,140+bob,12,1,'#d4ccbd');
+    // arms: one stirring over kettle
+    R(x+6,136+bob,3,6+stir,C.skinB); R(x-9,137+bob,3,6,C.skinB);
+    // glasses glint
+    R(x-2,125+bob,1,1,'#fff'); R(x+2,125+bob,1,1,'#fff');
+  }
+  function drawCustomers(T){
+    const off=ox(DEPTH.roof);
+    // LEFT customer on stool (back-3/4, hoodie), occasionally sips
+    const lx=76+off; const sip=max(0,sin(T*0.6)); const arm=Math.round(sip*6);
+    R(lx-7,176,15,30,C.clothNavy); R(lx-7,176,15,2,'#3a4668'); disc(lx,170,6,C.hair); R(lx-5,164,11,6,C.hair);
+    R(lx-6,206,5,10,'#1b2234'); R(lx+2,206,5,10,'#1b2234'); // legs
+    R(lx+5,184,3,8-arm,C.clothNavy); R(lx+6,184-arm,3,4,C.skinA); // arm up to cup
+    // cup near face when sipping
+    if(sip>.4){ R(lx+6,178-arm,3,3,C.cup); emitSteam(lx+7,178-arm,.4); }
+    // RIGHT seated customer
+    const rx=404+off; R(rx-7,178,15,28,C.clothRust); R(rx-7,178,15,2,'#8a5848'); disc(rx,172,6,C.skinA); R(rx-5,166,11,5,C.hair);
+    R(rx-6,206,5,10,'#241a14'); R(rx+2,206,5,10,'#241a14');
+    // RIGHT standing customer (long coat) — foreground-ish
+    const sx=436+off; R(sx-7,170,15,46,C.clothGray); R(sx-7,170,15,2,'#4a5572'); disc(sx,164,6,C.skinB); R(sx-6,158,12,6,C.hair); R(sx+3,160,3,4,C.hair);
+    R(sx-7,210,15,6,'#20283a');
+  }
+
+  /* ---------- draw: counter ---------- */
+  function drawCounter(T,flick){
+    const off=ox(DEPTH.roof);
+    // counter top
+    R(40+off,150,412,9,C.counterTop); R(40+off,150,412,2,C.counterTopHi); R(40+off,157,412,2,'#3a2817');
+    // brick front
+    R(40+off,159,412,48,C.brick);
+    for(let y=159;y<207;y+=6){ R(40+off,y,412,1,C.grout); for(let x=40+((y-159)/6%2?3:0);x<452;x+=12){ R(x+off,y,1,6,C.grout);} }
+    R(40+off,159,412,1,C.brickHi);
+    // wet sheen + warm reflections of bulbs on brick
+    ctx.globalCompositeOperation='lighter';
+    for(const b of bulbs){ if(!b.on) continue; const bx=b.x+off; for(let k=0;k<6;k++){ const a=.1*(1-k/6)*flick; R(bx-1,160+k*4,2,2,rgba(WARM,a)); } }
+    ctx.globalCompositeOperation='source-over';
+  }
+  function drawCounterItems(T,flick){
+    const off=ox(DEPTH.roof);
+    // glass jars (biscuits) left
+    R(120+off,138,10,12,'#9fb2c0'); ctx.globalAlpha=.5; R(121+off,139,8,10,'#cfe0ea'); ctx.globalAlpha=1; R(122+off,144,6,5,C.biscuit); R(119+off,136,12,2,'#c9d6e0');
+    R(140+off,140,9,10,'#9fb2c0'); ctx.globalAlpha=.5; R(141+off,141,7,8,'#cfe0ea'); ctx.globalAlpha=1; R(142+off,145,5,4,'#d9b06a');
+    // tea pots
+    R(186+off,140,12,10,C.pot); R(186+off,140,12,2,'#434b57'); R(198+off,143,3,2,C.pot); disc(192+off,139,2,'#4a525e');
+    // cups row (one clickable = front cup at 230)
+    for(let i=0;i<4;i++){ const cx=216+i*16+off; R(cx,146,6,4,C.cup); R(cx,145,6,1,'#efe8da'); R(cx+1,147,4,2,C.cha); }
+    // kettle on stove (center-right)
+    const kx=300+off;
+    R(kx-9,146,20,4,C.stove); glow(kx,150,10,[255,122,44],.3*flick);
+    // stove flames
+    for(let i=0;i<4;i++){ const fh=3+Math.round(abs(sin(T*8+i))*3); R(kx-7+i*4,146-fh,2,fh,i%2?C.flame:C.flameHi); }
+    // kettle body
+    disc(kx,138,7,C.kettle); disc(kx-2,136,4,C.kettleHi); R(kx-2,130,4,3,'#7a8699'); R(kx+6,134,4,2,'#7a8699'); // spout+lid
+    R(kx-7,131,14,2,'#6d7890'); // handle base
+    emitSteam(kx+7,132,.8); // spout steam
+    // cup+saucer front (clickable)
+    R(224+off,147,8,4,C.cup); R(223+off,151,10,1,C.cupSh); R(225+off,148,6,2,C.cha); emitSteam(228+off,147,.5);
+  }
+
+  /* ---------- bulbs ---------- */
+  function drawBulbs(T,flick){
+    const off=ox(DEPTH.roof);
+    for(const b of bulbs){ const sway=sin(T*1.2+b.ph)*2.2; const x=b.x+off+sway, topY=58, y=104;
+      R(x,topY,1,y-topY,'#20283a'); // cord
+      R(x-3,y-3,6,2,C.bulbShade); R(x-4,y-5,8,2,'#a85e28'); // shade
+      if(b.on){ const a=flick*(.9+.08*sin(T*5+b.ph)); glow(x,y+4,40,C.bulbG,.40*a); glow(x,y+4,15,HOT,.46*a); disc(x,y+4,4,'#ffd27a'); R(x-2,y+2,4,5,'#ffe3a0'); disc(x,y+4,2,C.bulbCore); }
+      else { disc(x,y+4,4,'#3a3a44'); R(x-2,y+2,4,5,'#2f2f38'); }
+    }
+  }
+
+  /* ---------- floor + foreground ---------- */
+  function drawFloor(T,flick){
+    const off=ox(DEPTH.roof);
+    R(0,207,BW,BH-207,'#191f2e');
+    for(let x=0;x<BW;x+=3){ R(x,207,3,1,'#232b3d'); }
+    // tile wet sheen
+    ctx.globalCompositeOperation='lighter';
+    // wet-floor sheen band near the counter base
+    for(let x=0;x<BW;x++){ const a=.05*(0.6+0.4*sin(T*1.5+x*0.2)); R(x,208,1,3,rgba([120,150,210],a)); }
+    // warm bulb reflections streaking down the wet floor
+    for(const b of bulbs){ if(!b.on)continue; const bx=b.x+off; for(let k=0;k<16;k++){ const a=.24*(1-k/16)*flick*(.6+.4*sin(T*2.5+k+b.ph)); const w=2+Math.round(sin(T*2+k)*1.5); R(bx-1,208+k*3,2+w,2,rgba(C.puddleWarm,a)); } }
+    ctx.globalCompositeOperation='source-over';
+    // puddle rim front
+    ctx.globalAlpha=.3; R(70,236,120,6,C.tileWet); R(300,244,120,5,C.tileWet); ctx.globalAlpha=1;
+    // ripples on floor puddles
+    for(const rp of ripples){ ctx.globalAlpha=max(0,rp.life/rp.max)*.6; ctx.strokeStyle=rgba([150,200,220],1); ctx.lineWidth=1; ctx.beginPath(); ctx.ellipse(rp.x,rp.y,rp.r,rp.r*.32,0,0,PI*2); ctx.stroke(); ctx.globalAlpha=1; }
+  }
+  function drawStools(T){
+    const off=ox(DEPTH.roof); const xs=[76,150,330,404];
+    for(const sx0 of xs){ const sx=sx0+off; R(sx-6,210,12,3,'#8a3a2a'); R(sx-6,210,12,1,'#b05038'); R(sx-5,213,2,22,'#1a2030'); R(sx+3,213,2,22,'#1a2030'); R(sx-5,230,10,1,'#1a2030'); }
+  }
+  function drawRailFg(T){
+    // foreground close railing + near plant
+    const off=ox(DEPTH.fore);
+    // potted plant right foreground
+    const px=452+off; R(px,232,14,16,C.pot2); R(px,232,14,2,'#8a5636');
+    for(let i=0;i<6;i++){ const lx=px+2+i*2, sway=Math.round(sin(T*1.5+i)*1); R(lx+sway,222,2,10,C.plant); R(lx+sway,222,1,4,C.plantHi); }
+    // clothesline cloths swaying (upper foreground, from post)
+  }
+  function drawClothesline(T){
+    const off=ox(DEPTH.roof);
+    ctx.strokeStyle='#15223a'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(60+off,66); ctx.quadraticCurveTo(150+off,74,240+off,66); ctx.stroke();
+    const cols=[C.clothRust,C.clothTeal,'#b9b0a0']; for(let i=0;i<3;i++){ const cx=90+i*50+off, sw=Math.round(sin(T*1.6+i)*1); R(cx+sw,67,10,12,cols[i]); R(cx+sw,67,10,1,'#ffffff22'); }
+  }
+
+  /* ---------- steam / rain ---------- */
+  function emitSteam(x,y,rate){ if(rng()<rate*0.5) steam.push({x,y,vy:7+rng()*6,r:1+rng()*1.5,life:1,dx:(rng()-.3)*3}); }
+  function drawSteam(T){ ctx.globalCompositeOperation='lighter'; for(const s of steam){ ctx.globalAlpha=max(0,s.life)*.16; disc(s.x,s.y,s.r,rgba(C.steam,1)); } ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; }
+  function drawRainLayer(arr,col,alpha,shelter){
+    ctx.strokeStyle=rgba(hx(col),alpha); ctx.lineWidth=1; ctx.beginPath();
+    const slope=wind*0.03;
+    for(const d of arr){ ctx.moveTo(d.x,d.y); ctx.lineTo(d.x+slope*d.l, d.y+d.l); }
+    ctx.stroke();
+  }
+
+  /* ---------- update ---------- */
+  function update(dt,T){
+    wind=8+6*sin(T*0.1)+4*sin(T*0.33+1);
+    camX+=(camTX-camX)*min(1,dt*6); camY+=(camTY-camY)*min(1,dt*6);
+    // rain
+    function upRain(arr,heavyBoost){ const spd=state.heavy?1.5:1; for(const d of arr){ d.y+=d.sp*spd*dt; d.x+=wind*0.05*spd*dt; if(d.y>BH){ d.y=-4; d.x=rng()*BW; if(state.rain&&rng()<0.04){ ripples.push({x:d.x,y:210+rng()*55,r:1,life:.8,max:.9}); } } if(d.x>BW)d.x-=BW; if(d.x<0)d.x+=BW; } }
+    if(state.rain){ upRain(rainCity); upRain(rainNear); }
+    // roof drips from awning
+    if(state.rain && rng()<(state.heavy?0.5:0.22)){ drips.push({x:40+rng()*412,y:58,vy:40,life:1}); }
+    for(let i=drips.length-1;i>=0;i--){ const d=drips[i]; d.y+=d.vy*dt; d.vy+=180*dt; if(d.y>150){ splashes.push({x:d.x,y:150,life:.4}); drips.splice(i,1);} }
+    for(let i=splashes.length-1;i>=0;i--){ splashes[i].life-=dt*2; if(splashes[i].life<=0) splashes.splice(i,1); }
+    // ripples
+    for(let i=ripples.length-1;i>=0;i--){ const r=ripples[i]; r.r+=dt*20; r.life-=dt; if(r.life<=0) ripples.splice(i,1); }
+    // steam
+    for(let i=steam.length-1;i>=0;i--){ const s=steam[i]; s.y-=s.vy*dt; s.x+=(s.dx+wind*0.2)*dt; s.r+=dt*2.2; s.life-=dt*.4; if(s.life<=0) steam.splice(i,1); }
+    // rickshaws
+    for(let i=0;i<rickshaws.length;i++){ const rk=rickshaws[i]; rk.x+=rk.sp*rk.dir*dt; rk.ph+=rk.sp*rk.dir*dt*0.5; if(rk.dir>0&&rk.x>BW+40) Object.assign(rk,spawnRick(i)); if(rk.dir<0&&rk.x<-40) Object.assign(rk,spawnRick(i)); }
+    // peds
+    for(const p of peds){ p.x+=p.sp*p.dir*dt; p.ph+=p.sp*dt*0.6; if(p.dir>0&&p.x>BW+10){p.x=-10;} if(p.dir<0&&p.x<-10){p.x=BW+10;} }
+    // birds shift
+    for(const b of birds){ if(b.up>0){ b.up-=dt*8; if(b.up<0)b.up=0; } else if(rng()<0.002){ b.up=3; } }
+    // dynamic windows flip
+    if(rng()<dt*1.5){ const w=dynWins[ri(0,dynWins.length-1)]; if(w) w.on=!w.on; }
+    // clouds handled by T
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    const T=state.T, flick=0.9+0.08*sin(T*6.1)+0.03*sin(T*12.7);
+    ctx.clearRect(0,0,BW,BH);
+    drawSky(T); drawStars(T); drawMoon(T); drawClouds(T);
+    drawCity(T);                 // clipped city incl. its own rain
+    // drips (falling from awning into opening) + splashes
+    ctx.strokeStyle='rgba(170,195,235,.6)'; ctx.lineWidth=1; ctx.beginPath(); for(const d of drips){ ctx.moveTo(d.x,d.y); ctx.lineTo(d.x+wind*0.02, d.y+3);} ctx.stroke();
+    for(const s of splashes){ ctx.globalAlpha=s.life*2; R(s.x-1,s.y,3,1,'#9fc0ea'); ctx.globalAlpha=1; }
+    drawClothesline(T);
+    drawFrame(T,flick);
+    drawSeller(T);
+    drawCounter(T,flick);
+    drawCounterItems(T,flick);
+    drawBulbs(T,flick);
+    drawFloor(T,flick);
+    drawStools(T);
+    drawCustomers(T);
+    drawSteam(T);
+    drawRailFg(T);
+    if(state.rain) drawRainLayer(rainNear, '#cfe0ff', .55, 1);
+    // hover highlight
+    if(hoverStall){ ctx.globalCompositeOperation='lighter'; ctx.fillStyle=rgba(WARM,.04); ctx.fillRect(40,150,412,57); ctx.globalCompositeOperation='source-over'; }
+    // vignette
+    const g=ctx.createRadialGradient(BW/2,BH*0.5,50,BW/2,BH*0.5,BW*0.62); g.addColorStop(0,'rgba(5,7,16,0)'); g.addColorStop(1,'rgba(4,6,14,0.5)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,BW,BH);
+  }
+
+  /* ---------- loop ---------- */
+  let last=performance.now()/1000;
+  function frame(now){ now/=1000; let dt=min(0.05,now-last); last=now; state.T+=dt; update(dt,state.T); render(); if(state.running) requestAnimationFrame(frame); }
+  function startLoop(){ if(state.running)return; state.running=true; last=performance.now()/1000; requestAnimationFrame(frame); }
+  function stopLoop(){ state.running=false; }
+
+  /* ---------- interaction ---------- */
+  const stage=document.getElementById('stage');
+  function toC(e){ const r=cv.getBoundingClientRect(); const px=(e.touches?e.touches[0].clientX:e.clientX)-r.left, py=(e.touches?e.touches[0].clientY:e.clientY)-r.top; return {x:px/r.width*BW,y:py/r.height*BH,nx:(px/r.width-.5)*2,ny:(py/r.height-.5)*2}; }
+  stage.addEventListener('mousemove',e=>{ const c=toC(e); camTX=c.nx*8; camTY=c.ny*5; hoverStall=(c.y>150&&c.y<207); });
+  stage.addEventListener('mouseleave',()=>{camTX=0;camTY=0;hoverStall=false;});
+  stage.addEventListener('touchmove',e=>{const c=toC(e);camTX=c.nx*8;camTY=c.ny*5;},{passive:true});
+
+  cv.addEventListener('click',e=>{ const c=toC(e); const off=ox(DEPTH.roof);
+    // bulbs
+    for(const b of bulbs){ const bx=b.x+off; if(abs(c.x-bx)<7&&c.y>58&&c.y<114){ b.on=!b.on; return; } }
+    // front cup
+    if(abs(c.x-(228+off))<8&&abs(c.y-149)<7){ for(let i=0;i<8;i++) steam.push({x:228+off+(rng()-.5)*6,y:148,vy:9+rng()*7,r:1,life:1,dx:(rng()-.3)*3}); return; }
+    // radio
+    if(c.x>14+off&&c.x<36+off&&c.y>138&&c.y<152){ radioOn=!radioOn; toggleMusic(radioOn); return; }
+    // rickshaw
+    const so=ox(DEPTH.street); for(const rk of rickshaws){ const rx=rk.x+so; if(abs(c.x-rx)<14&&abs(c.y-rk.y)<14){ rk.sp*=1.6; bell(); return; } }
+  });
+
+  /* ---------- controls ---------- */
+  const bRain=document.getElementById('bRain'),bHeavy=document.getElementById('bHeavy'),bSound=document.getElementById('bSound'),bMusic=document.getElementById('bMusic'),sVol=document.getElementById('sVol'),bFull=document.getElementById('bFull');
+  bRain.addEventListener('click',()=>{state.rain=!state.rain;bRain.setAttribute('aria-pressed',String(state.rain));});
+  bHeavy.addEventListener('click',()=>{state.heavy=!state.heavy;bHeavy.setAttribute('aria-pressed',String(state.heavy));});
+  bSound.addEventListener('click',()=>{ setSound(!state.sound); });
+  bMusic.addEventListener('click',()=>{ radioOn=!radioOn; toggleMusic(radioOn); });
+  sVol.addEventListener('input',()=>{ state.vol=sVol.value/100; if(audio) audio.master.gain.value=state.vol; });
+  bFull.addEventListener('click',()=>{ const el=document.getElementById('stage'); if(!document.fullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||(()=>{})).call(el); } else { (document.exitFullscreen||(()=>{})).call(document); } });
+
+  /* ---------- audio (procedural, on gesture) ---------- */
+  let audio=null;
+  function ensureAudio(){ if(audio) return true; try{ const AC=window.AudioContext||window.webkitAudioContext; if(!AC) return false; const ac=new AC();
+    const master=ac.createGain(); master.gain.value=state.vol; master.connect(ac.destination);
+    // rain bus
+    const buf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const d=buf.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+    const rsrc=ac.createBufferSource(); rsrc.buffer=buf; rsrc.loop=true;
+    const rbp=ac.createBiquadFilter(); rbp.type='bandpass'; rbp.frequency.value=1600; rbp.Q.value=.4;
+    const rgain=ac.createGain(); rgain.gain.value=0; rsrc.connect(rbp); rbp.connect(rgain); rgain.connect(master); rsrc.start();
+    // traffic rumble
+    const bbuf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const bd=bbuf.getChannelData(0); let l=0; for(let i=0;i<bd.length;i++){const w=Math.random()*2-1;l=(l+.02*w)/1.02;bd[i]=l*3;}
+    const bsrc=ac.createBufferSource(); bsrc.buffer=bbuf; bsrc.loop=true; const blp=ac.createBiquadFilter(); blp.type='lowpass'; blp.frequency.value=160; const bgain=ac.createGain(); bgain.gain.value=0; bsrc.connect(blp); blp.connect(bgain); bgain.connect(master); bsrc.start();
+    // music bus (lofi pad)
+    const mgain=ac.createGain(); mgain.gain.value=0; const mlp=ac.createBiquadFilter(); mlp.type='lowpass'; mlp.frequency.value=900; mlp.connect(mgain); mgain.connect(master);
+    audio={ac,master,rgain,bgain,mgain,mlp,oscs:[],crackle:null};
+    scheduleMusic();
+    return true; }catch(e){ return false; } }
+  function setSound(on){ if(on){ if(!ensureAudio()) return; audio.ac.resume(); audio.rgain.gain.setTargetAtTime(0.10,audio.ac.currentTime,.8); audio.bgain.gain.setTargetAtTime(0.06,audio.ac.currentTime,.8); state.sound=true; }
+    else { if(audio){ audio.rgain.gain.setTargetAtTime(0,audio.ac.currentTime,.4); audio.bgain.gain.setTargetAtTime(0,audio.ac.currentTime,.4);} state.sound=false; } bSound.setAttribute('aria-pressed',String(state.sound)); }
+  function toggleMusic(on){ if(on){ if(!ensureAudio()) return; audio.ac.resume(); audio.mgain.gain.setTargetAtTime(0.10,audio.ac.currentTime,1.0); } else { if(audio) audio.mgain.gain.setTargetAtTime(0,audio.ac.currentTime,.6); } bMusic.setAttribute('aria-pressed',String(on)); }
+  let musicTimer=null;
+  function scheduleMusic(){ if(!audio) return; const ac=audio.ac; const chords=[[220,261.6,329.6],[196,246.9,293.7],[174.6,220,261.6],[196,233,293.7]]; let ci=0;
+    function play(){ if(!audio) return; const t=ac.currentTime; const ch=chords[ci%chords.length]; ci++;
+      ch.forEach((f,k)=>{ const o=ac.createOscillator(); o.type='triangle'; o.frequency.value=f/2; const g=ac.createGain(); g.gain.value=0; o.connect(g); g.connect(audio.mlp);
+        g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.14,t+0.8); g.gain.linearRampToValueAtTime(0.0,t+3.6); o.start(t); o.stop(t+3.8); });
+      musicTimer=setTimeout(play, 3400); }
+    play();
+    // vinyl crackle
+    const cbuf=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate); const cd=cbuf.getChannelData(0); for(let i=0;i<cd.length;i++){ cd[i]= (Math.random()<0.004)?(Math.random()*2-1)*0.5:0; }
+    const csrc=ac.createBufferSource(); csrc.buffer=cbuf; csrc.loop=true; const cg=ac.createGain(); cg.gain.value=0.5; csrc.connect(cg); cg.connect(audio.mgain); csrc.start(); audio.crackle=csrc;
+  }
+  function bell(){ if(!audio||!state.sound) return; const ac=audio.ac,t=ac.currentTime; [1318,1760].forEach((f,k)=>{ const o=ac.createOscillator(); o.type='sine'; o.frequency.value=f; const g=ac.createGain(); g.gain.value=0; o.connect(g); g.connect(audio.master); g.gain.setValueAtTime(0,t+k*.12); g.gain.linearRampToValueAtTime(0.12,t+k*.12+.01); g.gain.exponentialRampToValueAtTime(0.001,t+k*.12+.4); o.start(t+k*.12); o.stop(t+k*.12+.45); }); }
+
+  /* ---------- reduced motion + visibility ---------- */
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const playbtn=document.getElementById('playbtn');
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) stopLoop(); else if(!reduce||state.started) startLoop(); });
+  if(reduce){ render(); playbtn.hidden=false; document.getElementById('hint').style.display='none'; playbtn.addEventListener('click',()=>{playbtn.hidden=true;state.started=true;startLoop();}); }
+  else startLoop();
+
+  // redraw once fonts (Bengali) are ready so the sign is crisp
+  if(document.fonts&&document.fonts.ready){ document.fonts.ready.then(()=>{ if(!state.running) render(); }); }
+})();
+</script>
+
+</body>
+</html>
